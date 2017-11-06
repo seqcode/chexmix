@@ -55,7 +55,7 @@ public class XOGPSConfig {
 	protected double betaScalingFactor = 0.05; //Scale the condition and component-specific beta value by this factor
 	protected double epsilonScalingFactor = 0.2; //Scale the condition and component-specific epsilon value by this factor
 	protected double motifMinROC = 0.70; //Motif prior is used only if the ROC is greater than this .	
-	protected double geneTrackExt = 500; //Range extension around geneTrack gff points
+	protected double extendWindow = 500; //Range extension around gff points
 	protected boolean multicondition_posprior=true; //Multiple condition positional prior
 	protected double prob_shared_binding=0.9; //Prior probability that binding sites are shared between conditions (Constant used to build positional priors between conditions)
 	protected int bmAnalysisWindowMax=10000;
@@ -76,7 +76,7 @@ public class XOGPSConfig {
     protected List<Region> regionsToPlotML = new ArrayList<Region>(); //List of regions that will be printed during ML training (for debugging/demonstration)
 	protected List<Region> regionsToPlot = new ArrayList<Region>(); //List of regions that will be printed during EM training (for debugging/demonstration)
 	protected List<Region> regionsToIgnore = new ArrayList<Region>(); //List of regions that will be ignored during EM training (i.e. known towers, etc)
-	protected List<Point> geneTrackPoints=null;	//List of points loaded from GeneTrack file and used to place binding components.
+	protected List<Point> initialPos=null;	//List of points loaded from GeneTrack file and used to place binding components.
 	protected List<StrandedRegion> motifRegions = new ArrayList<StrandedRegion>(); //List of regions to construct cross-linking point histograms (for testing)
 	protected boolean fixedModelRange = false;
 	protected boolean MLSharedComponentConfiguration = true; //For ML assignment: use a component configuration shared across all conditions or have condition-specific configs.
@@ -231,8 +231,8 @@ public class XOGPSConfig {
 				motifMinROC = Args.parseDouble(args, "minroc", motifMinROC);
 				//Plot the EM process on the composite
 				plotCompositeEM =  Args.parseFlags(args).contains("plot") ? true : false;
-				//Number of base pair to extend around gene track gff
-				geneTrackExt = Args.parseDouble(args, "genetrackext", geneTrackExt);
+				//Number of base pair to extend around gff
+				extendWindow = Args.parseDouble(args, "extwin", extendWindow);
 				//Regions to print during ML training
 				if(ap.hasKey("plotregions"))
 					regionsToPlotML = RegionFileUtilities.loadRegionsFromFile(Args.parseString(args, "plotregions", null), gen, -1);
@@ -241,9 +241,9 @@ public class XOGPSConfig {
 				//Regions to ignore during EM training
 				if(ap.hasKey("exclude"))
 					regionsToIgnore = RegionFileUtilities.loadRegionsFromFile(Args.parseString(args, "exclude", null), gen, -1);
-				//GeneTrack file loaded for testing only
-				if (ap.hasKey("genetrackfile"))
-					geneTrackPoints = RegionFileUtilities.loadPointsFromGFFFile(Args.parseString(args, "genetrackfile", null), gen);
+				//Initial position file
+				if (ap.hasKey("gfffile"))
+					initialPos = RegionFileUtilities.loadPointsFromGFFFile(Args.parseString(args, "gfffile", null), gen);
 				//Motif for plotting components
 				if (ap.hasKey("motifregions"))
 					motifRegions = RegionFileUtilities.loadStrandedRegionsFromMotifFile(gen, Args.parseString(args, "motifregions", null), -1);
@@ -339,7 +339,7 @@ public class XOGPSConfig {
 	public double getBetaScalingFactor(){return betaScalingFactor;}
 	public double getEpsilonScalingFactor(){return epsilonScalingFactor;}
 	public double getFixedAlpha(){return fixedAlpha;}
-	public double getGeneTrackExt(){return geneTrackExt;}
+	public double getWindowExtension(){return extendWindow;}
 	public double getMotifMinROC(){return motifMinROC;}
 	public boolean getPlotEM(){return plotCompositeEM;}
 	public boolean getWriteSinglePlots(){return writeSinglePlots;}
@@ -349,7 +349,7 @@ public class XOGPSConfig {
 	public int getAddFlankingComponentSpacing(){return addFlankingComponentSpacing;}
 	public List<Region> getRegionsToPlot(){return regionsToPlot;}
 	public List<Region> getRegionsToIgnore(){return regionsToIgnore;}
-	public List<Point> getGeneTrackPoints(){return geneTrackPoints;}
+	public List<Point> getInitialPos(){return initialPos;}
 	public List<StrandedRegion> getMotifRegions(){return motifRegions;}
 	public boolean doBMUpdate(){return updateBM;}
 	public int getMinComponentsForBMUpdate(){return minComponentsForBMUpdate;}

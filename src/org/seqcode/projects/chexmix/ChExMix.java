@@ -133,8 +133,8 @@ public class ChExMix {
 		
 		
 		List<Region> potentials = null;
-		if (gpsconfig.getGeneTrackPoints()!=null)
-			potentials = potentialFilter.executeGeneTrackFiler();
+		if (gpsconfig.getInitialPos()!=null)
+			potentials = potentialFilter.executeInitialPositionFiler();
 		else
 			potentials = potentialFilter.execute();
 		System.err.println(potentials.size()+" potential regions found. Total length: "+potentialFilter.getPotRegionLengthTotal());

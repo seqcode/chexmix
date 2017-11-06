@@ -176,12 +176,12 @@ public class PotentialRegionFilter {
 	 * Use potential regions provided by a user as a gff file
 	 * @param testRegions
 	 */
-	public List<Region> executeGeneTrackFiler(){
+	public List<Region> executeInitialPositionFiler(){
 				
 		List<Region> geneTrackRegions = new ArrayList<Region>();
 		// List of potential regions defined by running gene track
-		for (Point p : config.getGeneTrackPoints()){
-			geneTrackRegions.add(p.expand((int) config.getGeneTrackExt()/2));
+		for (Point p : config.getInitialPos()){
+			geneTrackRegions.add(p.expand((int) config.getWindowExtension()/2));
 		}
 		// sort and merge regions
 		List<Region> meregedRegion = Region.mergeRegions(geneTrackRegions);
@@ -755,9 +755,9 @@ public class PotentialRegionFilter {
 			PotentialRegionFilter filter = new PotentialRegionFilter(evconfig, config, econfig, manager, bman);
 			List<Region> potentials= null;
 			int stop=10000;
-			if (config.getGeneTrackPoints()!=null || config.getGeneTrackPoints().size()>0){
+			if (config.getInitialPos()!=null || config.getInitialPos().size()>0){
 				stop=1000;
-				potentials = filter.executeGeneTrackFiler();
+				potentials = filter.executeInitialPositionFiler();
 			}else{
 				potentials = filter.execute();
 			}
