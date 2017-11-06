@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.seqcode.gseutils.Pair;
-import org.seqcode.projects.chexmix.events.TagDensity;
 import org.seqcode.projects.chexmix.framework.ChExMixConfig;
 
 /**
@@ -304,7 +303,7 @@ public class ProteinDNAInteractionModel {
 	 * Create tag probability density of all components in Protein-DNA interaction model
 	 * @return tag probability density of all components
 	 */	
-	public TagDensity makeTagProbabilityDensityFromAllComponents(){		
+	public TagProbabilityDensity makeTagProbabilityDensityFromAllComponents(){		
 		double[] watsons = new double [modelWidth];
 		double[] cricks = new double [modelWidth];
 		for (int i=0; i < modelWidth; i++){
@@ -334,6 +333,6 @@ public class ProteinDNAInteractionModel {
 			empiricalWatson.add(new Pair<Integer,Double>(i-modelWidth/2,watsons[i]));
 			empiricalCrick.add(new Pair<Integer,Double>(i-modelWidth/2,cricks[i]));
 		}
-		return (new TagDensity(empiricalWatson,empiricalCrick));
+		return (new TagProbabilityDensity(empiricalWatson,empiricalCrick));
 	}	
 }

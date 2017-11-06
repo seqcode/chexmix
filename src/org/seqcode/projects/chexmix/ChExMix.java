@@ -16,7 +16,6 @@ import org.seqcode.projects.chexmix.events.BindingManager;
 import org.seqcode.projects.chexmix.events.BindingModel;
 import org.seqcode.projects.chexmix.events.EnrichmentSignificance;
 import org.seqcode.projects.chexmix.events.EventsConfig;
-import org.seqcode.projects.chexmix.events.TagDensity;
 import org.seqcode.projects.chexmix.framework.ChExMixConfig;
 import org.seqcode.projects.chexmix.framework.OutputFormatter;
 import org.seqcode.projects.chexmix.framework.PotentialRegionFilter;
@@ -73,7 +72,7 @@ public class ChExMix {
 				compositePoints.addAll(points);
 				//Build the composite distribution(s)
 				CompositeTagDistribution signalComposite = new CompositeTagDistribution(compositePoints, manager.getConditions().get(0), gpsconfig.MAX_BINDINGMODEL_WIDTH,true);
-				TagDensity currDensity=new TagDensity(signalComposite.getWinSize()-1);
+				TagProbabilityDensity currDensity=new TagProbabilityDensity(signalComposite.getWinSize()-1);
 
 				try {
 					currDensity.loadData(signalComposite.getCompositeWatson(), signalComposite.getCompositeCrick());
@@ -88,13 +87,13 @@ public class ChExMix {
 			ProteinDNAInteractionModel model = ProteinDNAInteractionModel.loadFromFile(chexmixconfig, new File(chexmixconfig.getModelFilename()));
 			List<ProteinDNAInteractionModel> models = new ArrayList<ProteinDNAInteractionModel>();
 			models.add(model);
-			TagDensity density = model.makeTagProbabilityDensityFromAllComponents();
+			TagProbabilityDensity density = model.makeTagProbabilityDensityFromAllComponents();
 			density.updateInfluenceRange();
 			tagProbDensities.add(density);
 			for(ControlledExperiment rep : manager.getReplicates())
 				bindingManager.setProteinDNAInteractionModel(rep, models);
 		}else{
-			TagDensity density = makeInitialTagProbabilityDensity();
+			TagProbabilityDensity density = makeInitialTagProbabilityDensity();
 			density.updateInfluenceRange();
 			tagProbDensities.add(density);
 		}
@@ -148,7 +147,7 @@ public class ChExMix {
 	/**
 	 * Make initial tag probability density to do binding event finding
 	 */
-	public TagDensity makeInitialTagProbabilityDensity(){
+	public TagProbabilityDensity makeInitialTagProbabilityDensity(){
 		
 		int modelWidth = chexmixconfig.getCompositeWinSize();		
 		// Initial density distribution for each component
@@ -215,7 +214,7 @@ public class ChExMix {
 			empiricalWatson.add(new Pair<Integer,Double>(i-modelWidth/2,watsons[i]));
 			empiricalCrick.add(new Pair<Integer,Double>(i-modelWidth/2,cricks[i]));
 		}
-		return (new TagDensity(empiricalWatson,empiricalCrick));
+		return (new TagProbabilityDensity(empiricalWatson,empiricalCrick));
 	}
 	
 	/**
@@ -227,8 +226,7 @@ public class ChExMix {
 		for(ControlledExperiment rep : manager.getReplicates()){
 			int i=0;
 			for (TagProbabilityDensity probs : bindingManager.getBindingModel(rep)){
-				TagDensity density = (TagDensity) probs;
-				density.printDensityToFile(distribFilename+"_"+i);
+				probs.printDensityToFile(distribFilename+"_"+i);
 				i++;
 			}
 		}

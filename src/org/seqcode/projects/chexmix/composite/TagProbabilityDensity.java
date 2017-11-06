@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -334,6 +335,24 @@ public class TagProbabilityDensity {
 		sorted = StatUtil.findMax(crickProbs);
 		crickSummit = sorted.cdr().first()+left;
 	}	
+	
+	public void printDensityToFile(String filename){
+		try {
+			FileWriter writer = new FileWriter(filename);
+			writer.write("#watson\n");
+			for (int i=0; i <watsonProbs.length ; i++)
+				writer.write(watsonProbs[i]+",");
+			writer.write("\n");
+			writer.write("#crick\n");
+			for (int i=0; i< crickProbs.length; i++)
+				writer.write(crickProbs[i]+",");
+			writer.write("\n");
+			writer.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 
 	
 	//Initialize the data structures
@@ -375,10 +394,10 @@ public class TagProbabilityDensity {
 	}
 	
 	//Update the influence range
-	protected void updateInfluenceRange(){
-		Pair<Integer,Integer> intervals = probIntervalDistances(0.95);
+	public void updateInfluenceRange(){
+		Pair<Integer,Integer> intervals = probIntervalDistances(0.75);
 		int longest = Math.max(Math.abs(intervals.car()), Math.abs(intervals.cdr()));
-		influenceRange = longest*2;
+		influenceRange = longest;
 	}
 	
 	//Look up the data corresponding to a distance

@@ -38,7 +38,6 @@ import org.seqcode.projects.chexmix.composite.TagProbabilityDensity;
 import org.seqcode.projects.chexmix.events.BindingEvent;
 import org.seqcode.projects.chexmix.events.BindingManager;
 import org.seqcode.projects.chexmix.events.EventsConfig;
-import org.seqcode.projects.chexmix.events.TagDensity;
 import org.seqcode.projects.chexmix.framework.ChExMixConfig;
 import org.seqcode.projects.chexmix.framework.PotentialRegionFilter;
 import org.seqcode.projects.chexmix.framework.ProfileCluster;
@@ -375,7 +374,7 @@ public class BindingMixture {
 			    				empiricalCrick.add(p_crick);
 			    			}
 				
-			    			TagDensity model = new TagDensity(empiricalWatson,empiricalCrick);
+			    			TagProbabilityDensity model = new TagProbabilityDensity(empiricalWatson,empiricalCrick);
 			    			model.updateInfluenceRange();
 			    			String outFile = distribFilename+"_"+rep.getName()+"_"+index+".txt";
 			    			model.printDensityToFile(outFile);
@@ -623,7 +622,7 @@ public class BindingMixture {
 	    				empiricalCrick.add(p_crick);
 	    			}
 		
-	    			TagDensity model = new TagDensity(empiricalWatson,empiricalCrick);
+	    			TagProbabilityDensity model = new TagProbabilityDensity(empiricalWatson,empiricalCrick);
 	    			model.updateInfluenceRange();
 	    			String outFile = distribFilename+"_"+rep.getName()+"_"+index+".txt";
 	    			model.printDensityToFile(outFile);
@@ -715,7 +714,7 @@ public class BindingMixture {
 							CompositeTagDistribution signalComposite = new CompositeTagDistribution(compositePoints, cond, config.MAX_BINDINGMODEL_WIDTH,true);
 							CompositeTagDistribution controlComposite = null;	
 							
-							TagDensity currDensity=null;
+							TagProbabilityDensity currDensity=null;
 							
 							if (config.useDeconvolvedModel()){						
 								//Initialize the mixture model 
@@ -755,7 +754,7 @@ public class BindingMixture {
 								for (ControlledExperiment rep : cond.getReplicates())
 									models.get(rep).add(mixtureModel.getModel());								
 							}else{								
-								currDensity = new TagDensity(signalComposite.getWinSize()-1);
+								currDensity = new TagProbabilityDensity(signalComposite.getWinSize()-1);
 								currDensity.loadData(signalComposite.getCompositeWatson(), signalComposite.getCompositeCrick());
 							}
 							
@@ -836,7 +835,7 @@ public class BindingMixture {
 							int index=0;
 							for (ProteinDNAInteractionModel model : models.get(rep)){
 								// here ?
-								TagDensity currDensity = model.makeTagProbabilityDensityFromAllComponents();
+								TagProbabilityDensity currDensity = model.makeTagProbabilityDensityFromAllComponents();
 								currDensity.updateInfluenceRange();
 								densities.get(rep).add(currDensity);
 								String distribFile = config.getOutputParentDir()+File.separator+config.getOutBase()+"_t"+trainingRound

@@ -242,8 +242,8 @@ public class XOGPSConfig {
 				if(ap.hasKey("exclude"))
 					regionsToIgnore = RegionFileUtilities.loadRegionsFromFile(Args.parseString(args, "exclude", null), gen, -1);
 				//Initial position file
-				if (ap.hasKey("gfffile"))
-					initialPos = RegionFileUtilities.loadPointsFromGFFFile(Args.parseString(args, "gfffile", null), gen);
+				if (ap.hasKey("gff"))
+					initialPos = RegionFileUtilities.loadPointsFromGFFFile(Args.parseString(args, "gff", null), gen);
 				//Motif for plotting components
 				if (ap.hasKey("motifregions"))
 					motifRegions = RegionFileUtilities.loadStrandedRegionsFromMotifFile(gen, Args.parseString(args, "motifregions", null), -1);
@@ -449,10 +449,9 @@ public class XOGPSConfig {
 				"\t--model <filename>\n" +
 				"Miscellaneous:\n" +
 				"\t--prlogconf <Poisson log threshold for potential region scanning(default="+prLogConf+")>\n" +
-				"\t--alphascale <alpha scaling factor(default="+alphaScalingFactor+">\n" +
 				"\t--alphascale <alpha scaling factor(default="+alphaScalingFactor+")>\n" +
 				"\t--fixedalpha <impose this alpha (default: set automatically)>\n" +
-				"\t--genetrackext <number of bp expansion centered around GeneTrack gff points (default: 50)]\n" +
+				"\t--extwin <number of bp expansion centered around gff points (default: 500)]\n" +
 				"\t--noxl [flag to turn off XL components for testing purposes]\n" +
 				"\t--nomodelupdate [flag to turn off binding model updates]\n" +
 				"\t--nomodelsmoothing [flag to turn off binding model smoothing]\n" +
@@ -466,7 +465,7 @@ public class XOGPSConfig {
 				"\t--plotregions <regions to print during ML training>\n" +
 				"\t--exclude <file of regions to ignore>\n" +
 				"\t--plotregions <regions to print during EM training>\n" +
-				"\t--genetrackfile <geneTrack file used for potential region filter>\n" +
+				"\t--gff <gff file used for component initialization>\n" +
 				"\t--motifregions <regions to print component distribution histogram>\n" +
 				"\t--genetrackext <number of bp to expand around geneTrack coordinates>\n" +
 				"\t--eventbasecomp [flag to record event base compositions]\n"+
