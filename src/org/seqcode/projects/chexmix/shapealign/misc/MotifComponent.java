@@ -1,5 +1,4 @@
 package org.seqcode.projects.chexmix.shapealign.misc;
-
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
