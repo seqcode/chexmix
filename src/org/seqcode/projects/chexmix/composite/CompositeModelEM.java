@@ -30,7 +30,7 @@ import org.seqcode.viz.utils.GifSequenceWriter;
 public class CompositeModelEM {
 
 	protected ExperimentCondition condition;
-	protected ChExMixConfig config;
+	protected XLAnalysisConfig config;
 	protected CompositeTagDistribution composite;
 	protected ProteinDNAInteractionModel model;
 	protected int numComponents;  //The count of all components (active +inactive) in the model
@@ -65,7 +65,7 @@ public class CompositeModelEM {
 	 * @param eMan: ExperimentManager
 	 * @throws Exception 
 	 */
-	public CompositeModelEM(CompositeTagDistribution composite, ChExMixConfig c, ExperimentCondition cond){
+	public CompositeModelEM(CompositeTagDistribution composite, XLAnalysisConfig c, ExperimentCondition cond){
 		this.composite=composite;
 		config=c;
 		condition = cond;

@@ -33,7 +33,7 @@ public class CompositeModelMixture {
 
 	protected GenomeConfig gconfig;
 	protected ExptConfig econfig;
-	protected ChExMixConfig config;
+	protected XLAnalysisConfig config;
 	protected ExperimentCondition condition;
 	protected CompositeTagDistribution compositeDistrib; //The composite tag distribution under investigation
 	protected CompositeTagDistribution controlCompositeDistrib; //Optional composite tag distribution from matching control
@@ -47,7 +47,7 @@ public class CompositeModelMixture {
 	protected int trainingRound=0;
 	protected boolean trainedModel=false;
 	
-	public CompositeModelMixture(CompositeTagDistribution tagDist, CompositeTagDistribution ctrlDist, GenomeConfig gcon, ExptConfig econ, ChExMixConfig ccon, ExperimentCondition cond){
+	public CompositeModelMixture(CompositeTagDistribution tagDist, CompositeTagDistribution ctrlDist, GenomeConfig gcon, ExptConfig econ, XLAnalysisConfig ccon, ExperimentCondition cond){
 		gconfig = gcon;
 		econfig = econ;
 		config = ccon;

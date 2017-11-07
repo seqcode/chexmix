@@ -35,13 +35,13 @@ import org.seqcode.projects.chexmix.composite.CompositeModelMixture;
 import org.seqcode.projects.chexmix.composite.CompositeTagDistribution;
 import org.seqcode.projects.chexmix.composite.ProteinDNAInteractionModel;
 import org.seqcode.projects.chexmix.composite.TagProbabilityDensity;
+import org.seqcode.projects.chexmix.composite.XLAnalysisConfig;
 import org.seqcode.projects.chexmix.events.BindingEvent;
 import org.seqcode.projects.chexmix.events.BindingManager;
 import org.seqcode.projects.chexmix.events.EventsConfig;
 import org.seqcode.projects.chexmix.framework.ChExMixConfig;
 import org.seqcode.projects.chexmix.framework.PotentialRegionFilter;
 import org.seqcode.projects.chexmix.framework.ProfileCluster;
-import org.seqcode.projects.chexmix.framework.XOGPSConfig;
 import org.seqcode.projects.chexmix.motifs.MotifPlatform;
 
 
@@ -56,8 +56,8 @@ public class BindingMixture {
 	protected GenomeConfig gconfig;
 	protected ExptConfig econfig;
 	protected EventsConfig evconfig;
-	protected XOGPSConfig config;
-	protected ChExMixConfig mixconfig;
+	protected ChExMixConfig config;
+	protected XLAnalysisConfig mixconfig;
 	protected ExperimentManager manager;
 	protected BindingManager bindingManager;
 	protected PotentialRegionFilter potRegFilter;
@@ -74,7 +74,7 @@ public class BindingMixture {
 	protected MotifPlatform motifFinder;
 	protected ProfileCluster cluster;
 	
-	public BindingMixture(GenomeConfig gcon, ExptConfig econ, EventsConfig evcon, XOGPSConfig c,ChExMixConfig mixcon, ExperimentManager eMan, BindingManager bMan, PotentialRegionFilter filter){
+	public BindingMixture(GenomeConfig gcon, ExptConfig econ, EventsConfig evcon, ChExMixConfig c,XLAnalysisConfig mixcon, ExperimentManager eMan, BindingManager bMan, PotentialRegionFilter filter){
 		gconfig = gcon;
 		econfig = econ;
 		evconfig = evcon;
@@ -119,16 +119,6 @@ public class BindingMixture {
 		relativeCtrlNoise = new double[manager.getNumConditions()];
 		initializeGlobalNoise();
 		
-		
-		if(config.useMultiConditionPosPrior()){
-			//Calculating the prior variables here for info only -- actual variables calculated in BindingEM. 
-			double N = testRegions.size();
-			double S = N*config.getProbSharedBinding();
-			double L = (double)config.getGenome().getGenomeLength();
-			double infoProbAgivenB = Math.log(config.getProbSharedBinding())/Math.log(2);
-	        double infoProbAgivenNOTB =  Math.log((N-S)/(L-N))/Math.log(2);
-			System.err.println("Multi-condition positional priors:\tA given B:"+String.format("%.4f", infoProbAgivenB)+"\tA given notB:"+String.format("%.4f", infoProbAgivenNOTB));
-		}		
 	}
 	
 	

@@ -35,19 +35,19 @@ import org.seqcode.projects.chexmix.mixturemodel.BindingSubComponents;
  */
 public class ProfileCluster {
 	
-	protected XOGPSConfig config;
+	protected ChExMixConfig config;
 	protected ExperimentManager manager;	
 	private PairwiseElementMetric<VectorClusterElement> metric = new EuclideanDistance<VectorClusterElement>();
 //	private PairwiseElementMetric<VectorClusterElement> metric = new ManhattanDistance<VectorClusterElement>();
 	protected int profileWidth;
 	
-	public ProfileCluster(XOGPSConfig c, ExperimentManager man){
+	public ProfileCluster(ChExMixConfig c, ExperimentManager man){
 		config=c;
 		manager=man;
 		profileWidth = config.MAX_BINDINGMODEL_WIDTH;
 	}
 	
-	public ProfileCluster(XOGPSConfig c){
+	public ProfileCluster(ChExMixConfig c){
 		config=c;
 		profileWidth = config.MAX_BINDINGMODEL_WIDTH;
 	}
@@ -430,7 +430,7 @@ public class ProfileCluster {
 
 	public static void main(String[] args){
 		GenomeConfig gcon = new GenomeConfig(args);
-		XOGPSConfig config = new XOGPSConfig(gcon, args);
+		ChExMixConfig config = new ChExMixConfig(gcon, args);
 		
 		double[][] array = new double[6][6];
 		for (int i=0; i < 6; i++)

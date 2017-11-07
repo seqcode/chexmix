@@ -37,14 +37,14 @@ import org.seqcode.motifs.MarkovMotifThresholdFinder;
 import org.seqcode.projects.chexmix.composite.CompositeTagDistribution;
 import org.seqcode.projects.chexmix.events.BindingManager;
 import org.seqcode.projects.chexmix.framework.ProfileCluster;
-import org.seqcode.projects.chexmix.framework.XOGPSConfig;
+import org.seqcode.projects.chexmix.framework.ChExMixConfig;
 import org.seqcode.projects.chexmix.mixturemodel.BindingSubComponents;
 
 
 public class MotifPlatform {
 	protected GenomeConfig gconfig;
 	protected Genome genome;
-	protected XOGPSConfig config;
+	protected ChExMixConfig config;
 	protected ExperimentManager manager;
 	protected BindingManager bindingManager;
 	protected SequenceGenerator<Region> seqgen;
@@ -62,7 +62,7 @@ public class MotifPlatform {
 	 * @param man
 	 * @param regionsOfInterest: this list contains all possible regions that motif-finding/scanning may be run on. 
 	 */
-	public MotifPlatform(GenomeConfig g, XOGPSConfig c, ExperimentManager man, BindingManager bman, List<Region> regionsOfInterest, ProfileCluster cluster ){
+	public MotifPlatform(GenomeConfig g, ChExMixConfig c, ExperimentManager man, BindingManager bman, List<Region> regionsOfInterest, ProfileCluster cluster ){
 		gconfig = g;
 		genome = gconfig.getGenome();
 		config = c;

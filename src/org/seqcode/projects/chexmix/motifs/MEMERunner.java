@@ -23,20 +23,20 @@ import org.seqcode.genome.sequence.SequenceGenerator;
 import org.seqcode.gseutils.ArgParser;
 import org.seqcode.gseutils.Args;
 import org.seqcode.gseutils.Pair;
-import org.seqcode.projects.chexmix.framework.XOGPSConfig;
+import org.seqcode.projects.chexmix.framework.ChExMixConfig;
 
 
 public class MEMERunner {
 
 	protected ExperimentManager manager; 
-	protected XOGPSConfig config;
+	protected ChExMixConfig config;
 	protected Genome gen;
 	protected String MEMEpath;
 	protected String MEMEargs;
 	protected Float pseudo = (float)0.001; 
 	
 	//Constructor
-	public MEMERunner(XOGPSConfig c, ExperimentManager man){
+	public MEMERunner(ChExMixConfig c, ExperimentManager man){
 		config=c;
 		manager=man;
 		
@@ -241,7 +241,7 @@ public class MEMERunner {
 		ArgParser ap = new ArgParser(args);
 		GenomeConfig gcon = new GenomeConfig(args);
 		ExptConfig econ = new ExptConfig(gcon.getGenome(), args);
-		XOGPSConfig config = new XOGPSConfig(gcon, args);
+		ChExMixConfig config = new ChExMixConfig(gcon, args);
 		List<Region> analysisRegs;
 		List<String> analysisSeqs=new ArrayList<String>();
 		

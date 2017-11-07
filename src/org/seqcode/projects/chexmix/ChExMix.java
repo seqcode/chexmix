@@ -12,6 +12,7 @@ import org.seqcode.projects.chexmix.composite.CompositeModelMixture;
 import org.seqcode.projects.chexmix.composite.CompositeTagDistribution;
 import org.seqcode.projects.chexmix.composite.ProteinDNAInteractionModel;
 import org.seqcode.projects.chexmix.composite.TagProbabilityDensity;
+import org.seqcode.projects.chexmix.composite.XLAnalysisConfig;
 import org.seqcode.projects.chexmix.events.BindingManager;
 import org.seqcode.projects.chexmix.events.BindingModel;
 import org.seqcode.projects.chexmix.events.EnrichmentSignificance;
@@ -19,7 +20,6 @@ import org.seqcode.projects.chexmix.events.EventsConfig;
 import org.seqcode.projects.chexmix.framework.ChExMixConfig;
 import org.seqcode.projects.chexmix.framework.OutputFormatter;
 import org.seqcode.projects.chexmix.framework.PotentialRegionFilter;
-import org.seqcode.projects.chexmix.framework.XOGPSConfig;
 import org.seqcode.projects.chexmix.mixturemodel.BindingMixture;
 import org.seqcode.projects.chexmix.utilities.EventsPostAnalysis;
 import org.seqcode.deepseq.experiments.ControlledExperiment;
@@ -37,8 +37,8 @@ public class ChExMix {
 	protected GenomeConfig gconfig;
 	protected ExptConfig econfig;
 	protected EventsConfig evconfig;
-	protected XOGPSConfig gpsconfig;
-	protected ChExMixConfig chexmixconfig;
+	protected ChExMixConfig gpsconfig;
+	protected XLAnalysisConfig xlconfig;
 	protected BindingManager bindingManager;
 	protected CompositeModelMixture modelmix;
 	protected BindingMixture mixtureModel4;
@@ -48,15 +48,15 @@ public class ChExMix {
 	protected Map<ControlledExperiment, List<TagProbabilityDensity>> repBindingModels;
 	protected Map<ControlledExperiment, List<BindingModel>> repUnstrandedBindingModels;
 	
-	public ChExMix(GenomeConfig gcon, ExptConfig econ, EventsConfig evcon, XOGPSConfig c, ChExMixConfig xc, ExperimentManager eMan){
+	public ChExMix(GenomeConfig gcon, ExptConfig econ, EventsConfig evcon, ChExMixConfig c, XLAnalysisConfig xc, ExperimentManager eMan){
 		gconfig = gcon;
 		econfig = econ;
 		evconfig = evcon;
 		manager = eMan;
 		gpsconfig = c;
-		chexmixconfig = xc;
-		chexmixconfig.makeChExMixOutputDirs(true);
-		gpsconfig.makeXOGPSOutputDirs(true);
+		xlconfig = xc;
+		xlconfig.makeXLAnalysisOutputDirs(true);
+		gpsconfig.makeChExMixOutputDirs(true);
 		outFormatter = new OutputFormatter(gpsconfig);
 		bindingManager = new BindingManager(evconfig, manager);
 		
@@ -83,8 +83,8 @@ public class ChExMix {
 				currDensity.updateInfluenceRange();		
 				tagProbDensities.add(currDensity);
 			}	
-		}else if (chexmixconfig.getModelFilename()!= null){
-			ProteinDNAInteractionModel model = ProteinDNAInteractionModel.loadFromFile(chexmixconfig, new File(chexmixconfig.getModelFilename()));
+		}else if (xlconfig.getModelFilename()!= null){
+			ProteinDNAInteractionModel model = ProteinDNAInteractionModel.loadFromFile(xlconfig, new File(xlconfig.getModelFilename()));
 			List<ProteinDNAInteractionModel> models = new ArrayList<ProteinDNAInteractionModel>();
 			models.add(model);
 			TagProbabilityDensity density = model.makeTagProbabilityDensityFromAllComponents();
@@ -149,7 +149,7 @@ public class ChExMix {
 	 */
 	public TagProbabilityDensity makeInitialTagProbabilityDensity(){
 		
-		int modelWidth = chexmixconfig.getCompositeWinSize();		
+		int modelWidth = xlconfig.getCompositeWinSize();		
 		// Initial density distribution for each component
 		TagProbabilityDensity initBackDistrib, initCSDistrib, initXLDistrib;
 		//CS
@@ -159,7 +159,7 @@ public class ChExMix {
 		
 		//XO
 		initXLDistrib = new TagProbabilityDensity(200);
-		initXLDistrib.loadGaussianDistrib(-chexmixconfig.getXLDistribOffset(), chexmixconfig.getXLDistribSigma(),chexmixconfig.getXLDistribOffset(), chexmixconfig.getXLDistribSigma());
+		initXLDistrib.loadGaussianDistrib(-xlconfig.getXLDistribOffset(), xlconfig.getXLDistribSigma(),xlconfig.getXLDistribOffset(), xlconfig.getXLDistribSigma());
 		//Background
 		initBackDistrib = new TagProbabilityDensity(modelWidth);
 		initBackDistrib.loadFlatDistrib();
@@ -243,7 +243,7 @@ public class ChExMix {
 
 		Double[] kl;
 		System.err.println("Initialzing mixture model");
-		mixtureModel4 = new BindingMixture(gconfig, econfig, evconfig, gpsconfig,chexmixconfig, manager, bindingManager, potentialFilter);
+		mixtureModel4 = new BindingMixture(gconfig, econfig, evconfig, gpsconfig,xlconfig, manager, bindingManager, potentialFilter);
 		
 		int round = 0;
 		boolean converged = false;
@@ -338,11 +338,11 @@ public class ChExMix {
 	 */
 	public static void main(String[] args) throws Exception{
 		System.setProperty("java.awt.headless", "true");
-		System.err.println("ChExMix version "+XOGPSConfig.version+"\n\n");
+		System.err.println("ChExMix version "+ChExMixConfig.version+"\n\n");
 		GenomeConfig gcon = new GenomeConfig(args);
 		EventsConfig evconfig = new EventsConfig(gcon, args);
-		XOGPSConfig config = new XOGPSConfig(gcon, args);
-		ChExMixConfig mixconfig = new ChExMixConfig(gcon, args);
+		ChExMixConfig config = new ChExMixConfig(gcon, args);
+		XLAnalysisConfig xlconfig = new XLAnalysisConfig(gcon, args);
 		
 		ExptConfig econ = new ExptConfig(gcon.getGenome(), args);
 		if (!config.useReadFilter())
@@ -360,7 +360,7 @@ public class ChExMix {
 				System.err.println("No experiments specified. Use --expt or --design options."); System.exit(1);
 			}
 			
-			ChExMix gps = new ChExMix(gcon, econ, evconfig, config, mixconfig, manager);
+			ChExMix gps = new ChExMix(gcon, econ, evconfig, config, xlconfig, manager);
 			gps.runMixtureModel4();
 			
 			manager.close();

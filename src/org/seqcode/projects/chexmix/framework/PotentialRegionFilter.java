@@ -46,7 +46,7 @@ public class PotentialRegionFilter {
 	protected ExperimentManager manager; 
 	protected BindingManager bindingManager;
 	protected EventsConfig evconfig;
-	protected XOGPSConfig config;
+	protected ChExMixConfig config;
 	protected ExptConfig econfig;
 	protected Genome gen;
 	protected float maxBinWidth=0, binStep, winExt;
@@ -62,7 +62,7 @@ public class PotentialRegionFilter {
 	protected HashMap<ControlledExperiment, Double> potRegCountsSigChannelByRep = new HashMap<ControlledExperiment, Double>();
 	protected HashMap<ControlledExperiment, Double> nonPotRegCountsSigChannelByRep = new HashMap<ControlledExperiment, Double>();
 	
-	public PotentialRegionFilter(EventsConfig ec, XOGPSConfig c, ExptConfig econ, ExperimentManager eman, BindingManager bman){
+	public PotentialRegionFilter(EventsConfig ec, ChExMixConfig c, ExptConfig econ, ExperimentManager eman, BindingManager bman){
 		manager = eman;
 		bindingManager = bman;
 		evconfig = ec;
@@ -720,7 +720,7 @@ public class PotentialRegionFilter {
 		ExptConfig econfig = new ExptConfig(gconfig.getGenome(), args);
 		econfig.setPerBaseReadFiltering(false);	
 		EventsConfig evconfig = new EventsConfig(gconfig, args);
-		XOGPSConfig config = new XOGPSConfig(gconfig, args);
+		ChExMixConfig config = new ChExMixConfig(gconfig, args);
 		if(config.helpWanted()){
 			System.err.println("PotentialRegionFilter:");
 			System.err.println(config.getArgsList());

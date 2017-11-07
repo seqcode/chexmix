@@ -14,81 +14,119 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
+import org.seqcode.data.io.IOUtil;
 import org.seqcode.data.io.RegionFileUtilities;
 import org.seqcode.genome.Genome;
 import org.seqcode.genome.GenomeConfig;
 import org.seqcode.genome.location.Point;
 import org.seqcode.genome.location.Region;
 import org.seqcode.genome.location.StrandedPoint;
+import org.seqcode.genome.location.StrandedRegion;
 import org.seqcode.gseutils.ArgParser;
 import org.seqcode.gseutils.Args;
+import org.seqcode.projects.chexmix.composite.CompositeTagDistribution;
 import org.seqcode.projects.chexmix.composite.TagProbabilityDensity;
 
-
 /**
- * XLAnalysisConfig: 
+ * XOGPSConfig: 
  * 		Maintains all constants needed by ChExMix. 
  *     
- * @author Shaun Mahony
+ * @author Naomi Yamada
  * @version	%I%, %G%
  */
 public class ChExMixConfig {
 
 	public static String version = "0.1";
+	public boolean isGPS=true;
 	protected GenomeConfig gconfig;
 	protected Genome gen=null;
-	protected String outName="chexmix", outBase="chexmix";
+	protected String outName="xogps", outBase="xogps";
 	protected File outDir=null, interDir=null, imagesDir=null;
 	protected boolean printHelp=false;
-	protected String model=null; //Filename containing existing model
-	protected TagProbabilityDensity defaultCSModel=null;
-	protected List<StrandedPoint> compositePoints = new ArrayList<StrandedPoint>(); //Centers of the composite plots
-	protected int compositeWinSize=1000; //Width of the composite plot
-	protected int XLDistribOffset=6; //exonuclease head-space
-	protected double XLDistribSigma=1.5; //gaussian distrib sigma
-	protected int XLComponentSpacing = 5; //Inital number of bp between XL Components
-	protected int minModelUpdateRounds=3; //Minimum number of outer EM training rounds
-	protected int maxModelUpdateRounds=10; //Maximum number of outer EM training rounds
+	protected double sigLogConf=-7; 
+	protected double prLogConf=-6; 
+	protected int minModelUpdateRounds=1; //Minimum number of outer EM training rounds
+	protected int maxModelUpdateRounds=3; //Maximum number of outer EM training rounds
+	protected int posPriorScaling=10;
 	protected double modelConvergenceKL=-25; //KL-divergence threshold for convergence 
 	protected int maxThreads=1;				//Number of threads to use. Default is 1 for single processor machines. 
-	protected double alphaScalingFactor = 10.0; //Scale the alpha value by this factor relative to the noise component per-base
+	protected double alphaScalingFactor = 1.0; //Scale the condition-specific alpha value by this factor
 	protected double fixedAlpha = 0.0; //Fixed alpha value if above 0
-	protected boolean noXL=false; //Test method that turns off XL components (by seeting all XL pi to zero from start). 
+	protected double betaScalingFactor = 0.05; //Scale the condition and component-specific beta value by this factor
+	protected double epsilonScalingFactor = 0.2; //Scale the condition and component-specific epsilon value by this factor
+	protected double motifMinROC = 0.70; //Motif prior is used only if the ROC is greater than this .	
+	protected double extendWindow = 500; //Range extension around gff points
+	protected int bmAnalysisWindowMax=10000;
+	protected int minComponentsForBMUpdate = 100;
+	protected int minRefsForBMUpdate = 50;
+	protected double minSubtypeFraction = 0.05; // A subtype needs to be associated with at least this fraction of binding events to be supported 
+	protected double minComponentReadFactorForBM = 3; //Components must have (this factor times the condition alpha) number of reads assigned before being included in BM update
 	protected boolean smoothingBMDuringUpdate=true;
 	protected boolean gaussianSmoothingBMDuringUpdate=false;
 	protected boolean updateBM=true; //Set to false to turn off binding model update
-	protected double bindingmodel_spline_smooth = 30; //Smoothing step for cubic spline in binding model reestimation
-    protected double bindingmodel_gauss_smooth = 2; //Variance for Gaussian smoothing in binding model reestimation
-    protected boolean plotCompositeEM=false; //Plot the EM process for the composite plots
-	protected boolean printCompositeResponsibilities = true; //Print the responsibilities for each composite position
-	protected boolean writeSinglePlots=false; //Plot the individual PNG images along with the gifs
-    protected List<Region> regionsToPlotML = new ArrayList<Region>(); //List of regions that will be printed during ML training (for debugging/demonstration)
-    protected List<Point> scanPoints = new ArrayList<Point>(); //Centers of the scan sites in scanning applications
-	protected boolean multicondition_posprior=false; //Multiple condition positional prior
-    protected double prob_shared_binding=0.1; //Prior probability that binding sites are shared between conditions (Constant used to build positional priors between conditions)
-    protected double init_xl = 5;	//Number of XL expected in a given composite plot (Constant used for positional prior) 
-    protected boolean fixed_xl_offset=true; //Estimate the XL component offset (mean)?
+	protected double bindingmodel_spline_smooth = 10; //Smoothing step for cubic spline in binding model reestimation
+    protected double bindingmodel_gauss_smooth = 1; //Variance for Gaussian smoothing in binding model reestimation
+    protected int addFlankingComponentSpacing=20; //In non-first rounds of EM, the components are initialized using the positions from the last round with additional flanking components added at this spacing
+	protected List<Region> regionsToPlot = new ArrayList<Region>(); //List of regions that will be printed during EM training (for debugging/demonstration)
+	protected List<Region> regionsToIgnore = new ArrayList<Region>(); //List of regions that will be ignored during EM training (i.e. known towers, etc)
+	protected List<Point> initialPos=null;	//List of points loaded from GeneTrack file and used to place binding components.
+	protected List<StrandedRegion> motifRegions = new ArrayList<StrandedRegion>(); //List of regions to construct cross-linking point histograms (for testing)
+	protected boolean MLSharedComponentConfiguration = true; //For ML assignment: use a component configuration shared across all conditions or have condition-specific configs.
+	protected boolean findMotifs = true; //Run motif-finding for motif prior
+	protected boolean motif_posprior=true; //You can have motif-finding without using the motif-prior
+	protected boolean sharedCS=true;	// CS components are shared between subtypes
+	protected boolean deconvolvedModel=false; // Deconvolve composite plot and use as a read distribution model
+	protected boolean doReadFilter=false;	// Turn on per base read filter in case of highly duplicated experiment
+	protected String MEMEpath="";
+	protected String MEMEargs=" -dna -mod zoops -revcomp -nostatus ";    //Do not try using -p here; it leads to MEME runtime errors
+	public int MEMEminw=7;
+	public int MEMEmaxw=18;
+	protected String markovBackMode; // Markov background model file
+	protected boolean verbose = false; //Print extra output
+	protected List<List<StrandedPoint>> initialClustPoints = new ArrayList<List<StrandedPoint>>(); // Initial cluster points
+	
     
 	//Constants
 	public final double LOG2 = Math.log(2);
+	public final int POTREG_BIN_STEP = 100; //Sliding window step in potential region scanner
+	public final int MAXSECTION = 50000000;
 	public final double INIT_CS_TO_XL_RATIO=0.05; 	//Initial ratio of CS component pi values to sum of XO pi values.
 	public final double MIN_CS_PI = 0.05; //Minimum pi value for CS component
 	public final double MIN_ALPHA = 0.01; //Minimum alpha 
+	public final boolean FIXED_XL_OFFSET=true; //Estimate the XL component offset (mean)?
 	public final boolean XL_DISTRIB_SYMMETRIC=true; //Is the sigma associated with XL components symmetric?
+    public final int INIT_COMPONENT_SPACING=30;  //Initial component spacing
 	public final int MAX_EM_ITER=2000;
-    public final int EM_ML_ITER=100;     				//Run EM up until <tt>ML_ITER</tt> without using sparse prior
-    public final int ML_ML_ITER=100;     				//Run ML up until <tt>ML_ITER</tt> without using sparse prior
-    public final int ALPHA_ANNEALING_ITER=100;     //Run EM up until <tt>ALPHA_ANNEALING_ITER</tt> with smaller alpha based on the current iteration
-    public final int EM_MU_UPDATE_WIN=50; //Half the window size in which to look for mu maximization (i.e. component position) during EM.
+    public final int EM_ML_ITER=50;     				//Run EM up until <tt>ML_ITER</tt> without using sparse prior	**Changed from 100 to 50
+    public final int ML_ML_ITER=50;     				//Run ML up until <tt>ML_ITER</tt> without using sparse prior	**Changed from 100 to 50
+    public final int ALPHA_ANNEALING_ITER=100;     //Run EM up until <tt>ALPHA_ANNEALING_ITER</tt> with smaller alpha based on the current iteration 
+    public final int POSPRIOR_ITER=150;     //Run EM up until <tt>ALPHA_ANNEALING_ITER</tt> with uniform positional prior and then up until at least <tt>POSPRIOR_ANNEALING_ITER</tt> with activated positional prior
+    public final int EM_MU_UPDATE_WIN=30; //Half the window size in which to look for mu maximization (i.e. component position) during EM.
     public final double EM_CONVERGENCE = 1e-10; //EM convergence between the likelihood of the current and the previous step
     public final double EM_STATE_EQUIV_THRES = 1e-10; //EM state equivalence threshold 
     public final int EM_STATE_EQUIV_ROUNDS = 3; //Number of training rounds where the EM states have to be equivalent
     public final double NOISE_EMISSION_MIN = 0.05; //Arbitrary floor on the emission probability of noise (must be non-zero to mop up noise reads)
     public final double NOISE_EMISSION_MAX = 0.75; //Arbitrary ceiling on the emission probability of noise
     public final int NOISE_DISTRIB_SMOOTHING_WIN = 50; //Smoothing window for the noise distribution used in the BindingMixture
-    public final int MAX_BINDINGMODEL_WIDTH=1000; //Maximum width for binding models (affects how large the read profiles are for binding components
+    public final int MAX_BINDINGMODEL_WIDTH=500; //Maximum width for binding models (affects how large the read profiles are for binding components)
 	public final boolean CALC_LL=false; //Calculate the log-likelihood during EM.
 	public final boolean CALC_COMP_LL=false; //Calculate component-wise log-likelihoods during ML
+    public final int MOTIF_FINDING_SEQWINDOW=60; //Bases to extract around components for motif-finding			public final boolean CALC_LL=false; //Calculate the log-likelihood during EM. **reduced from 80 to 50
+    public final int MOTIF_FINDING_TOPSEQS=1000; //Number of top components to analyze			public final boolean CALC_COMP_LL=false; //Calculate component-wise log-likelihoods during ML **increased from 500 to 1000
+    public final double MOTIF_FINDING_ALLOWED_REPETITIVE = 0.2; //Percentage of the examined sequence window allowed to be lowercase or N			
+    public final int MOTIF_FINDING_NEGSEQ=5000; //Number of negative sequences for motif significance tests		
+    public final double MARKOV_BACK_MODEL_THRES = 0.05; // Markov background threshold for making models
+    public final double MARKOV_BACK_SEQ_RM_THRES = 0.1; // Markov background threshold for removind sequences
+    public final double MOTIF_PCC_THRES = 0.95; //Motif length adjusted similarity threshold for selecting one motif
+    public final int MARKOV_NUM_TEST=100000;
+    public final int PCC_SLIDING_WINDOW=60; // Sliding window range in computing PCC among different profiles. 
+    public final int KMEANS_TRAIN_REPEATS=10;
+    public final int KMEANS_MAX_ITER = 100;
+    public final int KMEANS_K = 2;
+    public final double KMEANS_CONVERGENCE_THRES = 0.01;
+    public final double KL_DIVERGENCE_BM_THRES = -10;
+    public final double CORR_THRES =100; //100 is no threshold
+
 	
 	protected String[] args;
 	public String getArgs(){
@@ -104,7 +142,7 @@ public class ChExMixConfig {
 		gconfig = gcon;
 		gen = gconfig.getGenome();
 		this.args=arguments; 
-
+		this.isGPS=isGPS;
 		ArgParser ap = new ArgParser(args);
 		if(args.length==0 || ap.hasKey("h")){
 			printHelp=true;			
@@ -140,35 +178,15 @@ public class ChExMixConfig {
 			        ap = new ArgParser(args);
 				}
 				
-				//Read distribution file
-				String modelFile = Args.parseString(args, "d", null);	// ChIP-seq read distribution file
-				if (modelFile != null){
-					File pFile = new File(modelFile);
-					if(!pFile.isFile()){
-						System.err.println("\nCannot find read distribution file: "+modelFile);
-						System.exit(1);
-					}
-					defaultCSModel = new TagProbabilityDensity(pFile); 
-				}
-				
-				/****Pre-existing model****/
-				model = Args.parseString(args,"model",model);
-				
 				/****Miscellaneous arguments****/
-				//Width of the composite window
-				compositeWinSize = Args.parseInteger(args,"cwin",compositeWinSize);
-				//Composite plot center points (required)
-				if(ap.hasKey("cpoints"))
-					compositePoints = RegionFileUtilities.loadStrandedPointsFromFile(gen, Args.parseString(args, "cpoints", null));
-				//Scan center points
-				if(ap.hasKey("spoints"))
-					scanPoints = RegionFileUtilities.loadPointsFromFile(Args.parseString(args, "spoints", null), gen);
-				//Minimum number of model update rounds
-				minModelUpdateRounds = Args.parseInteger(args,"minr", minModelUpdateRounds);
 				//Maximum number of model update rounds
-				maxModelUpdateRounds = Args.parseInteger(args,"r", maxModelUpdateRounds);
+				maxModelUpdateRounds = Args.parseInteger(args,"round", maxModelUpdateRounds);
 				//Turn off binding model updates
 				updateBM = Args.parseFlags(args).contains("nomodelupdate") ? false : true;
+				//Minimum number of components to support a binding model update		
+				minComponentsForBMUpdate = Args.parseInteger(args,"minmodelupdateevents",minComponentsForBMUpdate);
+				//Minimum number of motif references  to support a binding model update		
+				minRefsForBMUpdate = Args.parseInteger(args,"minmodelupdaterefs",minRefsForBMUpdate);
 				//Turn off smoothing during binding model updates 
 				smoothingBMDuringUpdate = Args.parseFlags(args).contains("nomodelsmoothing") ? false : true;
 				//Parameter for spline smoothing
@@ -183,33 +201,86 @@ public class ChExMixConfig {
 				outName = Args.parseString(args, "out", outName+"_"+df.format(new Date()));
 				outDir =  new File(outName); //Output directory
 				outBase = outDir.getName(); //Last part of name
+				//Background model parameters		
+				sigLogConf = Args.parseDouble(args,"highlogconf",sigLogConf);		
+				prLogConf = Args.parseDouble(args,"prlogconf",prLogConf);
 				//Threads
 				maxThreads = Args.parseInteger(args,"threads",maxThreads);
 				maxThreads = Math.min(maxThreads, java.lang.Runtime.getRuntime().availableProcessors());
-				//XL Component Spacing
-				XLComponentSpacing = Args.parseInteger(args,"xlcompspacing",XLComponentSpacing);
-				//XL Component Sigma
-				XLDistribSigma = Args.parseDouble(args,"xlsigma",XLDistribSigma);
-				//XL Component offset
-				XLDistribOffset = Args.parseInteger(args,"xloffset",XLDistribOffset);
 				//Alpha scaling factor
-				alphaScalingFactor = Args.parseDouble(args,"alphascale",alphaScalingFactor);
+				alphaScalingFactor = Args.parseDouble(args,"gpsalphascale",alphaScalingFactor);
 				//Fixed alpha value
-				fixedAlpha = Args.parseDouble(args,"fixedalpha",fixedAlpha);
-				//Turn off XL components for testing
-				noXL =  Args.parseFlags(args).contains("noxl") ? true : false;
-				//Plot the EM process on the composite
-				plotCompositeEM =  Args.parseFlags(args).contains("plot") ? true : false;
-				//Regions to print during ML training
+				fixedAlpha = Args.parseDouble(args,"gpsfixedalpha",fixedAlpha);
+				//Beta scaling factor
+				betaScalingFactor = Args.parseDouble(args,"betascale",betaScalingFactor);
+				//Alpha scaling factor
+				epsilonScalingFactor = Args.parseDouble(args,"epsilonscale",epsilonScalingFactor);
+				//Motif prior is used only if the ROC is greater than this .
+				motifMinROC = Args.parseDouble(args, "minroc", motifMinROC);
+				//Number of base pair to extend around gff
+				extendWindow = Args.parseDouble(args, "extwin", extendWindow);
 				if(ap.hasKey("plotregions"))
-					regionsToPlotML = RegionFileUtilities.loadRegionsFromFile(Args.parseString(args, "plotregions", null), gen, -1);
-				//Turn on multi-condition positional prior
-				multicondition_posprior = Args.parseFlags(args).contains("posprior") ? true : false;
-				//Set a value for the multi-condition positional prior
-				prob_shared_binding = Args.parseDouble(args,"probshared",prob_shared_binding);
-				//Estimate the XL component offset (mean)?
-				fixed_xl_offset = Args.parseFlags(args).contains("nofixedoffset") ? false : true;
+					regionsToPlot = RegionFileUtilities.loadRegionsFromFile(Args.parseString(args, "plotregions", null), gen, -1);
+				//Regions to ignore during EM training
+				if(ap.hasKey("exclude"))
+					regionsToIgnore = RegionFileUtilities.loadRegionsFromFile(Args.parseString(args, "exclude", null), gen, -1);
+				//Initial position file
+				if (ap.hasKey("gff"))
+					initialPos = RegionFileUtilities.loadPointsFromGFFFile(Args.parseString(args, "gff", null), gen);
+				//Motif for plotting components
+				if (ap.hasKey("motifregions"))
+					motifRegions = RegionFileUtilities.loadStrandedRegionsFromMotifFile(gen, Args.parseString(args, "motifregions", null), -1);
+
+				//Turn off motif-finding 
+				findMotifs = Args.parseFlags(args).contains("nomotifs") ? false : true;
+				//Turn off motif prior only
+				motif_posprior = (findMotifs && Args.parseFlags(args).contains("nomotifprior")) ? false : true;				
+				//Check whether sequence is available (affects motif-finding behavior)
+				if(isGPS && !gconfig.getSequenceGenerator().usingLocalFiles()){
+					findMotifs=false;
+					motif_posprior=false;
+					System.err.println("No genome sequence data was provided with --seq, so motif-finding and the motif prior are switched off.");
+				}
+				// Positional prior weights
+				posPriorScaling = Args.parseInteger(args,"pospriorscale",posPriorScaling);
+				// Binding subtype share same CS components
+				sharedCS = Args.parseFlags(args).contains("nosharedcs") ? false : true;	
+				// Deconvolve composite plot and use as a read distribution model
+				deconvolvedModel = Args.parseFlags(args).contains("deconvolve") ? true : false;	
+				// Turn on per base read filtering
+				doReadFilter = Args.parseFlags(args).contains("readfilter") ? true : false;	
 				
+				//MEME path
+				MEMEpath = Args.parseString(args, "memepath", MEMEpath);
+				if(!MEMEpath.equals("") && !MEMEpath.endsWith("/")){ MEMEpath= MEMEpath+"/";}
+				//MEME args
+				MEMEargs = Args.parseString(args, "memeargs", MEMEargs);
+				//MEME minw
+				MEMEminw = Args.parseInteger(args, "mememinw", MEMEminw);
+				//MEME maxw
+				MEMEmaxw = Args.parseInteger(args, "mememaxw", MEMEmaxw);
+				//MEME nmotifs option
+				int MEMEnmotifs = Args.parseInteger(args,"memenmotifs", 3);
+				MEMEargs = MEMEargs + " -nmotifs "+MEMEnmotifs + " -minw "+MEMEminw+" -maxw "+MEMEmaxw;
+				
+				// Markove background model
+				markovBackMode = Args.parseString(args, "back", null);
+				
+				//Extra output
+				verbose = Args.parseFlags(args).contains("verbose") ? true : false;
+				//Shared component config in ML step
+				//MLSharedComponentConfiguration = Args.parseFlags(args).contains("mlsharedconfig") ? true : false;
+				MLSharedComponentConfiguration = Args.parseFlags(args).contains("mlconfignotshared") ? false : true;
+								
+				//Read distribution file
+				String fname=null;
+				if (ap.hasKey("plist"))
+					fname=Args.parseString(args, "plist", null);
+				String[] lines= IOUtil.readFile2Array(fname);
+				// file reader is loading an extra raw after the last one so do minus one
+				for (int i=0; i <lines.length; i++)
+					initialClustPoints.add(RegionFileUtilities.loadStrandedPointsFromFile(gen, lines[i]));
+
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
 			} catch (IOException e) {
@@ -240,34 +311,47 @@ public class ChExMixConfig {
 	//Accessors
 	public Genome getGenome(){return gen;}
 	public boolean helpWanted(){return printHelp;}
-	public String getModelFilename(){return model;}
-	public int getCompositeWinSize(){return compositeWinSize;}
-	public List<StrandedPoint> getCompositePoints(){return compositePoints;}
+	public double getSigLogConf(){return sigLogConf;}
+	public double getPRLogConf(){return prLogConf;}
 	public int getMaxThreads(){return maxThreads;}
 	public double getAlphaScalingFactor(){return alphaScalingFactor;}
+	public double getBetaScalingFactor(){return betaScalingFactor;}
+	public double getEpsilonScalingFactor(){return epsilonScalingFactor;}
 	public double getFixedAlpha(){return fixedAlpha;}
-	public boolean noXL(){return noXL;}
-	public boolean getPlotEM(){return plotCompositeEM;}
-	public boolean getWriteSinglePlots(){return writeSinglePlots;}
-	public List<Region> getRegionsToPlot(){return regionsToPlotML;}
-	public TagProbabilityDensity getDefaultCSModel(){return defaultCSModel;}
+	public double getWindowExtension(){return extendWindow;}
+	public double getMotifMinROC(){return motifMinROC;}
+	public int getBMAnalysisWindowMax(){return bmAnalysisWindowMax;}
+	public int getAddFlankingComponentSpacing(){return addFlankingComponentSpacing;}
+	public List<Region> getRegionsToPlot(){return regionsToPlot;}
+	public List<Region> getRegionsToIgnore(){return regionsToIgnore;}
+	public List<Point> getInitialPos(){return initialPos;}
+	public List<StrandedRegion> getMotifRegions(){return motifRegions;}
 	public boolean doBMUpdate(){return updateBM;}
+	public int getMinComponentsForBMUpdate(){return minComponentsForBMUpdate;}
+	public int getMinRefsForBMUpdate(){return minRefsForBMUpdate;}
+	public double getMinSubtypeFraction(){return minSubtypeFraction;}
+	public double getMinComponentReadFactorForBM(){return minComponentReadFactorForBM;}
 	public boolean getSmoothingBMDuringUpdate(){return smoothingBMDuringUpdate;}
 	public double getBindingModelSplineSmoothParam(){return bindingmodel_spline_smooth;}
 	public boolean getGaussBMSmooth(){return gaussianSmoothingBMDuringUpdate;}
 	public double getBindingModelGaussSmoothParam(){return bindingmodel_gauss_smooth;}
-	public int getMaxModelUpdateRounds(){return maxModelUpdateRounds;}
 	public int getMinModelUpdateRounds(){return minModelUpdateRounds;}
+	public int getMaxModelUpdateRounds(){return maxModelUpdateRounds;}
 	public double getModelConvergenceKL(){return modelConvergenceKL;}
-	public int getXLDistribOffset(){return XLDistribOffset;}
-	public double getXLDistribSigma(){return XLDistribSigma;}
-	public int getXLComponentSpacing(){return XLComponentSpacing;}
-	public boolean getPrintCompositeResponsibilities(){return printCompositeResponsibilities;}
-	public List<Point> getScanPoints(){return scanPoints;}
-	public boolean useMultiConditionPosPrior(){return multicondition_posprior;}
-	public double getProbSharedBinding(){return prob_shared_binding;}
-	public double getN(){return init_xl;}
-	public boolean fixedXLOffset(){return fixed_xl_offset;}
+	public boolean getMLSharedComponentConfiguration(){return MLSharedComponentConfiguration;}
+	public boolean getFindingMotifs(){return findMotifs;}
+	public boolean useMotifPrior(){return motif_posprior;}
+	public boolean useSharedCS(){return sharedCS;}
+	public boolean useDeconvolvedModel(){return deconvolvedModel;}
+	public boolean useReadFilter(){return doReadFilter;}
+	public String getMEMEpath(){return MEMEpath;}
+	public String getMEMEargs(){return MEMEargs;}
+	public String getBackModel(){return markovBackMode;}
+	public double getPosPriorScaling(){return posPriorScaling;}
+	public int getMinMotifLength(){return MEMEminw;}
+	public boolean isVerbose(){return verbose;}
+	public List<List<StrandedPoint>> getInitialClustPoints(){return initialClustPoints;}
+	
 	
 	/**
 	 * Make some output directories used by ChExMix
@@ -275,8 +359,8 @@ public class ChExMixConfig {
 	public void makeChExMixOutputDirs(boolean makeInterAndImageDirs){
 		//Test if output directory already exists. If it does,  recursively delete contents
 		outDir =  new File(outName);
-		if(outDir.exists())
-			deleteDirectory(outDir);
+//		if(outDir.exists())
+//			deleteDirectory(outDir);
 		outBase = outDir.getName();
 		//(re)make the output directory
 		outDir.mkdirs();
@@ -296,7 +380,7 @@ public class ChExMixConfig {
 	public File getOutputImagesDir(){return imagesDir;}
 	
 	/**
-	 * Delete a direcctory
+	 * Delete a directory
 	 */
 	public boolean deleteDirectory(File path) {
 	    if( path.exists() ) {
@@ -324,32 +408,39 @@ public class ChExMixConfig {
 				"\tOR\n" +
 				"\t--geninfo <genome info file> AND --seq <fasta seq directory>\n" +
 				"General:\n" +
-				"\t--cwin <composite window size (default="+compositeWinSize+")>\n" +
+				"\t--r <max. model update rounds (default="+maxModelUpdateRounds+">\n" +
+				"\t--out <out name (default="+outBase+">\n" +
 				"\t--cpoints <composite plot stranded center points>\n" +
 				"\t--d <read distribution model file>\n" +
-				"\t--r <max. model update rounds (default="+maxModelUpdateRounds+")>\n" +
-				"\t--out <out name (default="+outBase+")>\n" +
 				"\t--nonunique [flag to use non-unique reads]\n" +
-				//"\t--threads <number of threads to use (default="+maxThreads+")>\n" +
-				"\t--spoints <center points (unstranded) of scanning analysis>\n" +
+				"\t--threads <number of threads to use (default="+maxThreads+")>\n" +
 				"Experiment Design File:\n" +
 				"\t--design <file name>\n" +
 				"ChExMix Model:" +
 				"\t--model <filename>\n" +
 				"Miscellaneous:\n" +
-				"\t--xlcompspacing <initial spacing between XL components (default="+XLComponentSpacing+")>\n" +
+				"\t--prlogconf <Poisson log threshold for potential region scanning(default="+prLogConf+")>\n" +
 				"\t--alphascale <alpha scaling factor(default="+alphaScalingFactor+")>\n" +
 				"\t--fixedalpha <impose this alpha (default: set automatically)>\n" +
-				"\t--noxl [flag to turn off XL components for testing purposes]\n" +
+				"\t--extwin <number of bp expansion centered around gff points (default: 500)]\n" +
 				"\t--nomodelupdate [flag to turn off binding model updates]\n" +
 				"\t--nomodelsmoothing [flag to turn off binding model smoothing]\n" +
 				"\t--splinesmoothparam <spline smoothing parameter (default="+bindingmodel_spline_smooth+">\n" +
 				"\t--gaussmodelsmoothing [flag to turn o Gaussian model smoothing (default = cubic spline)]\n" +
 				"\t--gausssmoothparam <Gaussian smoothing std dev (default="+bindingmodel_gauss_smooth+">\n" +
-				"\t--fixedmodelrange [flag to keep binding model range constant]\n" +
 				"\t--mlconfignotshared [flag to not share component configs in the ML step]\n" +
-				"\t--plot <plot the EM training process in the composite>\n" +
-				"\t--plotregions <regions to print during ML training>\n" +
+				"\t--exclude <file of regions to ignore>\n" +
+				"\t--plotregions <regions to print during EM training>\n" +
+				"\t--gff <gff file used for component initialization>\n" +
+				"\t--motifregions <regions to print component distribution histogram>\n" +
+				"\t--eventbasecomp [flag to record event base compositions]\n"+
+				"\t--nomotifs [flag to turn off motif-finding & motif priors]\n" +
+				"\t--nomotifprior [flag to turn off motif priors only]\n" +
+				"\t--memepath <path to the meme bin dir (default: meme is in $PATH)>\n" +
+				"\t--memenmotifs <number of motifs MEME should find for each condition (default=3)>\n" +
+				"\t--mememinw <minw arg for MEME (default="+MEMEminw+")>\n"+
+				"\t--mememaxw <maxw arg for MEME (default="+MEMEmaxw+")>\n"+
+				"\t--back <Markov background model>\n"+
 				"\t--verbose [flag to print intermediate files and extra output]\n" +
 				"\t--config <config file: all options can be specified in a name<space>value text file, over-ridden by command-line args>\n" +
 				""));

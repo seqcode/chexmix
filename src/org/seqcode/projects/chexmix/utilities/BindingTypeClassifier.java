@@ -17,6 +17,7 @@ import org.seqcode.gseutils.Args;
 import org.seqcode.math.stats.StatUtil;
 import org.seqcode.projects.chexmix.composite.ProteinDNAInteractionModel;
 import org.seqcode.projects.chexmix.composite.TagProbabilityDensity;
+import org.seqcode.projects.chexmix.composite.XLAnalysisConfig;
 import org.seqcode.projects.chexmix.framework.ChExMixConfig;
 
 /**
@@ -152,7 +153,7 @@ public class BindingTypeClassifier {
 			String pFile = Args.parseString(args, "cpoints", null);
 			List<StrandedPoint> pts = RegionFileUtilities.loadStrandedPointsFromFile(gcon.getGenome(), pFile);
 			
-			ChExMixConfig config = new ChExMixConfig(gcon, args);			
+			XLAnalysisConfig config = new XLAnalysisConfig(gcon, args);			
 			String mFileA = Args.parseString(args, "modelA", null);
 			String mFileB = Args.parseString(args, "modelB", null);
 			

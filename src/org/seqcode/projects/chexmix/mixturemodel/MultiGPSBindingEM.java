@@ -12,7 +12,7 @@ import org.seqcode.deepseq.stats.BackgroundCollection;
 import org.seqcode.genome.location.Region;
 import org.seqcode.projects.chexmix.events.BindingManager;
 import org.seqcode.projects.chexmix.events.BindingModel;
-import org.seqcode.projects.chexmix.framework.XOGPSConfig;
+import org.seqcode.projects.chexmix.framework.ChExMixConfig;
 
 
 
@@ -26,7 +26,7 @@ public class MultiGPSBindingEM {
 
 	protected ExperimentManager manager;
 	protected BindingManager bindingManager;
-	protected XOGPSConfig config;
+	protected ChExMixConfig config;
 	protected List<List<BindingSubComponents>> components;
 	protected List<NoiseComponent> noise;
 	protected int numComponents;  //Assumes the same number of active+inactive components in each condition
@@ -51,7 +51,6 @@ public class MultiGPSBindingEM {
 	protected double[]     piNoise;		// pi : emission probabilities for noise components (fixed)
 	protected int[][]      mu;			// mu : positions of the binding components
 	protected double []    alphaMax;	// Maximum alpha
-	protected double[][]   motifPrior;  // Motif prior (indexed by condition & base) 
 	protected BindingModel[] bindingModels; //Array of binding models for convenience
 	protected double[][][] lastRBind;	//Last responsibilities (monitor convergence)
 	protected double[][]   lastPi;		//Last Pi (monitor convergence)
@@ -69,23 +68,13 @@ public class MultiGPSBindingEM {
 	 * @param c
 	 * @param eMan
 	 */
-	public MultiGPSBindingEM(XOGPSConfig c, ExperimentManager eMan, BindingManager bMan, HashMap<ExperimentCondition, BackgroundCollection> condBacks, int numPotReg){
+	public MultiGPSBindingEM(ChExMixConfig c, ExperimentManager eMan, BindingManager bMan, HashMap<ExperimentCondition, BackgroundCollection> condBacks, int numPotReg){
 		config=c;
 		manager = eMan;
 		bindingManager = bMan;
 		conditionBackgrounds = condBacks;
 		numConditions = manager.getNumConditions();
 		numPotentialRegions = (double)numPotReg;
-		
-		//Positional prior constants & initialization for ML steps
-        //TODO: The prior could be worked out explicitly for the multicondition case, but that's not a priority since it shouldn't make a huge difference. 
-        //As it stands, we are assuming that we know how many total binding sites there are (# potential regions), and that each condition has an equal number of binding sites, 
-        //and that those binding sites are shared randomly between conditions with the fixed sharing rate between two conditions.
-        double N = numPotentialRegions;
-		double S = N*config.getProbSharedBinding();
-		double L = (double)config.getGenome().getGenomeLength();
-		probAgivenB = Math.log(config.getProbSharedBinding())/Math.log(2);
-        probAgivenNOTB =  Math.log((N-S)/(L-N))/Math.log(2);
 	}
 	
 	//Accessor
@@ -109,7 +98,6 @@ public class MultiGPSBindingEM {
     	components = comps;
         this.noise = noise;
         numComponents = numComp;
-        this.motifPrior = motifPrior;
         this.trainingRound = trainingRound;
     	this.plotSubRegion = plotSubRegion;
         //Matrix initializations
@@ -371,8 +359,6 @@ public class MultiGPSBindingEM {
                             //Standard ChIP-seq / ChIP-exo
                             currScore+=(rBind[c][j][i]*hitCounts[c][i]) * bindingModels[repIndices[c][i]].logProbability(dist);
         				}
-        				if(motifPrior!=null && config.useMotifPrior())
-        					currScore += motifPrior[c][x-regStart];
         				
         				if(numConditions>1 && t>config.ALPHA_ANNEALING_ITER)   //Save the score
             				muSums[c][j][x-start] = currScore;
@@ -385,131 +371,7 @@ public class MultiGPSBindingEM {
         			muSumMaxPos[c][j] = maxPos; 
         		}}
     		}
-    		//Maximize mu part 2: evaluate whether joining nearby components across conditions is more favorable 
-    		for(int c=0; c<numConditions; c++){
-    			for(int j=0;j<numComp;j++){ if(pi[c][j]>0){
-    				if(numConditions>1 && t>config.ALPHA_ANNEALING_ITER && config.useMultiConditionPosPrior()){
-    					//mu2.a: find the closest components to j in each condition
-    					int closestComp=-1; int closestDist = Integer.MAX_VALUE;
-    					for(int d=0; d<numConditions; d++){ if(d!=c){
-    						closestComp=-1; closestDist = Integer.MAX_VALUE;
-    		    			for(int k=0;k<numComp;k++){ if(pi[d][k]>0){
-    		    				int dist = Math.abs(mu[c][j]-mu[d][k]);
-    		    				if(dist<closestDist && dist<config.EM_MU_UPDATE_WIN){
-    		    					closestDist = dist; closestComp=k;
-    		    				}
-    		    			}
-    		    			muJoinClosestComps[d]=closestComp;
-    		    		}}}
-    					//mu2.b: evaluate each pair of conditions, asking if a shared event involving j and its closest component would be better than independent events
-    					int maxMuStart=muSumStarts[c][j];
-    					int minMuEnd=muSumStarts[c][j]+muSumWidths[c][j];
-    					int numSharedBetter=0;
-    					for(int d=0; d<numConditions; d++){ if(d!=c){
-    						int k = muJoinClosestComps[d];
-    						if(k==-1)
-    							muJoinSharedBetter[d]=false;
-    						else{
-    							//Case 1: two independent components
-    							double indepScore = muSums[c][j][muSumMaxPos[c][j]-muSumStarts[c][j]] + probAgivenNOTB +
-    												muSums[d][k][muSumMaxPos[d][k]-muSumStarts[d][k]] + probAgivenNOTB;
-    							//Case 2: single shared components
-    							double maxSharedScore=-Double.MAX_VALUE; int maxSharedPos = 0; double currScore=0;
-    		        			for(int y=muSumStarts[c][j]; y<muSumStarts[c][j]+muSumWidths[c][j]; y++){
-    		        				if(y>=muSumStarts[d][k] && y<muSumStarts[d][k]+muSumWidths[d][k]){
-    		        					currScore = muSums[c][j][y-muSumStarts[c][j]] + probAgivenB +
-    		        								muSums[d][k][y-muSumStarts[d][k]] + probAgivenB;
-    		        					if(currScore > maxSharedScore){
-    		        						maxSharedScore = currScore; maxSharedPos = y;
-    		        					}
-    		        			}}
-    							muJoinSharedBetter[d] = maxSharedScore>indepScore ? true : false;
-    							maxMuStart = muJoinSharedBetter[d] ? Math.max(maxMuStart, muSumStarts[d][k]) : maxMuStart; 
-    							minMuEnd = muJoinSharedBetter[d] ? Math.min(minMuEnd, muSumStarts[d][k]+muSumWidths[d][k]) : minMuEnd;
-    							if(muJoinSharedBetter[d])
-    								numSharedBetter++;
-    							
-    							//mu2.d: update mu (Shortcut for numConditions==2)
-    							if(numConditions == 2){
-    								if(muJoinSharedBetter[d]) 
-    									newMu[c][j] = maxSharedPos;
-    								else
-    									newMu[c][j] = muSumMaxPos[c][j];
-    							}
-    						}
-    					}}
-    					
-    					//mu2.c: for all conditions that passed the pairwise test, evaluate if a single shared event is better than all independent
-    					if(numConditions>2){  //Shortcut for 2 conditions above
-	    					//Case 1: sum of all independent components
-	    					double allIndepScore = muSums[c][j][muSumMaxPos[c][j]-muSumStarts[c][j]] + probAgivenNOTB;
-	    					for(int d=0; d<numConditions; d++){ if(d!=c){
-	    						int k = muJoinClosestComps[d];
-	    						if(k!=-1){
-	    							allIndepScore+=muSums[d][k][muSumMaxPos[d][k]-muSumStarts[d][k]] + probAgivenNOTB;
-	    						}
-	    					}}
-	    					//Case 2: sum of shared component and non-shared
-	    					double maxSomeSharedScore=-Double.MAX_VALUE; int maxSomeSharedPos = 0; double currScore=0;
-	    					for(int y = maxMuStart; y<minMuEnd; y++){ 
-	    						currScore=muSums[c][j][y-muSumStarts[c][j]] + probAgivenB;
-	    						for(int d=0; d<numConditions; d++){ if(d!=c){
-		    						int k = muJoinClosestComps[d];
-		    						if(k!=-1){
-		    							if(muJoinSharedBetter[d])
-		    								currScore += muSums[d][k][y-muSumStarts[d][k]] + probAgivenB;
-		    							else
-		    								currScore +=muSums[d][k][muSumMaxPos[d][k]-muSumStarts[d][k]] + probAgivenNOTB;
-		    						}
-	    						}}
-	    						if(currScore > maxSomeSharedScore){
-	        						maxSomeSharedScore = currScore; maxSomeSharedPos = y;
-	        					}
-	    					}
-	    					
-	    					double maxAllSharedScore=-Double.MAX_VALUE; int maxAllSharedPos = 0; currScore=0;
-	    					if(numSharedBetter==numConditions-1){
-	    						maxAllSharedScore=maxSomeSharedScore;
-	    						maxAllSharedPos = maxSomeSharedPos;
-	    					}else{
-		    					//mu2.d: Case 3: single shared position, regardless of what happened in the pairwise tests
-		    					for(int d=0; d<numConditions; d++){ if(c!=d){//Update window
-			    						int k = muJoinClosestComps[d];
-			    						if(k!=-1){
-			    							maxMuStart = Math.max(maxMuStart, muSumStarts[d][k]); 
-			    							minMuEnd = Math.min(minMuEnd, muSumStarts[d][k]+muSumWidths[d][k]);
-			    						}
-		    					}}
-		    					for(int y = maxMuStart; y<minMuEnd; y++){ 
-		    						currScore=muSums[c][j][y-muSumStarts[c][j]] + probAgivenB;
-		    						for(int d=0; d<numConditions; d++){ if(d!=c){
-			    						int k = muJoinClosestComps[d];
-			    						if(k!=-1){
-			    							currScore += muSums[d][k][y-muSumStarts[d][k]] + probAgivenB;
-			    						}
-		    						}}
-		    						if(currScore > maxAllSharedScore){
-		        						maxAllSharedScore = currScore; maxAllSharedPos = y;
-		        					}
-		    					}
-	    					}
-	    					
-	    					//mu2.e: update mu
-	    					if(maxAllSharedScore >=allIndepScore && maxAllSharedScore >=maxSomeSharedScore)
-	    						newMu[c][j] = maxAllSharedPos;
-	    					else if(maxSomeSharedScore >=allIndepScore)
-	    						newMu[c][j] = maxSomeSharedPos;
-	    					else
-	    						newMu[c][j] = muSumMaxPos[c][j];
-	    					
-	    				}
-
-    				}else{
-    					//Ignore other conditions in first phases of training (until many components are eliminated)
-    					newMu[c][j] = muSumMaxPos[c][j];
-    				}
-    			}}
-    		}//Update mu values
+    		//Update mu values
     		for(int c=0; c<numConditions; c++){
     			for(int j=0;j<numComp;j++){ if(pi[c][j]>0){
     				mu[c][j] = newMu[c][j];
@@ -629,11 +491,6 @@ public class MultiGPSBindingEM {
 	            	//TODO: how do we account for multi-condition "prior" here?
 	            	//for(int x=0; x<currRegion.getWidth(); x++)
 	            	//	sum_pos_prior+=;
-	            	
-	            	//Motif prior
-	            	if(motifPrior!=null && config.useMotifPrior())
-	            		for(int x=0; x<currRegion.getWidth(); x++)
-	            			sum_pos_prior += motifPrior[c][x];
 	            	
 	            	LP+=-(currAlpha[c]*sum_log_pi)+sum_pos_prior;
 	            }

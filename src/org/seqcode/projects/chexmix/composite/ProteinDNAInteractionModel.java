@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.seqcode.gseutils.Pair;
-import org.seqcode.projects.chexmix.framework.ChExMixConfig;
 
 /**
  * ProteinDNAInteractionModel: defines a collection of composite model components 
@@ -28,7 +27,7 @@ public class ProteinDNAInteractionModel {
 	protected int centerOffset;
 	protected double[] compositeWatson; //per-condition compositeProfile
 	protected double[] compositeCrick; //per-condition compositeProfile
-	protected ChExMixConfig cmConfig;
+	protected XLAnalysisConfig cmConfig;
 	protected List<CompositeModelComponent> allComponents;
 	protected List<CompositeModelComponent> XLComponents;
 	protected Map<CompositeModelComponent, TagProbabilityDensity> XLComponentDensities;
@@ -45,7 +44,7 @@ public class ProteinDNAInteractionModel {
 	 * @param initBackDistrib
 	 * @param noisePi
 	 */
-	public ProteinDNAInteractionModel(ChExMixConfig config, CompositeTagDistribution composite, TagProbabilityDensity initXLdistrib, TagProbabilityDensity initCSdistrib, 
+	public ProteinDNAInteractionModel(XLAnalysisConfig config, CompositeTagDistribution composite, TagProbabilityDensity initXLdistrib, TagProbabilityDensity initCSdistrib, 
 			TagProbabilityDensity initBackDistrib, double noisePi){
 		modelWidth = composite.getWinSize();
 		centerOffset = composite.getCenterOffset();
@@ -90,7 +89,7 @@ public class ProteinDNAInteractionModel {
 	 * @param backComp
 	 * @param XLComps
 	 */
-	public ProteinDNAInteractionModel(ChExMixConfig config, int width, int centerOff, double[] compWatson, double[] compCrick, CompositeModelComponent CSComp, CompositeModelComponent backComp, List<CompositeModelComponent> XLComps){
+	public ProteinDNAInteractionModel(XLAnalysisConfig config, int width, int centerOff, double[] compWatson, double[] compCrick, CompositeModelComponent CSComp, CompositeModelComponent backComp, List<CompositeModelComponent> XLComps){
 		modelWidth = width;
 		centerOffset = centerOff;
 		compositeWatson = compWatson;
@@ -212,7 +211,7 @@ public class ProteinDNAInteractionModel {
 	 * @param lines
 	 * @return
 	 */
-	public static ProteinDNAInteractionModel load(ChExMixConfig con, List<String> lines){
+	public static ProteinDNAInteractionModel load(XLAnalysisConfig con, List<String> lines){
 		ProteinDNAInteractionModel mod = null;
 		String[] bits = lines.get(0).split(",");
 		if(bits.length!=4 || !bits[0].equals("#ProteinDNAInteractionModel")){
@@ -283,7 +282,7 @@ public class ProteinDNAInteractionModel {
 	 * @param mod
 	 * @return
 	 */
-	public static ProteinDNAInteractionModel loadFromFile(ChExMixConfig con, File mod){
+	public static ProteinDNAInteractionModel loadFromFile(XLAnalysisConfig con, File mod){
 		List<String> strings = new ArrayList<String>();
 		try {
 			BufferedReader reader = new BufferedReader( new FileReader (mod));

@@ -20,9 +20,9 @@ import org.seqcode.projects.chexmix.composite.TagProbabilityDensity;
 
 public class OutputFormatter {
 
-	protected XOGPSConfig config;
+	protected ChExMixConfig config;
 	
-	public OutputFormatter(XOGPSConfig c){ 
+	public OutputFormatter(ChExMixConfig c){ 
 		config = c;	
 	}
 	

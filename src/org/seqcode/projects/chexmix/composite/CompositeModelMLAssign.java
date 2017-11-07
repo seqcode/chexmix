@@ -20,7 +20,7 @@ import org.seqcode.projects.chexmix.framework.ChExMixConfig;
 public class CompositeModelMLAssign {
 
 	protected ExperimentCondition condition;
-	protected ChExMixConfig config;
+	protected XLAnalysisConfig config;
 	protected CompositeTagDistribution composite;
 	protected ProteinDNAInteractionModel model;
 	protected int numComponents;  //The count of all components (active +inactive) in the model
@@ -52,7 +52,7 @@ public class CompositeModelMLAssign {
 	 * @param eMan: ExperimentManager
 	 * @throws Exception 
 	 */
-	public CompositeModelMLAssign(CompositeTagDistribution composite, ProteinDNAInteractionModel model, ChExMixConfig config, ExperimentCondition cond){
+	public CompositeModelMLAssign(CompositeTagDistribution composite, ProteinDNAInteractionModel model, XLAnalysisConfig config, ExperimentCondition cond){
 		this.composite=composite;
 		this.model=model;
 		this.config=config;

@@ -10,7 +10,7 @@ import org.seqcode.genome.location.Region;
 import org.seqcode.genome.location.StrandedPoint;
 import org.seqcode.genome.sequence.SequenceGenerator;
 import org.seqcode.gseutils.Pair;
-import org.seqcode.projects.chexmix.framework.XOGPSConfig;
+import org.seqcode.projects.chexmix.framework.ChExMixConfig;
 
 /**
  * BindingEvent: a class representing a potential binding event and associated read counts and 
@@ -29,7 +29,7 @@ public class BindingEvent implements Comparable<BindingEvent>{
 	
 	protected static ExperimentManager experiments=null;
 	protected static EventsConfig config=null;
-	protected static XOGPSConfig gpsconfig=null;
+	protected static ChExMixConfig gpsconfig=null;
 	protected static ExperimentCondition sortingCondition = null;
 	protected static ExperimentCondition sortingConditionB = null;
 	protected static final int numSingleCondCols = 4; //Number of columns in the output file for each single-condition 
@@ -583,7 +583,7 @@ public class BindingEvent implements Comparable<BindingEvent>{
 	
 	public static void setExperimentManager(ExperimentManager e){experiments = e; sortingCondition = experiments.getConditions().get(0);}
 	public static void setConfig(EventsConfig c){config = c;}
-	public static void setGPSConfig(XOGPSConfig c){ gpsconfig=c;}
+	public static void setGPSConfig(ChExMixConfig c){ gpsconfig=c;}
 	public static void setNumBindingTypes(int[] bt){ numBindingTypes = bt;}
 	public static void setSortingCond(ExperimentCondition c){sortingCondition = c;}
 	public static void setSortingCondB(ExperimentCondition c){sortingConditionB = c;}

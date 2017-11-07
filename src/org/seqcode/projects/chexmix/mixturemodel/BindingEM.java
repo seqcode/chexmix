@@ -14,7 +14,7 @@ import org.seqcode.genome.location.Region;
 import org.seqcode.genome.location.StrandedPoint;
 import org.seqcode.projects.chexmix.composite.TagProbabilityDensity;
 import org.seqcode.projects.chexmix.events.BindingManager;
-import org.seqcode.projects.chexmix.framework.XOGPSConfig;
+import org.seqcode.projects.chexmix.framework.ChExMixConfig;
 
 
 /**
@@ -29,7 +29,7 @@ public class BindingEM {
 
 	protected ExperimentManager manager;
 	protected BindingManager bindingManager;
-	protected XOGPSConfig config;
+	protected ChExMixConfig config;
 	protected List<List<BindingSubComponents>> components;
 	protected List<NoiseComponent> noise;
 	protected int numComponents;  //Assumes the same number of active+inactive components in each condition
@@ -70,7 +70,6 @@ public class BindingEM {
 	protected Region plotSubRegion=null; 	//Sub region to plot
 	protected double initCondPosPriorVar=10, finalCondPosPriorVar=0.001, currCondPosPriorVar=initCondPosPriorVar; //positional prior final Gaussian variance
 	protected double numPotentialRegions;
-	protected double probAgivenB, probAgivenNOTB;
 	protected int stateEquivCount=0;
 	
 	/**
@@ -78,23 +77,13 @@ public class BindingEM {
 	 * @param c
 	 * @param eMan
 	 */
-	public BindingEM(XOGPSConfig c, ExperimentManager eMan, BindingManager bMan, HashMap<ExperimentCondition, BackgroundCollection> condBacks, int numPotReg){
+	public BindingEM(ChExMixConfig c, ExperimentManager eMan, BindingManager bMan, HashMap<ExperimentCondition, BackgroundCollection> condBacks, int numPotReg){
 		config=c;
 		manager = eMan;
 		bindingManager = bMan;
 		conditionBackgrounds = condBacks;
 		numConditions = manager.getNumConditions();
 		numPotentialRegions = (double)numPotReg;
-		
-		//Positional prior constants & initialization for ML steps
-        //TODO: The prior could be worked out explicitly for the multicondition case, but that's not a priority since it shouldn't make a huge difference. 
-        //As it stands, we are assuming that we know how many total binding sites there are (# potential regions), and that each condition has an equal number of binding sites, 
-        //and that those binding sites are shared randomly between conditions with the fixed sharing rate between two conditions.
-        double N = numPotentialRegions;
-		double S = N*config.getProbSharedBinding();
-		double L = (double)config.getGenome().getGenomeLength();
-		probAgivenB = Math.log(config.getProbSharedBinding())/Math.log(2);
-        probAgivenNOTB =  Math.log((N-S)/(L-N))/Math.log(2);
 	}
 	
 	//Accessor

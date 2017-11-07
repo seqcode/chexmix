@@ -17,7 +17,7 @@ import org.seqcode.projects.chexmix.composite.TagProbabilityDensity;
 import org.seqcode.projects.chexmix.events.BindingEvent;
 import org.seqcode.projects.chexmix.events.BindingManager;
 import org.seqcode.projects.chexmix.events.EventsConfig;
-import org.seqcode.projects.chexmix.framework.XOGPSConfig;
+import org.seqcode.projects.chexmix.framework.ChExMixConfig;
 
 
 /**
@@ -32,7 +32,7 @@ public class BindingMLAssignment {
 	protected BindingManager bindingManager;
 	protected ExptConfig econfig;
 	protected EventsConfig evconfig;
-	protected XOGPSConfig config;
+	protected ChExMixConfig config;
 	protected List<BindingSubComponents> components;
 	protected List<NoiseComponent> noise;
 	protected int numComponents;  //Assumes the same number of active+inactive components in each condition
@@ -83,7 +83,7 @@ public class BindingMLAssignment {
 	 * @param c
 	 * @param eMan
 	 */
-	public BindingMLAssignment(ExptConfig econ, EventsConfig evcon, XOGPSConfig c, ExperimentManager eMan, BindingManager bindMan, HashMap<ExperimentCondition, BackgroundCollection> condBacks, int numPotReg){
+	public BindingMLAssignment(ExptConfig econ, EventsConfig evcon, ChExMixConfig c, ExperimentManager eMan, BindingManager bindMan, HashMap<ExperimentCondition, BackgroundCollection> condBacks, int numPotReg){
 		config=c;
 		evconfig = evcon;
 		econfig = econ;

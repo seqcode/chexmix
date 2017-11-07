@@ -17,7 +17,7 @@ import org.seqcode.math.stats.StatUtil;
  * Calculates Pearson correlation with sliding window
  */
 public class PCC {
-	protected XOGPSConfig config;
+	protected ChExMixConfig config;
 	protected int numReps;
 	protected int profileWidth;
 	protected double[][] profile_w;	//merged watson profile
@@ -29,7 +29,7 @@ public class PCC {
 	protected int maxOffset;
 	protected boolean isReverse;
 	
-	public PCC (XOGPSConfig config, int numReps){
+	public PCC (ChExMixConfig config, int numReps){
 		this.config = config;
 		profileWidth=config.MAX_BINDINGMODEL_WIDTH;
 		this.numReps = numReps;
@@ -200,7 +200,7 @@ public class PCC {
 		ExptConfig econ = new ExptConfig(gcon.getGenome(), args);
 		econ.setPerBaseReadFiltering(false);
 		econ.setLoadRead2(false);
-		XOGPSConfig config = new XOGPSConfig(gcon, args);
+		ChExMixConfig config = new ChExMixConfig(gcon, args);
 		if(args.length==0){
 			System.err.println("CompositeTagDistribution:"+
 					"\t--cpoints <stranded point file>"+

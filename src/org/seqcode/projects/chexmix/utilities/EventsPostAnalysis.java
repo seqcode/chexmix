@@ -24,7 +24,7 @@ import org.seqcode.gseutils.RealValuedHistogram;
 import org.seqcode.projects.chexmix.events.BindingEvent;
 import org.seqcode.projects.chexmix.events.BindingManager;
 import org.seqcode.projects.chexmix.events.EventsConfig;
-import org.seqcode.projects.chexmix.framework.XOGPSConfig;
+import org.seqcode.projects.chexmix.framework.ChExMixConfig;
 import org.seqcode.projects.chexmix.motifs.MotifPlatform;
 import org.seqcode.viz.metaprofile.SequenceAlignmentFigure;
 
@@ -33,14 +33,14 @@ public class EventsPostAnalysis {
 	
 	protected GenomeConfig gconfig;
 	protected EventsConfig evconfig;
-	protected XOGPSConfig config;
+	protected ChExMixConfig config;
 	protected ExperimentManager manager;
 	protected BindingManager bindingManager;
 	protected MotifPlatform motifFinder = null;
 	protected List<BindingEvent> events;
 	protected double motifThres = 0.6;  // fraction of max score threshold
 	
-	public EventsPostAnalysis(GenomeConfig gcon,EventsConfig ec, XOGPSConfig c, ExperimentManager man, BindingManager bMan, List<BindingEvent> ev, MotifPlatform mp){
+	public EventsPostAnalysis(GenomeConfig gcon,EventsConfig ec, ChExMixConfig c, ExperimentManager man, BindingManager bMan, List<BindingEvent> ev, MotifPlatform mp){
 		evconfig = ec;
 		config = c;
 		manager = man;
