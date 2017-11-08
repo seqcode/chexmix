@@ -276,10 +276,11 @@ public class ChExMixConfig {
 				String fname=null;
 				if (ap.hasKey("plist"))
 					fname=Args.parseString(args, "plist", null);
-				String[] lines= IOUtil.readFile2Array(fname);
-				// file reader is loading an extra raw after the last one so do minus one
-				for (int i=0; i <lines.length; i++)
-					initialClustPoints.add(RegionFileUtilities.loadStrandedPointsFromFile(gen, lines[i]));
+				if (fname!=null){
+					String[] lines= IOUtil.readFile2Array(fname);
+					for (int i=0; i <lines.length; i++)
+						initialClustPoints.add(RegionFileUtilities.loadStrandedPointsFromFile(gen, lines[i]));
+				}
 
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
