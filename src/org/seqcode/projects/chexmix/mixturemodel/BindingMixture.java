@@ -1398,7 +1398,9 @@ public class BindingMixture {
 	            double numC=0;
 	            for(int i=0; i<numBindingComponents; i++){
 	            	Point pos = new Point(config.getGenome(), currReg.getChrom(), currReg.getStart()+(i*componentSpacing));
+	            	System.out.println("genome "+config.getGenome().getSpeciesName()+"pos "+pos.toString());
 	            	BindingSubComponents currComp = new BindingSubComponents(pos, manager.getReplicates().size());
+	            	System.out.println(currComp.getCoord().toString());
 	                currComp.setIndex(i);
 	                numC++;
 	                components.get(e).add(currComp);

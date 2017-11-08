@@ -176,6 +176,10 @@ public class MultiGPSBindingEM {
             for(int j=0;j<numComp;j++)
             	mu[c][j] = components.get(c).get(j).getPosition();
             
+            System.out.println("comp pos ");
+            for(int j=0;j<numComp;j++)
+            	System.out.println(components.get(c).get(j).getPosition());
+            
             //Initialize H function for all positions in the current region
             double[][] hAllc = new double[w.getWidth()][numBases];
             for(int i=0;i<numBases;i++)
