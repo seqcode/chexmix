@@ -262,9 +262,6 @@ public class MultiGPSBindingEM {
         double[][][] muSums = new double[numConditions][numComp][]; //Results of mu maximization summations for individual components across genome
         int[][] muSumStarts = new int[numConditions][numComp]; //Start positions of muSum arrays (start of maximization window).
         int[][] muSumWidths = new int[numConditions][numComp]; //Effective widths of muSum arrays (width of maximization window).
-        int[][] muSumMaxPos = new int[numConditions][numComp]; //Positions of maxima in mu maximization summations
-        int[] muJoinClosestComps = new int[numConditions]; //Indices of nearest components in other conditions
-        boolean[] muJoinSharedBetter = new boolean[numConditions]; //Indicator that sharing components across conditions is better than not
         int[][] newMu = new int[numConditions][numComponents];// mu update
         
         //Initialize responsibilities
@@ -372,7 +369,7 @@ public class MultiGPSBindingEM {
         					maxScore=currScore;
         				}
         			}
-        			muSumMaxPos[c][j] = maxPos; 
+        			newMu[c][j] = maxPos; 
         		}}
     		}
     		//Update mu values
