@@ -41,7 +41,7 @@ public class ChExMix {
 	protected XLAnalysisConfig xlconfig;
 	protected BindingManager bindingManager;
 	protected CompositeModelMixture modelmix;
-	protected BindingMixture mixtureModel4;
+	protected BindingMixture mixtureModel;
 	protected PotentialRegionFilter potentialFilter;
 	protected OutputFormatter outFormatter;
 	protected Normalization normalizer;
@@ -237,13 +237,11 @@ public class ChExMix {
 	 * Run the mixture model to find binding events. 
 	 * @throws Exception 
 	 */
-	public void runMixtureModel4() throws Exception {
+	public void runMixtureModel() throws Exception {
 		
-		System.err.println("running MixtureModel4");
-
 		Double[] kl;
 		System.err.println("Initialzing mixture model");
-		mixtureModel4 = new BindingMixture(gconfig, econfig, evconfig, gpsconfig,xlconfig, manager, bindingManager, potentialFilter);
+		mixtureModel = new BindingMixture(gconfig, econfig, evconfig, gpsconfig,xlconfig, manager, bindingManager, potentialFilter);
 		
 		int round = 0;
 		boolean converged = false;
@@ -253,15 +251,15 @@ public class ChExMix {
             
             //Execute the mixture model
             if(round==0)
-            	mixtureModel4.execute(true, true); //EM
+            	mixtureModel.execute(true, true); //EM
             else
-            	mixtureModel4.execute(true, false); //EM
+            	mixtureModel.execute(true, false); //EM
             
             //Update noise models
-            mixtureModel4.updateGlobalNoise();
+            mixtureModel.updateGlobalNoise();
             
             //Print current components
-            mixtureModel4.printActiveComponentsToFile();
+            mixtureModel.printActiveComponentsToFile();
             
             //Check for convergence
             if(round>=gpsconfig.getMaxModelUpdateRounds())
@@ -269,21 +267,21 @@ public class ChExMix {
             
             if (!converged){
             	//Update motifs
-                mixtureModel4.updateMotifs();
+                mixtureModel.updateMotifs();
                 
                 //Update binding models
                 String distribFilename = gpsconfig.getOutputIntermediateDir()+File.separator+gpsconfig.getOutBase()+"_t"+round;
-                kl = mixtureModel4.updateBindingModelUsingMotifs(distribFilename);
+                kl = mixtureModel.updateBindingModelUsingMotifs(distribFilename);
  //               kl = mixtureModel4.updateBindingModelUsingClustering(distribFilename);
                 if (round >0)
-                	kl = mixtureModel4.updateBindingModelUsingReadDistributions(distribFilename);
+                	kl = mixtureModel.updateBindingModelUsingReadDistributions(distribFilename);
                 else
                 	System.out.println("round "+round + "use provided read density from clusters");
                 
                 //Add new binding models to the record
                 for(ControlledExperiment rep : manager.getReplicates())           	
         			repBindingModels.get(rep).addAll(bindingManager.getBindingModel(rep));
-                mixtureModel4.updateAlphas();
+                mixtureModel.updateAlphas();
                 
                 converged = true;
             	for(int l=0; l<kl.length; l++)
@@ -297,11 +295,11 @@ public class ChExMix {
         
         //ML quantification of events
         System.err.println("\n============================ ML read assignment ============================");
-        mixtureModel4.execute(false, false); //ML
+        mixtureModel.execute(false, false); //ML
         
-        System.out.println("number of binding events after ML assignment "+mixtureModel4.getBindingEvents().size());
+        System.out.println("number of binding events after ML assignment "+mixtureModel.getBindingEvents().size());
         
-        bindingManager.setBindingEvents(mixtureModel4.getBindingEvents());
+        bindingManager.setBindingEvents(mixtureModel.getBindingEvents());
         //Update sig & noise counts in each replicate
         bindingManager.estimateSignalVsNoiseFractions(bindingManager.getBindingEvents());
         System.err.println("ML read assignment finished.");
@@ -310,7 +308,7 @@ public class ChExMix {
         
         //Align motifs to get relative offsets
         if(gpsconfig.getFindingMotifs())
-        	mixtureModel4.getMotifFinder().alignMotifs();
+        	mixtureModel.getMotifFinder().alignMotifs();
         
         //Statistical analysis: Enrichment over controls 
         EnrichmentSignificance tester = new EnrichmentSignificance(evconfig, manager, bindingManager, evconfig.getMinEventFoldChange(), econfig.getMappableGenomeLength());
@@ -325,7 +323,7 @@ public class ChExMix {
         
         
         //Post-analysis of peaks
-        EventsPostAnalysis postAnalyzer = new EventsPostAnalysis(gconfig,evconfig, gpsconfig, manager, bindingManager, bindingManager.getBindingEvents(), mixtureModel4.getMotifFinder());
+        EventsPostAnalysis postAnalyzer = new EventsPostAnalysis(gconfig,evconfig, gpsconfig, manager, bindingManager, bindingManager.getBindingEvents(), mixtureModel.getMotifFinder());
         postAnalyzer.execute(400);
         
     }
@@ -361,7 +359,7 @@ public class ChExMix {
 			}
 			
 			ChExMix gps = new ChExMix(gcon, econ, evconfig, config, xlconfig, manager);
-			gps.runMixtureModel4();
+			gps.runMixtureModel();
 			
 			manager.close();
 		}
