@@ -273,10 +273,12 @@ public class ChExMix {
                 String distribFilename = gpsconfig.getOutputIntermediateDir()+File.separator+gpsconfig.getOutBase()+"_t"+round;
                 kl = mixtureModel.updateBindingModelUsingMotifs(distribFilename);
  //               kl = mixtureModel4.updateBindingModelUsingClustering(distribFilename);
-                if (round >0)
-                	kl = mixtureModel.updateBindingModelUsingReadDistributions(distribFilename);
-                else
-                	System.out.println("round "+round + "use provided read density from clusters");
+                if (!gpsconfig.getInitialClustPoints().isEmpty()){
+                	if (round >0)
+                		kl = mixtureModel.updateBindingModelUsingReadDistributions(distribFilename);
+                	else
+                		System.out.println("round "+round + "use provided read density from clusters");
+                }
                 
                 //Add new binding models to the record
                 for(ControlledExperiment rep : manager.getReplicates())           	
