@@ -5,6 +5,8 @@ ChExMix aims to characterize protein-DNA binding subtypes in ChIP-exo experiment
 
 Downloading Executables
 --------------
+Executables will be available soon from: http://mahonylab.org/software/chexmix 
+Check back soon!
 
 Building from Source
 --------------
@@ -13,11 +15,11 @@ If you want to build the code yourself, you will need to first download and buil
 Dependencies:
 --------------
 1. ChExMix requires Java 8+. 
-2. ChExMix depends on [MEME](http://meme-suite.org/) (tested with MEME version 4.11.3).
+2. ChExMix depends on [MEME](http://meme-suite.org/) being available in $PATH (tested with MEME version 4.11.3).
 
 Note:
 --------------
- ChExMix loads all data to memory, so you will need a lot of available memory if you are running analysis over many conditions or large datasets.
+ChExMix loads all data to memory, so you will need a lot of available memory if you are running analysis over many conditions or large datasets.
 
 Citation:
 --------------
