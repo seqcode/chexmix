@@ -117,7 +117,7 @@ public class ChExMix {
 		}	
 		
 		// Testing only
-		printInitialDistribution();
+		if (strandedModelSet){printInitialDistribution();}
 		List<Integer> motifIndexes = new ArrayList<Integer>();
 		motifIndexes.add(-1);
 		for(ExperimentCondition cond : manager.getConditions()){
