@@ -12,21 +12,21 @@ import org.seqcode.deepseq.experiments.ExptConfig;
 import org.seqcode.deepseq.experiments.Sample;
 import org.seqcode.deepseq.stats.BackgroundCollection;
 import org.seqcode.genome.location.Region;
-import org.seqcode.genome.location.StrandedPoint;
-import org.seqcode.projects.chexmix.composite.TagProbabilityDensity;
 import org.seqcode.projects.chexmix.events.BindingEvent;
 import org.seqcode.projects.chexmix.events.BindingManager;
+import org.seqcode.projects.chexmix.events.BindingModel;
 import org.seqcode.projects.chexmix.events.EventsConfig;
 import org.seqcode.projects.chexmix.framework.ChExMixConfig;
+
 
 
 /**
  * BindingMLAssignment: Maximum likelihood assignment of reads to a configuration of binding components.
  * 
- * @author Naomi Yamada
+ * @author Shaun Mahony
  * @version	%I%, %G%
  */
-public class BindingMLAssignment {
+public class MultiGPSMLAssignment {
 
 	protected ExperimentManager manager;
 	protected BindingManager bindingManager;
@@ -36,60 +36,58 @@ public class BindingMLAssignment {
 	protected List<BindingSubComponents> components;
 	protected List<NoiseComponent> noise;
 	protected int numComponents;  //Assumes the same number of active+inactive components in each condition
-	protected int numConditionReps;
+	protected int numConditions;
 	protected HashMap<ExperimentCondition, BackgroundCollection> conditionBackgrounds; //Background models per condition
 	//	EM VARIABLES
 	// H function and responsibility have to account for all reads in region now, as they will be updated 
     // once the component positions change (i.e. we can't do the trick where we restrict to reads within 
     // range of the components).
-	protected double[]   		sigHitCounts;	// Hit weights
-	protected int[]      		sigHitPos;		// Hit positions
-	protected boolean[]  		sigHitPlusStr;	// Hit positive strand boolean
-	protected int		   		sigHitNum;		// Number of hits in each condition 
-	protected int[]     	 	sigRepIndices;  // Index of replicate for the hit
-	protected double[]   		ctrlHitCounts;	// Hit weights
-	protected int[]     		ctrlHitPos;		// Hit positions
-	protected boolean[]  		ctrlHitPlusStr;	// Hit positive strand boolean
-	protected int		   		ctrlHitNum;		// Number of hits in each condition 
-	protected int[]      		ctrlRepIndices; // Index of replicate for the hit
-	protected double[][][][] 	h; 				// H function (binding component probability per read)
-	protected double[]   		n; 				// N function (noise component probability per read)
-	protected double[][][][] 	rBindSig;		// Binding component responsibilities (signal reads)
-	protected double[]   		rNoiseSig;		// Noise component responsibilities (signal reads)
-	protected double[][][][] 	rBindCtrl;		// Binding component responsibilities (control reads)
-	protected double[]   		rNoiseCtrl;		// Noise component responsibilities (control reads)
-	protected double[]   		pi;				// pi : emission probabilities for binding components
-	protected double     		piNoise;		// pi : emission probabilities for noise components (fixed)
-	protected int		   		numBindingType;	// Number of binding type in the condition
-	protected double[][][] 	tau;				// tau : binding event type probabilities
-	protected int[][][]      	mu;				// mu : positions of the binding components
-	protected double[][]   		compLL;			//Log-likelihood for each component in each condition
-	protected double[][][][] 	lastRBind;		//Last responsibilities (monitor convergence)
-	protected double[]   		lastPi;			//Last Pi (monitor convergence)
-	protected int[][][]      	lastMu;			//Last positions (monitor convergence)
-	protected double[]   		tmp_pi;			// pi used in ML calc
-	protected double[][][][] 	tmp_h;			// h used in ML calc
-	protected double[][][][] 	tmp_rBindSig;	// rBindSig used in ML calc
-	protected double[]   		tmp_rNoiseSig;	// rNoiseSig used in ML calc
-	protected double	   		tmp_piNoise; 	// piNoise used in ML calc
-	protected double[][][]		tmp_tau;		// tau used in ML calc
-	protected TagProbabilityDensity[][] TagProbabilityDensities; //Array of binding models for convenience
-	protected double[]	   		sigRepHitCountTotals; //Hit count totals counted by replicate (for convenience)
-	protected double[]			uniformRepHitCountTotals; //Hit count totals by replicate if signal read counts were distributed uniformly (used only if there is no control) 
-	protected double 			numPotentialRegions;
+	protected double[]   sigHitCounts;	// Hit weights
+	protected int[]      sigHitPos;		// Hit positions
+	protected boolean[]  sigHitPlusStr;	// Hit positive strand boolean
+	protected int		 sigHitNum;		// Number of hits in each condition 
+	protected int[]      sigRepIndices;  // Index of replicate for the hit
+	protected double[]   ctrlHitCounts;	// Hit weights
+	protected int[]      ctrlHitPos;		// Hit positions
+	protected boolean[]  ctrlHitPlusStr;	// Hit positive strand boolean
+	protected int		 ctrlHitNum;		// Number of hits in each condition 
+	protected int[]      ctrlRepIndices;  // Index of replicate for the hit
+	protected double[][] h; 			// H function (binding component probability per read)
+	protected double[]   n; 			// N function (noise component probability per read)
+	protected double[][] rBindSig;		// Binding component responsibilities (signal reads)
+	protected double[]   rNoiseSig;		// Noise component responsibilities (signal reads)
+	protected double[][] rBindCtrl;		// Binding component responsibilities (control reads)
+	protected double[]   rNoiseCtrl;		// Noise component responsibilities (control reads)
+	protected double[]   pi;			// pi : emission probabilities for binding components
+	protected double     piNoise;		// pi : emission probabilities for noise components (fixed)
+	protected int[]      mu;			// mu : positions of the binding components
+	protected double[][] compLL;		//Log-likelihood for each component in each condition
+	protected double[][] lastRBind;	//Last responsibilities (monitor convergence)
+	protected double[]   lastPi;		//Last Pi (monitor convergence)
+	protected int[]      lastMu;		//Last positions (monitor convergence)
+	protected double[]   tmp_pi;			// pi used in ML calc
+	protected double[][] tmp_h;			// h used in ML calc
+	protected double[][] tmp_rBindSig;	// rBindSig used in ML calc
+	protected double[]   tmp_rNoiseSig;	// rNoiseSig used in ML calc
+	protected double	 tmp_piNoise; 	// piNoise used in ML calc
+	protected BindingModel[] bindingModels; //Array of binding models for convenience
+	protected double[]	   sigRepHitCountTotals; //Hit count totals counted by replicate (for convenience)
+	protected double[]	uniformRepHitCountTotals; //Hit count totals by replicate if signal read counts were distributed uniformly (used only if there is no control) 
+	protected double numPotentialRegions;
 	
 	/**
 	 * Constructor
 	 * @param c
 	 * @param eMan
 	 */
-	public BindingMLAssignment(ExptConfig econ, EventsConfig evcon, ChExMixConfig c, ExperimentManager eMan, BindingManager bindMan, HashMap<ExperimentCondition, BackgroundCollection> condBacks, int numPotReg){
+	public MultiGPSMLAssignment(ExptConfig econ, EventsConfig evcon, ChExMixConfig c, ExperimentManager eMan, BindingManager bindMan, HashMap<ExperimentCondition, BackgroundCollection> condBacks, int numPotReg){
 		config=c;
 		evconfig = evcon;
 		econfig = econ;
 		manager = eMan;
 		bindingManager = bindMan;
 		conditionBackgrounds = condBacks;
+		numConditions = manager.getNumConditions();
 		numPotentialRegions = (double)numPotReg;
 	}
 	
@@ -109,35 +107,28 @@ public class BindingMLAssignment {
     								  List<BindingSubComponents> comps, 
     								  int numComp,
     								  ExperimentCondition cond){ 
-    	
-    	numConditionReps = cond.getReplicates().size();
     	components = comps;
         this.noise = noise;
         numComponents = numComp;
         //Matrix initializations
-    	pi = new double[numComponents];					// pi : emission probabilities for binding components
-    	mu = new int[numComponents][][];				// mu : positions of the binding components
-        tau = new double[numComponents][][];			// tau : binding event subtype probabilities
-    	compLL = new double [numConditionReps][numComponents];		//Log-likelihood for each component in each condition
-    	TagProbabilityDensities = new TagProbabilityDensity[manager.getReplicates().size()][]; //Array of bindingModels for convenience
+    	pi = new double[numComponents];	// pi : emission probabilities for binding components
+    	mu = new int[numComponents];// mu : positions of the binding components
+    	compLL = new double [numConditions][numComponents];		//Log-likelihood for each component in each condition
+        bindingModels = new BindingModel[manager.getReplicates().size()]; //Array of bindingModels for convenience
         sigRepHitCountTotals = new double[manager.getReplicates().size()]; //Hit count totals counted by replicate (for convenience)
         uniformRepHitCountTotals = new double[manager.getReplicates().size()]; //Hit count totals by replicate if reads were distributed uniformly 
         //Monitor state convergence using the following last variables
         lastPi = new double[numComponents];
-        lastMu = new int[numComponents][][];
+        lastMu = new int[numComponents];
         //Temporary variables
-        tmp_pi = new double[numComponents]; // pi used in ML calc
+        tmp_pi = new double[numComponents];			// pi used in ML calc
         
         //Initializing data structures
         int c = cond.getIndex();
-        numBindingType = bindingManager.getNumBindingType(cond);
         	
         //Add bindingModels to array
-        for(ControlledExperiment rep : cond.getReplicates()){
-        	TagProbabilityDensities[rep.getIndex()] = new TagProbabilityDensity[numBindingType];
-        	for (int bt=0; bt< numBindingType; bt++)
-        		TagProbabilityDensities[rep.getIndex()][bt] = bindingManager.getBindingModel(rep).get(bt);
-        }
+        for(ControlledExperiment rep : cond.getReplicates())
+        	bindingModels[rep.getIndex()] = bindingManager.getUnstrandedBindingModel(rep);
         	
         //Load Reads (merge from all replicates)
         List<StrandedBaseCount> sigBases = new ArrayList<StrandedBaseCount>();
@@ -180,7 +171,7 @@ public class BindingMLAssignment {
         sigHitPos= new int[sigHitNum];
         sigHitPlusStr= new boolean[sigHitNum];
         for(int i=0;i<sigHitNum;i++){
-            sigHitPos[i] = sigBases.get(i).getCoordinate();
+        	sigHitPos[i] = sigBases.get(i).getCoordinate();
             sigHitPlusStr[i] = sigBases.get(i).getStrand() == '+';
             sigHitCounts[i]=sigBases.get(i).getCount();
         }
@@ -199,7 +190,7 @@ public class BindingMLAssignment {
 
         //Load pi for binding components
         for(int j=0;j<numComp;j++){
-            BindingSubComponents comp = components.get(j);
+        	BindingSubComponents comp = components.get(j);
             pi[j]= comp.getPi(); 
         }
         //Load pi for noise components
@@ -207,46 +198,33 @@ public class BindingMLAssignment {
             
         //Load binding component positions
         for(int j=0;j<numComp;j++)
-        	mu[j] = components.get(j).getPositions();
-            
-        //Load binding component probabilities
-        for(int j=0;j<numComp;j++)
-            tau[j] = components.get(j).getTau();
-            
+            mu[j] = components.get(j).getPosition();
+    		
         //Initialize responsibility functions
-        h= new double[numComp][sigHitNum][numBindingType][2];
-        tmp_h= new double[numComp][sigHitNum][numBindingType][2];
-        n = new double[sigHitNum];
+        double[][] hc= new double[numComp][sigHitNum];
+        double[][] thc= new double[numComp][sigHitNum];
+        double[] nc = new double[sigHitNum];
         for(int i=0;i<sigHitNum;i++){
-            for(int j=0;j<numComp;j++){
-            	for (int bt=0; bt<numBindingType ; bt++){
-            		for (int s=0; s<2 ; s++){
-            			int dist = sigHitPos[i]-mu[j][bt][s];
-            			if (sigHitPlusStr[i]){
-            				// Case 1 : component location is at positive strand
-            				h[j][i][bt][0] = TagProbabilityDensities[sigRepIndices[i]][bt].probability(dist, true); //Watson
-            				tmp_h[j][i][bt][0] = TagProbabilityDensities[sigRepIndices[i]][bt].probability(dist, true); 
-            				// Case 2 : component location is at negative strand
-            				h[j][i][bt][1] = TagProbabilityDensities[sigRepIndices[i]][bt].probability(-dist, false); //Crick
-            				tmp_h[j][i][bt][1] = TagProbabilityDensities[sigRepIndices[i]][bt].probability(-dist, false);
-            			}else{
-            				// Case 1 : component location is at positive strand
-            				h[j][i][bt][0] = TagProbabilityDensities[sigRepIndices[i]][bt].probability(dist, false); //Crick
-            				tmp_h[j][i][bt][0] = TagProbabilityDensities[sigRepIndices[i]][bt].probability(dist, false);             							
-            				// Case 2 : component location is at negative strand
-            				h[j][i][bt][1] = TagProbabilityDensities[sigRepIndices[i]][bt].probability(-dist, true);
-            				tmp_h[j][i][bt][1] = TagProbabilityDensities[sigRepIndices[i]][bt].probability(-dist, true); //Watson 
-            }}}}
-            n[i] = noise.get(c).scorePosition(sigHitPos[i],sigRepIndices[i]);
+        	for(int j=0;j<numComp;j++){
+            	int dist = sigHitPlusStr[i] ? sigHitPos[i]-mu[j]: mu[j]-sigHitPos[i];
+            		
+                hc[j][i] = bindingModels[sigRepIndices[i]].probability(dist);
+                thc[j][i] = bindingModels[sigRepIndices[i]].probability(dist);
+
+            }
+            nc[i] = noise.get(c).scorePosition(sigHitPos[i],sigRepIndices[i]);
         }
+        h = hc;
+        n = nc;
+        tmp_h = thc;
             
-        rBindSig  = new double[numComp][sigHitNum][numBindingType][2];
-    	rNoiseSig = new double[sigHitNum];
-    	lastRBind = new double[numComp][sigHitNum][numBindingType][2];
-    	tmp_rBindSig  = new double[numComp][sigHitNum][numBindingType][2];
+        rBindSig  = new double[numComp][sigHitNum];
+        rNoiseSig = new double[sigHitNum];
+    	lastRBind = new double[numComp][sigHitNum];
+    	tmp_rBindSig  = new double[numComp][sigHitNum];
     	tmp_rNoiseSig = new double[sigHitNum];
-    	lastMu = new int [numComp][numBindingType][2];
-        //End of data structure initialization
+        
+    	//End of data structure initialization
         
         
         //////////
@@ -261,17 +239,11 @@ public class BindingMLAssignment {
         List<BindingEvent> events = new ArrayList<BindingEvent>();
 	   	for(int j=0;j<numComp;j++){ 
 	   		BindingEvent event = new BindingEvent(components.get(j).getCoord(), w);
-    		StrandedPoint[][] coords = new StrandedPoint[mu[j].length][2];
-    		for (int bt=0; bt< numBindingType;bt++){
-    			coords[bt][0] = new StrandedPoint(components.get(j).getCoord().getGenome(), components.get(j).getCoord().getChrom(), mu[j][bt][0],'+');
-    			coords[bt][1] = new StrandedPoint(components.get(j).getCoord().getGenome(), components.get(j).getCoord().getChrom(), mu[j][bt][1],'-');
-    		}	
-    		event.setTypePoints(cond,coords);
-    		event.setTypeProbs(cond,tau[j]);
-
+	   		
     		ArrayList<Sample> controlsSeen = new ArrayList<Sample>();
     		boolean uniformBackAdded=false;
     		double condSigResp = 0.0, condCtrlResp = 0.0;
+    		c = cond.getIndex();
     		for(ControlledExperiment rep : cond.getReplicates()){
     			int r = rep.getIndex();
 	    		double repSigResp = 0.0, repCtrlResp = 0.0; 
@@ -279,25 +251,21 @@ public class BindingMLAssignment {
 	    			double scount=0;
 			           for(int i=0;i<sigHitNum;i++)
 			            if(sigRepIndices[i]==r)
-			            	for (int bt=0; bt<numBindingType; bt++)
-		                		for (int s=0; s<2 ; s++)
-		                			scount += sigHitCounts[i]*rBindSig[j][i][bt][s];
+			            	scount += sigHitCounts[i]*rBindSig[j][i];
 			        repSigResp+=scount;
 			        condSigResp+=scount;
 			            
 			        double ccount=0;
 			        if(rep.hasControl()){
-			            for(int i=0;i<ctrlHitNum;i++)
+			        	for(int i=0;i<ctrlHitNum;i++)
 			            	if(ctrlRepIndices[i]==r)
-			            		for (int bt=0; bt<numBindingType; bt++)
-			                		for (int s=0; s<2 ; s++)
-			                			ccount += ctrlHitCounts[i]*rBindCtrl[j][i][bt][s];
+			            		ccount += ctrlHitCounts[i]*rBindCtrl[j][i];
 			            repCtrlResp+=ccount;
 				        if(!controlsSeen.contains(rep.getControl()))
-				            condCtrlResp+=ccount;
+				        	condCtrlResp+=ccount;
 				        controlsSeen.add(rep.getControl());
 			        }else{  //If there is no control channel, assign pseudo-control counts as if the noise reads in the IP channel were distributed perfectly uniformly
-			            repCtrlResp = uniformRepHitCountTotals[rep.getIndex()]*pi[j];
+			        	repCtrlResp = uniformRepHitCountTotals[rep.getIndex()]*pi[j];
 			            if(!uniformBackAdded)
 			            	condCtrlResp+=repCtrlResp;
 			            uniformBackAdded=true;
@@ -309,8 +277,8 @@ public class BindingMLAssignment {
     		event.setCondSigHits(cond, condSigResp);
 	        event.setCondCtrlHits(cond, condCtrlResp);
 	        if(evconfig.CALC_EVENTS_LL)
-	            event.setLLd(cond, compLL[c][j]);
-	    	
+	        	event.setLLd(cond, compLL[c][j]);
+	            
     		if(nonZeroInAny(event, cond))
     			events.add(event);
         }        
@@ -336,13 +304,13 @@ public class BindingMLAssignment {
         //Initialize responsibilities
         double [] totalRespSig = new double[sigHitNum];
     	for(int i=0;i<sigHitNum;i++)
-    		totalRespSig[i]=0;
+            totalRespSig[i] = 0;
     	if(ctrlHitNum>0){
-	    	rBindCtrl = new double[numComp][ctrlHitNum][numBindingType][2];
+	    	rBindCtrl = new double[numComp][ctrlHitNum];
 	    	rNoiseCtrl= new double[ctrlHitNum];
 	    	totalRespCtrl = new double[ctrlHitNum];
-	           for(int i=0;i<ctrlHitNum;i++)
-	            totalRespCtrl[i]=0;
+	        for(int i=0;i<ctrlHitNum;i++)
+	            totalRespCtrl[i] = 0;
     	}        
     	
     	////////////////////////////
@@ -354,58 +322,39 @@ public class BindingMLAssignment {
     		//E-step
     		////////
         	//Recompute h function, given binding component positions (n function is constant because noise model doesn't move)
-        	for(int i=0;i<sigHitNum;i++){
+        	for(int i=0;i<sigHitNum;i++)
                 for(int j=0;j<numComp;j++){ if(pi[j]>0){
-                	for (int bt=0; bt<numBindingType ; bt++){
-                		for (int s=0; s<2 ; s++){
-                			int dist = sigHitPos[i]-mu[j][bt][s];               				
-                			if (sigHitPlusStr[i]){ if(tau[j][bt][s]>0){
-                				// Case 1: Component is located on positive strand
-                				h[j][i][bt][0] = TagProbabilityDensities[sigRepIndices[i]][bt].probability(dist, true); //Watson
-                				//  Case 2: Component is located on negative strand
-                				h[j][i][bt][1] = TagProbabilityDensities[sigRepIndices[i]][bt].probability(-dist, false); //Crick
-                			}else{
-                				// Case 1: Component is located on positive strand
-                				h[j][i][bt][0] = TagProbabilityDensities[sigRepIndices[i]][bt].probability(dist, false); //Crick
-                				//  Case 2: Component is located on ne gative strand
-                				h[j][i][bt][1] = TagProbabilityDensities[sigRepIndices[i]][bt].probability(-dist, true); //Watson
-            }}}}}}}
+                    int dist = sigHitPlusStr[i] ? sigHitPos[i]-mu[j]: mu[j]-sigHitPos[i];
+                    h[j][i] = bindingModels[sigRepIndices[i]].probability(dist);
+                }}
         	//Compute responsibilities
     		for(int i=0;i<sigHitNum;i++)
-    			totalRespSig[i] = 0;
+                totalRespSig[i] = 0;
         	for(int i=0;i<sigHitNum;i++){
         		for(int j=0;j<numComp;j++){ if(pi[j]>0){
-        			for (int bt=0; bt<numBindingType; bt++){
-        				for (int s=0; s<2; s++){ if(tau[j][bt][s]>0){
-        					rBindSig[j][i][bt][s] = h[j][i][bt][s]*pi[j]*tau[j][bt][s];
-        					totalRespSig[i] +=rBindSig[j][i][bt][s]; 
-        		}}}}}
+        			rBindSig[j][i] = h[j][i]*pi[j];
+        			totalRespSig[i] +=rBindSig[j][i]; 
+        		}}
         		rNoiseSig[i] = n[i] * piNoise;
         		totalRespSig[i] +=rNoiseSig[i];
         	}
         	//Normalize responsibilities
         	for(int i=0;i<sigHitNum;i++){
         		for(int j=0;j<numComp;j++){ if(pi[j]>0){
-        			for (int bt=0; bt< numBindingType;bt++){
-        				for (int s=0; s<2 ; s++){ if(tau[j][bt][s]>0){
-        					rBindSig[j][i][bt][s]/=totalRespSig[i];
-        		}}}}}
+        			rBindSig[j][i]/=totalRespSig[i];
+        		}}
         		rNoiseSig[i]/=totalRespSig[i];
         	}
     		        		
     		/////////////////////
-    		//M-step: maximize pi and tau
+    		//M-step: maximize pi
     		/////////////////////
         	//Maximize pi
         	double[] sumR=new double[numComponents];
-        	double[][][] sumR_bt=new double[numComponents][numBindingType][2];
         	for(int j=0;j<numComp;j++){ if(pi[j]>0){
-        		for(int i=0;i<sigHitNum;i++){
-        			for (int bt=0; bt< numBindingType; bt++){
-        				for (int s=0; s< 2; s++){ if(tau[j][bt][s]>0){
-        					sumR[j] += rBindSig[j][i][bt][s]*sigHitCounts[i];
-        					sumR_bt[j][bt][s] += rBindSig[j][i][bt][s]*sigHitCounts[i];
-            }}}}}}
+        		for(int i=0;i<sigHitNum;i++)
+        			sumR[j] += rBindSig[j][i]*sigHitCounts[i];
+            }}
                 
         	// No components to be eliminated in ML, update pi(j)
         	for(int j=0;j<numComp;j++){ 
@@ -421,6 +370,7 @@ public class BindingMLAssignment {
             	if(totalPi>0)
             		pi[j]=pi[j]/(totalPi/(1-piNoise));
             }}
+
         	
         	//Non-zero components count
         	int nonZeroComps=0;
@@ -428,7 +378,6 @@ public class BindingMLAssignment {
         		if(pi[j]>0.0)
         			nonZeroComps++;
         	
- 
         	////////////
         	//Check Stopping condition
         	////////////	
@@ -446,10 +395,8 @@ public class BindingMLAssignment {
     		// for each read, each event will give a conditional prob or bg prob
             double j_sum=0;
     		for(int j=0;j<numComp;j++){ if(pi[j]>0.0){
-    			for (int bt=0; bt< numBindingType; bt++)
-    				for (int s=0; s< 2; s++){ if (tau[j][bt][s]>0){
-    					j_sum += Math.log(rBindSig[j][i][bt][s])/config.LOG2;
-            }}}}
+    			j_sum += Math.log(rBindSig[j][i])/config.LOG2;
+            }}
     		j_sum += Math.log(rNoiseSig[i])/config.LOG2;
             baseLL += j_sum*sigHitCounts[i];                        
         }
@@ -457,46 +404,36 @@ public class BindingMLAssignment {
         
         //ML assignment of signal reads to components is finished
         //Assign control reads with converged pi values here
-        double[][][][] hCtrl= new double[numComp][ctrlHitNum][numBindingType][2];
-        double[] nCtrl = new double[ctrlHitNum];
+        double[][] hCtrl= new double[numComp][sigHitNum];
+        double[] nCtrl = new double[sigHitNum];
 
 		//Recompute h & n functions for control reads, given binding component positions 
-		for(int i=0;i<ctrlHitNum;i++){
+		for(int i=0;i<sigHitNum;i++){
 	        for(int j=0;j<numComp;j++){ if(pi[j]>0){
-	        	for (int bt=0; bt<numBindingType; bt++){
-            		for (int s=0; s<2 ; s++){ if (tau[j][bt][s]>0){
-            			int dist = ctrlHitPos[i]-mu[j][bt][s];   
-            			if (ctrlHitPlusStr[i]){
-            				hCtrl[j][i][bt][0] = TagProbabilityDensities[ctrlRepIndices[i]][bt].probability(dist, true); //Watson
-            				hCtrl[j][i][bt][1] = TagProbabilityDensities[ctrlRepIndices[i]][bt].probability(-dist, false); //Crick            					
-            			}else{
-            				hCtrl[j][i][bt][0] = TagProbabilityDensities[ctrlRepIndices[i]][bt].probability(dist, false); //Crick
-            				hCtrl[j][i][bt][1] = TagProbabilityDensities[ctrlRepIndices[i]][bt].probability(-dist, true); //Watson            					
-            }}}}}}			
+	            int dist = ctrlHitPlusStr[i] ? ctrlHitPos[i]-mu[j]: mu[j]-ctrlHitPos[i];
+                hCtrl[j][i] = bindingModels[ctrlRepIndices[i]].probability(dist);
+	        }}
 	        nCtrl[i] = noise.get(c).scorePosition(ctrlHitPos[i], ctrlRepIndices[i]);
 		}
 		//Compute responsibilities
-		for(int i=0;i<ctrlHitNum;i++)
+		for(int i=0;i<sigHitNum;i++)
 	        totalRespCtrl[i] = 0;
-		for(int i=0;i<ctrlHitNum;i++){
+		for(int i=0;i<sigHitNum;i++){
 			for(int j=0;j<numComp;j++){ if(pi[j]>0){
-				for (int bt=0; bt<numBindingType; bt++){
-    				for (int s=0; s<2; s++){ if (tau[j][bt][s]>0){
-    					rBindCtrl[j][i][bt][s] = hCtrl[j][i][bt][s]*pi[j]*tau[j][bt][s];
-    					totalRespCtrl[i] +=rBindCtrl[j][i][bt][s];
-			}}}}}
+				rBindCtrl[j][i] = hCtrl[j][i]*pi[j];
+				totalRespCtrl[i] +=rBindCtrl[j][i]; 
+			}}
 			rNoiseCtrl[i] = nCtrl[i] * piNoise;
 			totalRespCtrl[i] +=rNoiseCtrl[i];
 		}
 		//Normalize responsibilities
-		for(int i=0;i<ctrlHitNum;i++){
+		for(int i=0;i<sigHitNum;i++){
 			for(int j=0;j<numComp;j++){ if(pi[j]>0){
-				for (int bt=0; bt< numBindingType;bt++)
-    				for (int s=0; s<2 ; s++){ if (tau[j][bt][s]>0){
-    					rBindCtrl[j][i][bt][s]/=totalRespCtrl[i];
-			}}}}
+				rBindCtrl[j][i]/=totalRespCtrl[i];
+			}}
 			rNoiseCtrl[i]/=totalRespCtrl[i];
-		}       
+		}
+
         
         if(evconfig.CALC_EVENTS_LL){
 	        /////////////////////////////////////////////////////////////////////////////////
@@ -510,14 +447,10 @@ public class BindingMLAssignment {
 	        		for(int t=0; t<=2 ; t++){  
 	        			//Initialize temporary variables
 	        			for(int j=0;j<numComp;j++)
-	        				if(j==elim){
+	        				if(j==elim)
 	        					tmp_pi[j]=0;
-	        				}else{
+	        				else
 	        					tmp_pi[j]= pi[j];
-	        					for (int bt=0; bt<numBindingType ; bt++)
-	                        		for (int s=0; s<2 ; s++)
-	                        			tmp_tau[j][bt][s]=tau[j][bt][s];
-	        				}
 	        			if(piNoise+pi[elim]==1.0)//Single component case
 	        				tmp_piNoise=1.0;
 	        			else{
@@ -531,43 +464,33 @@ public class BindingMLAssignment {
 	                        		tmp_pi[j]=tmp_pi[j]/(totalPi/(1-tmp_piNoise));
 	                        }}	
 	        			}
+
 	        			
 	                	////////
 	            		//E-step
 	            		////////
 	                	//Recompute h function, given binding component positions (n function is constant because noise model doesn't move)
-	                	for(int i=0;i<sigHitNum;i++){
-	                		for(int j=0;j<numComp;j++){ if(tmp_pi[j]>0){
-	                			for (int bt=0; bt<numBindingType; bt++){
-	                        		for (int s=0; s<2 ; s++){ if(tmp_tau[j][bt][s]>0){
-	                        			int dist = sigHitPos[i]-mu[j][bt][s];               				
-	                        			if (sigHitPlusStr[i]){
-	                        				tmp_h[j][i][bt][0] = TagProbabilityDensities[sigRepIndices[i]][bt].probability(dist, true); //Watson
-	                        				tmp_h[j][i][bt][1] = TagProbabilityDensities[sigRepIndices[i]][bt].probability(-dist, false); //Crick			
-	                        			}else{
-	                        				tmp_h[j][i][bt][0] = TagProbabilityDensities[sigRepIndices[i]][bt].probability(dist, false); //Crick
-	                        				tmp_h[j][i][bt][1] = TagProbabilityDensities[sigRepIndices[i]][bt].probability(-dist, true); //Watson
-	                    }}}}}}}
+	                	for(int i=0;i<sigHitNum;i++)
+	                        for(int j=0;j<numComp;j++){ if(tmp_pi[j]>0){
+	                            int dist = sigHitPlusStr[i] ? sigHitPos[i]-mu[j]: mu[j]-sigHitPos[i];
+	                            tmp_h[j][i] = bindingModels[sigRepIndices[i]].probability(dist);
+	                        }}
 	                	//Compute responsibilities
-	            		for(int i=0;i< sigHitNum;i++)
+	            		for(int i=0;i<sigHitNum;i++)
 	                        totalRespSig[i] = 0;
 	                	for(int i=0;i<sigHitNum;i++){
 	                		for(int j=0;j<numComp;j++){ if(tmp_pi[j]>0){
-	                			for (int bt=0; bt<numBindingType; bt++){
-	                				for (int s=0; s<2; s++){ if(tmp_tau[j][bt][s]>0){
-	                					tmp_rBindSig[j][i][bt][s] = tmp_h[j][i][bt][s]*tmp_pi[j]*tmp_tau[j][bt][s];
-	                					totalRespSig[i] +=tmp_rBindSig[j][i][bt][s]; 
-	                		}}}}}
+	                			tmp_rBindSig[j][i] = tmp_h[j][i]*tmp_pi[j];
+	                			totalRespSig[i] +=tmp_rBindSig[j][i]; 
+	                		}}
 	                		tmp_rNoiseSig[i] = n[i] * tmp_piNoise;
 	                		totalRespSig[i] +=rNoiseSig[i];
 	                	}
 	                	//Normalize responsibilities
-	                	for(int i=0;i< sigHitNum;i++){
+	                	for(int i=0;i<sigHitNum;i++){
 	                		for(int j=0;j<numComp;j++){ if(tmp_pi[j]>0){
-	                			for (int bt=0; bt<numBindingType; bt++)
-	                				for (int s=0; s<2; s++){ if(tmp_tau[j][bt][s]>0){
-	                					tmp_rBindSig[j][i][bt][s]/=totalRespSig[i];
-	                		}}}}
+	                			tmp_rBindSig[j][i]/=totalRespSig[i];
+	                		}}
 	                		tmp_rNoiseSig[i]/=totalRespSig[i];
 	                	}
 	            		        
@@ -579,14 +502,13 @@ public class BindingMLAssignment {
 	                	double[] sumR=new double[numComponents];
 	                	for(int j=0;j<numComp;j++){ if(pi[j]>0){
 	                		for(int i=0;i<sigHitNum;i++)
-	                			for (int bt=0; bt<numBindingType; bt++)
-	                				for (int s=0; s<2; s++)
-	                					sumR[j] += tmp_rBindSig[j][i][bt][s]*sigHitCounts[i];
+	                			sumR[j] += tmp_rBindSig[j][i]*sigHitCounts[i];
 	                    }}
 	                        
 	                	// No components to be eliminated in ML, update pi(j)
-	                	for(int j=0;j<numComp;j++) 
+	                	for(int j=0;j<numComp;j++){ 
 	                		tmp_pi[j]=Math.max(0, sumR[j]); 
+	                	}
 	                        
 	                    //Normalize pi (accounting for piNoise)
 	                    double totalPi=0;
@@ -601,14 +523,13 @@ public class BindingMLAssignment {
 	        		}
 	        		// log-likelihood calculation
 	                compLL[c][elim] =-2*baseLL;
-	            	for(int i=0;i<sigHitNum;i++){
+	            	int numBases = sigHitNum;
+	            	for(int i=0;i<numBases;i++){
 	            		// for each read, each event will give a conditional prob or bg prob
 	                    double j_sum=0;
 	            		for(int j=0;j<numComp;j++){ if(tmp_pi[j]>0.0){
-	            			for (int bt=0; bt<numBindingType; bt++)
-                				for (int s=0; s<2; s++) {if(tmp_tau[j][bt][s]>0){
-                					j_sum += Math.log(tmp_rBindSig[j][i][bt][s])/config.LOG2;
-	                    }}}}
+	            			j_sum += Math.log(tmp_rBindSig[j][i])/config.LOG2;
+	                    }}
 	            		j_sum += Math.log(tmp_rNoiseSig[i])/config.LOG2;
 	                    compLL[c][elim] += 2*j_sum*sigHitCounts[i];                        
 	                }
@@ -624,15 +545,10 @@ public class BindingMLAssignment {
     private void copyStateToLast(){
     	for(int j=0; j<numComponents; j++){
     		lastPi[j] = pi[j];
-    		for (int bt=0; bt<numBindingType; bt++)
-				for (int s=0; s<2; s++)
-					lastMu[j][bt][s] = mu[j][bt][s];
+    		lastMu[j] = mu[j];
     		for(int x=0; x<rBindSig[j].length; x++){
-    			for (int bt=0; bt<numBindingType; bt++)
-    				for (int s=0; s<2; s++)
-    					lastRBind[j][x][bt][s] = rBindSig[j][x][bt][s];
+    			lastRBind[j][x] = rBindSig[j][x];
     		}
-    		
     	}
     }
     
@@ -665,9 +581,7 @@ public class BindingMLAssignment {
     	boolean rBindEquivalent=true;
     	for(int j=0; j<pi.length; j++){if(pi[j]>0){
     		for(int x=0; x<rBindSig[j].length; x++){
-    			for (int bt=0; bt<numBindingType; bt++)
-    				for (int s=0; s<2; s++)
-    					rBindEquivalent = rBindEquivalent && (Math.abs(rBindSig[j][x][bt][s]-lastRBind[j][x][bt][s])<config.EM_STATE_EQUIV_THRES);
+    			rBindEquivalent = rBindEquivalent && (Math.abs(rBindSig[j][x]-lastRBind[j][x])<config.EM_STATE_EQUIV_THRES);
     		}
 		}}
 		return numCompEqual && compPosEqual && piBindEquivalent && rBindEquivalent;

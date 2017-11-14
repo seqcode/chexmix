@@ -36,8 +36,10 @@ public class EventsConfig {
 	protected int maxAnnotDistance=50000;
 	protected boolean annotOverlapOnly=false;
 	protected boolean calcEventBaseCompositions=false; //Calculate base compositions around events and tags belonging to events. Useful for analyzing permanganate ChIP-seq
-	protected double qMinThres=0.001;		//Minimum  Q-value for reported binding events
+	protected double qMinThres=0.005;		//Minimum  Q-value for reported binding events
 	protected double minEventFoldChange=1.5;
+	protected double multiGPSqMinThres=0.01;	// Enrichment test after multiGPS style peak calling to remove non-significant binding events
+	protected double multiGPSMinEventFoldChange= 1.2;
 	protected double differentialSignificanceP = 0.01;
 	protected boolean runDiffTests = true; //Run differential enrichment testing
 	protected String Rpath="";
@@ -185,7 +187,9 @@ public class EventsConfig {
 	public BindingModel getDefaultBindingModel(){return defaultModel;}
 	public boolean getCalcEventBaseCompositions(){return calcEventBaseCompositions;}
 	public double getQMinThres(){return qMinThres;}
+	public double getMultiGPSQMinThres(){return multiGPSqMinThres;}
 	public double getMinEventFoldChange(){return minEventFoldChange;}
+	public double getMultiGPSMinEventFoldChange(){return multiGPSMinEventFoldChange;}
 	public double getDiffPMinThres(){return differentialSignificanceP;}
 	public boolean getRunDiffTests(){return runDiffTests;}
 	public String getRpath(){return Rpath;}

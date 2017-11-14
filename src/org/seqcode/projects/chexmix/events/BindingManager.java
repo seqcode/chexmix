@@ -14,6 +14,7 @@ import org.seqcode.data.motifdb.WeightMatrix;
 import org.seqcode.deepseq.experiments.ControlledExperiment;
 import org.seqcode.deepseq.experiments.ExperimentCondition;
 import org.seqcode.deepseq.experiments.ExperimentManager;
+import org.seqcode.genome.location.Region;
 import org.seqcode.genome.location.StrandedPoint;
 import org.seqcode.gseutils.Pair;
 import org.seqcode.projects.chexmix.composite.ProteinDNAInteractionModel;
@@ -424,4 +425,21 @@ public class BindingManager {
     		System.err.println(e.toString());
     	}
     }
+    
+    /**
+     * Convert binding events to components
+     */
+    public HashMap<Region, List<List<BindingSubComponents>>> getComponentsFromEnrichedEvents(){
+    	HashMap<Region, List<List<BindingSubComponents>>> enrichedComps = new HashMap<Region,List<List<BindingSubComponents>>>();   	
+		for(ExperimentCondition cond : manager.getConditions()){
+			for(BindingEvent e : events){
+	    		double Q = e.getCondSigVCtrlP(cond);
+	    		//Because of the ML step and component sharing, I think that an event could be assigned a significant number of reads without being "present" in the condition's EM model.
+	    		if(e.isFoundInCondition(cond) && Q <=config.getMultiGPSQMinThres()){
+	    			BindingSubComponents currComp = new BindingSubComponents(e.getPoint(),cond.getReplicates().size());
+	    			currComp.setUnstrandedSumResponsibilities(e.getCondSigHits(cond));
+	    			enrichedComps.get(e.getContainingRegion()).get(cond.getIndex()).add(currComp);
+	    		}}}		
+		return enrichedComps;
+    }    
 }

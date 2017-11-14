@@ -65,6 +65,7 @@ public class ChExMix {
 		repUnstrandedBindingModels = new HashMap<ControlledExperiment, List<BindingModel>>();
 		
 		List<TagProbabilityDensity> tagProbDensities = new ArrayList<TagProbabilityDensity>();	
+		boolean strandedModelSet =false;
 		if (!gpsconfig.getInitialClustPoints().isEmpty()){
 			List<List<StrandedPoint>> initialClustPoints = gpsconfig.getInitialClustPoints();
 			for (List<StrandedPoint> points : initialClustPoints){
@@ -80,31 +81,29 @@ public class ChExMix {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				currDensity.updateInfluenceRange();		
 				tagProbDensities.add(currDensity);
 			}	
+			strandedModelSet=true;
 		}else if (xlconfig.getModelFilename()!= null){
 			ProteinDNAInteractionModel model = ProteinDNAInteractionModel.loadFromFile(xlconfig, new File(xlconfig.getModelFilename()));
 			List<ProteinDNAInteractionModel> models = new ArrayList<ProteinDNAInteractionModel>();
 			models.add(model);
 			TagProbabilityDensity density = model.makeTagProbabilityDensityFromAllComponents();
-			density.updateInfluenceRange();
 			tagProbDensities.add(density);
 			for(ControlledExperiment rep : manager.getReplicates())
 				bindingManager.setProteinDNAInteractionModel(rep, models);
-		}else{
-			TagProbabilityDensity density = makeInitialTagProbabilityDensity();
-			density.updateInfluenceRange();
-			tagProbDensities.add(density);
+			strandedModelSet=true;
+		}		
+		// Set tag probability density models to binding manager
+		if (strandedModelSet){
+			for(ControlledExperiment rep : manager.getReplicates()){
+				bindingManager.setBindingModel(rep, tagProbDensities);
+				repBindingModels.put(rep,  new ArrayList<TagProbabilityDensity>());
+				repBindingModels.get(rep).addAll(bindingManager.getBindingModel(rep));	
+			}
 		}
 		
-		// Set tag probability density models to binding manager
-		for(ControlledExperiment rep : manager.getReplicates()){
-			bindingManager.setBindingModel(rep, tagProbDensities);
-			repBindingModels.put(rep,  new ArrayList<TagProbabilityDensity>());
-			repBindingModels.get(rep).addAll(bindingManager.getBindingModel(rep));	
-		}
-				
+		// Set unstranded binding models
 		for(ControlledExperiment rep : manager.getReplicates()){		
 			if(evconfig.getDefaultBindingModel()!=null){
 				bindingManager.setUnstrandedBindingModel(rep, evconfig.getDefaultBindingModel());
@@ -245,62 +244,79 @@ public class ChExMix {
 		
 		int round = 0;
 		boolean converged = false;
+		
+		System.err.println("\n============================ Round "+round+" ============================");
+		//Execute the MultiGPS mixture model
+		mixtureModel.execute(true, true, false); //EM
+		
+		//Update noise models
+        mixtureModel.updateGlobalNoise();
+		
+        //Print current components
+        mixtureModel.printActiveComponentsToFile();
+        
+        //Do ML assignment and enrichment analysis after the first round of multiGPS style peak calling
+        //ML quantification of events
+        mixtureModel.execute(false, false, true); //ML
+        bindingManager.setBindingEvents(mixtureModel.getBindingEvents());
+        //Update sig & noise counts in each replicate
+        bindingManager.estimateSignalVsNoiseFractions(bindingManager.getBindingEvents());
+        //Statistical analysis: Enrichment over controls 
+        EnrichmentSignificance testerR0 = new EnrichmentSignificance(evconfig, manager, bindingManager, evconfig.getMultiGPSMinEventFoldChange(), econfig.getMappableGenomeLength());
+        testerR0.execute();
+        
+        mixtureModel.setActiveComponents(bindingManager.getComponentsFromEnrichedEvents());
+        		
         while (!converged){
+        	
+        	//Update motifs
+            mixtureModel.updateMotifs();
+            
+            //Update binding models
+            String distribFilename = gpsconfig.getOutputIntermediateDir()+File.separator+gpsconfig.getOutBase()+"_t"+round;
+            kl = mixtureModel.updateBindingModelUsingMotifs(distribFilename);
+//               kl = mixtureModel4.updateBindingModelUsingClustering(distribFilename);
+            
+            if (!gpsconfig.getInitialClustPoints().isEmpty() && round ==0){
+            	// Use provided initial cluster points
+            	System.out.println("round "+round + "use provided read density from clusters");
+            }else{
+            	kl = mixtureModel.updateBindingModelUsingReadDistributions(distribFilename);
+            }
+
+            //Add new binding models to the record
+            for(ControlledExperiment rep : manager.getReplicates())           	
+    			repBindingModels.get(rep).addAll(bindingManager.getBindingModel(rep));
+            mixtureModel.updateAlphas();	
         	
             System.err.println("\n============================ Round "+round+" ============================");
             
             //Execute the mixture model
-            if(round==0)
-            	mixtureModel.execute(true, true); //EM
-            else
-            	mixtureModel.execute(true, false); //EM
+            mixtureModel.execute(true, false, false); //EM
             
             //Update noise models
             mixtureModel.updateGlobalNoise();
             
             //Print current components
-            mixtureModel.printActiveComponentsToFile();
-            
-            //Check for convergence
-            if(round>=gpsconfig.getMaxModelUpdateRounds())
-            	converged=true;
-            
-            if (!converged){
-            	//Update motifs
-                mixtureModel.updateMotifs();
-                
-                //Update binding models
-                String distribFilename = gpsconfig.getOutputIntermediateDir()+File.separator+gpsconfig.getOutBase()+"_t"+round;
-                kl = mixtureModel.updateBindingModelUsingMotifs(distribFilename);
- //               kl = mixtureModel4.updateBindingModelUsingClustering(distribFilename);
-                if (!gpsconfig.getInitialClustPoints().isEmpty()){
-                	if (round >0)
-                		kl = mixtureModel.updateBindingModelUsingReadDistributions(distribFilename);
-                	else
-                		System.out.println("round "+round + "use provided read density from clusters");
-                }
-                
-                //Add new binding models to the record
-                for(ControlledExperiment rep : manager.getReplicates())           	
-        			repBindingModels.get(rep).addAll(bindingManager.getBindingModel(rep));
-                mixtureModel.updateAlphas();
-                
-                converged = true;
-            	for(int l=0; l<kl.length; l++)
-            		converged = converged && (kl[l]<-5 || kl[l].isNaN());            	           	
-            }
+            mixtureModel.printActiveComponentsToFile();          
             
             round++;
+            
+            //Check for convergence
+            if(round>gpsconfig.getMaxModelUpdateRounds()){
+            	converged=true;
+            }else{
+            	converged = true;
+            	for(int l=0; l<kl.length; l++)
+            		converged = converged && (kl[l]<-5 || kl[l].isNaN());
+            }
         }
        
         outFormatter.plotAllReadDistributions(repBindingModels);
         
         //ML quantification of events
         System.err.println("\n============================ ML read assignment ============================");
-        mixtureModel.execute(false, false); //ML
-        
-        System.out.println("number of binding events after ML assignment "+mixtureModel.getBindingEvents().size());
-        
+        mixtureModel.execute(false, false, false); //ML        
         bindingManager.setBindingEvents(mixtureModel.getBindingEvents());
         //Update sig & noise counts in each replicate
         bindingManager.estimateSignalVsNoiseFractions(bindingManager.getBindingEvents());

@@ -24,8 +24,6 @@ import org.seqcode.genome.location.StrandedPoint;
 import org.seqcode.genome.location.StrandedRegion;
 import org.seqcode.gseutils.ArgParser;
 import org.seqcode.gseutils.Args;
-import org.seqcode.projects.chexmix.composite.CompositeTagDistribution;
-import org.seqcode.projects.chexmix.composite.TagProbabilityDensity;
 
 /**
  * XOGPSConfig: 
@@ -74,6 +72,7 @@ public class ChExMixConfig {
 	protected boolean MLSharedComponentConfiguration = true; //For ML assignment: use a component configuration shared across all conditions or have condition-specific configs.
 	protected boolean findMotifs = true; //Run motif-finding for motif prior
 	protected boolean motif_posprior=true; //You can have motif-finding without using the motif-prior
+	protected boolean clusterReadDistributions = true; //Cluster read distributions
 	protected boolean sharedCS=true;	// CS components are shared between subtypes
 	protected boolean deconvolvedModel=false; // Deconvolve composite plot and use as a read distribution model
 	protected boolean doReadFilter=false;	// Turn on per base read filter in case of highly duplicated experiment
@@ -241,6 +240,9 @@ public class ChExMixConfig {
 					motif_posprior=false;
 					System.err.println("No genome sequence data was provided with --seq, so motif-finding and the motif prior are switched off.");
 				}
+				//Turn off read distribution clustering
+				clusterReadDistributions = Args.parseFlags(args).contains("noclustering") ? false : true; 
+				
 				// Positional prior weights
 				posPriorScaling = Args.parseInteger(args,"pospriorscale",posPriorScaling);
 				// Binding subtype share same CS components
@@ -343,6 +345,7 @@ public class ChExMixConfig {
 	public boolean getFindingMotifs(){return findMotifs;}
 	public boolean useMotifPrior(){return motif_posprior;}
 	public boolean useSharedCS(){return sharedCS;}
+	public boolean getClusteringReads(){return clusterReadDistributions;}
 	public boolean useDeconvolvedModel(){return deconvolvedModel;}
 	public boolean useReadFilter(){return doReadFilter;}
 	public String getMEMEpath(){return MEMEpath;}

@@ -63,7 +63,6 @@ public class BindingMixture {
 	protected PotentialRegionFilter potRegFilter;
 	protected List<Region> testRegions;
 	protected HashMap<Region, List<List<BindingSubComponents>>> activeComponents; //Components active after a round of execute()
-	protected List<HashMap<BindingSubComponents, List<CompositeModelComponent>>> activeXLComponents;  //Deconvolved active XL components
 	protected HashMap<ExperimentCondition, BackgroundCollection> conditionBackgrounds=new HashMap<ExperimentCondition, BackgroundCollection>(); //Genomic Background models for each condition -- used to set alpha values in sparse prior
 	protected List<BindingEvent> bindingEvents;
 	protected List<Region> regionsToPlot;
@@ -103,9 +102,6 @@ public class BindingMixture {
 		BindingEvent.setNumBindingTypes(numBindingTypes);		
 		
 		activeComponents = new HashMap<Region, List<List<BindingSubComponents>>>();
-		activeXLComponents = new ArrayList<HashMap<BindingSubComponents, List<CompositeModelComponent>>>();
-		for (ExperimentCondition cond : manager.getConditions())
-			activeXLComponents.add(new HashMap<BindingSubComponents,List<CompositeModelComponent>>());
 		
 		for(ExperimentCondition cond : manager.getConditions()){
 			conditionBackgrounds.put(cond, new BackgroundCollection());
@@ -130,7 +126,7 @@ public class BindingMixture {
 	 * EM: if true, run EM, otherwise run ML assignment   
 	 * bindingEvents : if true, run EM over binding events, otherwise run EM over cross-linking points
 	 */
-	public void execute(boolean EM, boolean uniformBindingSubComponentss){
+	public void execute(boolean EM, boolean uniformBindingSubComponents, boolean multiGPSML){
 		trainingRound++;
 		
 		//Have to split the test regions up by chromosome in order to maintain compatibility with experiment file cache loading
@@ -156,7 +152,7 @@ public class BindingMixture {
 		        }
 		
 		        for (i = 0 ; i < threads.length; i++) {
-		            Thread t = new Thread(new BindingMixtureThread(threadRegions[i], EM, uniformBindingSubComponentss));
+		            Thread t = new Thread(new BindingMixtureThread(threadRegions[i], EM, uniformBindingSubComponents, multiGPSML));
 		            t.start();
 		            threads[i] = t;
 		        }
@@ -181,7 +177,7 @@ public class BindingMixture {
 	 * Return the active components, flattening the hash map first. 
 	 * @return
 	 */
-	public List<List<BindingSubComponents>> getBindingSubComponentss(){
+	public List<List<BindingSubComponents>> getBindingSubComponents(){
 		List<List<BindingSubComponents>> comps = new ArrayList<List<BindingSubComponents>>();
 		for(int c=0; c<manager.getNumConditions(); c++)
 			comps.add(new ArrayList<BindingSubComponents>());
@@ -205,6 +201,12 @@ public class BindingMixture {
 	 * @return
 	 */
 	public MotifPlatform getMotifFinder(){return motifFinder;}
+
+	
+	/**
+	 * Set activeComponents after an initial enrichment test
+	 */	
+	public void setActiveComponents(HashMap<Region, List<List<BindingSubComponents>>> activeComponents){this.activeComponents = activeComponents;}
 	
 	/**
      * Update binding models for each replicate given the discovered binding components. 
@@ -365,7 +367,6 @@ public class BindingMixture {
 			    			}
 				
 			    			TagProbabilityDensity model = new TagProbabilityDensity(empiricalWatson,empiricalCrick);
-			    			model.updateInfluenceRange();
 			    			String outFile = distribFilename+"_"+rep.getName()+"_"+index+".txt";
 			    			model.printDensityToFile(outFile);
 			    			models.get(rep).add(model);	
@@ -613,7 +614,6 @@ public class BindingMixture {
 	    			}
 		
 	    			TagProbabilityDensity model = new TagProbabilityDensity(empiricalWatson,empiricalCrick);
-	    			model.updateInfluenceRange();
 	    			String outFile = distribFilename+"_"+rep.getName()+"_"+index+".txt";
 	    			model.printDensityToFile(outFile);
 	    			models.get(rep).add(model);	
@@ -748,7 +748,6 @@ public class BindingMixture {
 								currDensity.loadData(signalComposite.getCompositeWatson(), signalComposite.getCompositeCrick());
 							}
 							
-							currDensity.updateInfluenceRange();		
 							String distribFile = distribFilename+"_ReadDistrib_"+cond.getName()+"_"+WeightMatrix.getConsensus(motif)+".txt";
 							currDensity.printDensityToFile(distribFile);
 							for (ControlledExperiment rep : cond.getReplicates())
@@ -826,7 +825,6 @@ public class BindingMixture {
 							for (ProteinDNAInteractionModel model : models.get(rep)){
 								// here ?
 								TagProbabilityDensity currDensity = model.makeTagProbabilityDensityFromAllComponents();
-								currDensity.updateInfluenceRange();
 								densities.get(rep).add(currDensity);
 								String distribFile = config.getOutputParentDir()+File.separator+config.getOutBase()+"_t"+trainingRound
 									+"_ReadDistrib-sharedCS"+cond.getName()+"_"+WeightMatrix.getConsensus(goodMotifs.get(index))+".txt";
@@ -1108,11 +1106,13 @@ public class BindingMixture {
 		private int numBindingComponents=1;	//Assuming that the total number of components (active+inactive) is the same in every condition makes coding easier in the BindingEM class.  
 		private boolean runEM = true;
 		private boolean uniformBindingComponents=false;
+		private boolean runMultiGPSML = false;
 		
-		public BindingMixtureThread(Collection<Region> regs, boolean EM, boolean uniformBindingComponents){
+		public BindingMixtureThread(Collection<Region> regs, boolean EM, boolean uniformBindingComponents, boolean multiGPSML){
 			regions = regs;	
 			this.uniformBindingComponents = uniformBindingComponents;
 			runEM=EM;
+			runMultiGPSML = multiGPSML;
 		}
 		
 		/**
@@ -1231,6 +1231,7 @@ public class BindingMixture {
 		 */
 		private List<BindingEvent> analyzeWindowML(Region w){
 			BindingMLAssignment ML = new BindingMLAssignment(econfig, evconfig, config, manager,bindingManager, conditionBackgrounds, potRegFilter.getPotentialRegions().size());
+			MultiGPSMLAssignment GPSML = new MultiGPSMLAssignment(econfig, evconfig, config, manager,bindingManager, conditionBackgrounds, potRegFilter.getPotentialRegions().size());
 			List<BindingSubComponents> bindingComponents=null;
 			List<NoiseComponent> noiseComponents=null;
 			List<BindingEvent> currEvents = new ArrayList<BindingEvent>(); 
@@ -1274,8 +1275,14 @@ public class BindingMixture {
     				seenConfigs.add(currCC);
     				
     				//ML assignment
-    				//Make ML assignment condition specific or hack to get some read assignment
-    				List<BindingEvent> condEvents = ML.assign(signals, controls, w, noiseComponents, bindingComponents, numComp, cond);
+    				List<BindingEvent> condEvents = null;
+    				if (runMultiGPSML){
+    					condEvents = GPSML.assign(signals, controls, w, noiseComponents, bindingComponents, numComp, cond);  					
+    				}else{
+    					//Make ML assignment condition specific or hack to get some read assignment
+        				condEvents = ML.assign(signals, controls, w, noiseComponents, bindingComponents, numComp, cond);
+    				}
+    				
     				for(BindingEvent be : condEvents)
     					be.setIsFoundInCondition(cond.getIndex(),true);
     				currEvents.addAll(condEvents);

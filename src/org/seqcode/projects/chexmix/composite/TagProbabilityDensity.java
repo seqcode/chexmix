@@ -394,7 +394,7 @@ public class TagProbabilityDensity {
 	}
 	
 	//Update the influence range
-	public void updateInfluenceRange(){
+	protected void updateInfluenceRange(){
 		Pair<Integer,Integer> intervals = probIntervalDistances(0.75);
 		int longest = Math.max(Math.abs(intervals.car()), Math.abs(intervals.cdr()));
 		influenceRange = longest;

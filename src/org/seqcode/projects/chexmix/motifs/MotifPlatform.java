@@ -130,7 +130,7 @@ public class MotifPlatform {
 		
 		// Group peaks either by overlap with other conditions or subtype probabilities
 		Map<ExperimentCondition, List<List<BindingSubComponents>>> groupPeaks;
-		if (trainingRound ==1 || trainingRound ==2)
+		if (trainingRound<=2)
 			groupPeaks = groupPeaksByOverlap(allpeaks);
 		else
 			groupPeaks = groupPeaksBySubtypes(allpeaks);
