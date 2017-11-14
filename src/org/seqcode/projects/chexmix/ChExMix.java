@@ -63,6 +63,8 @@ public class ChExMix {
 		//Initialize binding models & binding model record
 		repBindingModels = new HashMap<ControlledExperiment, List<TagProbabilityDensity>>();
 		repUnstrandedBindingModels = new HashMap<ControlledExperiment, List<BindingModel>>();
+		for(ControlledExperiment rep : manager.getReplicates())
+			repBindingModels.put(rep,  new ArrayList<TagProbabilityDensity>());
 		
 		List<TagProbabilityDensity> tagProbDensities = new ArrayList<TagProbabilityDensity>();	
 		boolean strandedModelSet =false;
@@ -98,7 +100,6 @@ public class ChExMix {
 		if (strandedModelSet){
 			for(ControlledExperiment rep : manager.getReplicates()){
 				bindingManager.setBindingModel(rep, tagProbDensities);
-				repBindingModels.put(rep,  new ArrayList<TagProbabilityDensity>());
 				repBindingModels.get(rep).addAll(bindingManager.getBindingModel(rep));	
 			}
 		}
