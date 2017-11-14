@@ -467,6 +467,8 @@ public class BindingMixture {
 		for (int x=0; x<numReps; x++)
 			logKL[x]=0.0;
 		
+		if(config.doBMUpdate()&& config.getClusteringReads()){
+		
 		// Choose which ones to include
 		//Sum read profiles if there are enough binding components
     	for(ExperimentCondition cond : manager.getConditions()){
@@ -621,6 +623,8 @@ public class BindingMixture {
 	    	bindingManager.updateMaxInfluenceRange(cond, false);
 	    	bindingManager.setMotifIndexes(cond, motifIndexes);	    
     	} // end of condition loop
+    	
+		}
 		return logKL;	
 	}
 	
