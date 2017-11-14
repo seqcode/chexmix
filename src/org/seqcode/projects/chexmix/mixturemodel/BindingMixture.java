@@ -1247,9 +1247,10 @@ public class BindingMixture {
             for(ExperimentCondition cond : manager.getConditions()){
             	//Initialize binding components: condition-specific  
             	if (runMultiGPSML)
-            		bindingComponents = initializeBindingSubComponentsFromOneConditionActive(w, noiseComponents.get(cond.getIndex()), cond.getIndex());
-            	else	
             		bindingComponents = initializeBindingComponentsFromOneConditionActive(w, noiseComponents.get(cond.getIndex()), cond.getIndex());
+            	else
+            		bindingComponents = initializeBindingSubComponentsFromOneConditionActive(w, noiseComponents.get(cond.getIndex()), cond.getIndex());
+            	
             	int numComp = bindingComponents.size();
             	
             	//Construct configuration
