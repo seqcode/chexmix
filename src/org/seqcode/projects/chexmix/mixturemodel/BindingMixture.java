@@ -1245,8 +1245,11 @@ public class BindingMixture {
             ArrayList<ComponentConfiguration> seenConfigs = new ArrayList<ComponentConfiguration>();
     		//Assign reads to components
             for(ExperimentCondition cond : manager.getConditions()){
-            	//Initialize binding components: condition-specific           	
-            	bindingComponents = initializeBindingSubComponentsFromOneConditionActive(w, noiseComponents.get(cond.getIndex()), cond.getIndex());
+            	//Initialize binding components: condition-specific  
+            	if (runMultiGPSML)
+            		bindingComponents = initializeBindingSubComponentsFromOneConditionActive(w, noiseComponents.get(cond.getIndex()), cond.getIndex());
+            	else	
+            		bindingComponents = initializeBindingComponentsFromOneConditionActive(w, noiseComponents.get(cond.getIndex()), cond.getIndex());
             	int numComp = bindingComponents.size();
             	
             	//Construct configuration
@@ -1472,6 +1475,43 @@ public class BindingMixture {
     		}
         	return components; 
         }//end of initializeComponents method
+        
+        /**
+         * Initializes components from active components in a single condition: 
+         * 		Uses active component locations from the last round of training in one condition,
+         * 		No flanking components or resuce components added here, since resulting components will only be used
+         * 		in ML assignment.  
+         *
+         * @param currReg
+         */
+        private List<BindingSubComponents> initializeBindingComponentsFromOneConditionActive(Region currReg, NoiseComponent noise, int conditionIndex){
+        	//Initialize component positions with active locations
+        	List<Integer> componentPositions = new ArrayList<Integer>();
+        	for(BindingSubComponents comp : activeComponents.get(currReg).get(conditionIndex)){
+        		if(!componentPositions.contains(comp.getPosition()) && comp.getPosition()>=currReg.getStart() && comp.getPosition()<currReg.getEnd()){
+        			componentPositions.add(comp.getPosition());
+        		}
+        	}
+
+        	numBindingComponents = componentPositions.size();
+
+        	//Make new components with these locations
+        	List<BindingSubComponents> components = new ArrayList<BindingSubComponents>();
+        	
+        	//Set up the components
+        	double numC=(double)numBindingComponents; 
+    		double emission = (1-noise.getPi())/numC;
+    		for(int index=0; index<componentPositions.size(); index++){
+    			Point pos = new Point(config.getGenome(), currReg.getChrom(),componentPositions.get(index));  
+    			BindingSubComponents currComp = new BindingSubComponents(pos, manager.getReplicates().size());
+    			currComp.setIndex(index);  	
+				//Initialize normalized mixing probabilities (subtracting the noise emission probability)
+    			currComp.uniformInit(emission);
+    			components.add(currComp);
+			}
+    		
+        	return components; 
+        }//end of initializeComponents method
 
         
         /**
@@ -1562,6 +1602,7 @@ public class BindingMixture {
     		
         	return components; 
         }//end of initializeComponents method
+        
         
         /**
          * Initializes the noise components.
