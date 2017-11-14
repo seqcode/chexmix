@@ -318,6 +318,7 @@ public class ChExMix {
         System.err.println("\n============================ ML read assignment ============================");
         mixtureModel.execute(false, false, false); //ML        
         bindingManager.setBindingEvents(mixtureModel.getBindingEvents());
+        bindingManager.updateNumBindingTypes();
         //Update sig & noise counts in each replicate
         bindingManager.estimateSignalVsNoiseFractions(bindingManager.getBindingEvents());
         System.err.println("ML read assignment finished.");

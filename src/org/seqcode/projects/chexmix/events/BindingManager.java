@@ -75,7 +75,7 @@ public class BindingManager {
 			conditionEvents.put(cond, new ArrayList<BindingEvent>());
 			motifOffsets.put(cond,new ArrayList<Integer>());
 			motifIndexes.put(cond, new ArrayList<Integer>());
-			
+			numBindingType.put(cond, 1);
 			maxInfluenceRange.put(cond,0);
 			alpha.put(cond, 0.0);
 			motifReferencePoints.put(cond, new ArrayList<Set<StrandedPoint>>());	
@@ -131,6 +131,13 @@ public class BindingManager {
 				max=min;
 			}
 		}maxInfluenceRange.put(ec, max);
+	}
+	
+	public void updateNumBindingTypes(){
+		int[] numBindingTypes = new int[manager.getNumConditions()];
+		for (ExperimentCondition cond : manager.getConditions())
+			numBindingTypes[cond.getIndex()]=getNumBindingType(cond);
+		BindingEvent.setNumBindingTypes(numBindingTypes);	
 	}
 		
 	/**

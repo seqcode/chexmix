@@ -94,12 +94,7 @@ public class BindingMixture {
 		bindingEvents = new ArrayList<BindingEvent>();
 		BindingEvent.setExperimentManager(manager);
 		BindingEvent.setConfig(evconfig);
-		BindingEvent.setGPSConfig(config);
-		
-		int[] numBindingTypes = new int[manager.getNumConditions()];
-		for (ExperimentCondition cond : manager.getConditions())
-			numBindingTypes[cond.getIndex()]=bindingManager.getNumBindingType(cond);
-		BindingEvent.setNumBindingTypes(numBindingTypes);		
+		BindingEvent.setGPSConfig(config);		
 		
 		activeComponents = new HashMap<Region, List<List<BindingSubComponents>>>();
 		
