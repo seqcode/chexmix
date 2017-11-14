@@ -391,7 +391,7 @@ public class MultiGPSMLAssignment {
         } //LOOP: Run ML while not converged
         //Base log-likelihood calculation
         double baseLL=0;
-    	for(int i=0;i<ctrlHitNum;i++){
+    	for(int i=0;i<sigHitNum;i++){
     		// for each read, each event will give a conditional prob or bg prob
             double j_sum=0;
     		for(int j=0;j<numComp;j++){ if(pi[j]>0.0){
