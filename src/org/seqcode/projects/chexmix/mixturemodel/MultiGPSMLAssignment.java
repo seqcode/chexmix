@@ -391,7 +391,7 @@ public class MultiGPSMLAssignment {
         } //LOOP: Run ML while not converged
         //Base log-likelihood calculation
         double baseLL=0;
-    	for(int i=0;i<sigHitNum;i++){
+    	for(int i=0;i<ctrlHitNum;i++){
     		// for each read, each event will give a conditional prob or bg prob
             double j_sum=0;
     		for(int j=0;j<numComp;j++){ if(pi[j]>0.0){
@@ -404,11 +404,11 @@ public class MultiGPSMLAssignment {
         
         //ML assignment of signal reads to components is finished
         //Assign control reads with converged pi values here
-        double[][] hCtrl= new double[numComp][sigHitNum];
-        double[] nCtrl = new double[sigHitNum];
+        double[][] hCtrl= new double[numComp][ctrlHitNum];
+        double[] nCtrl = new double[ctrlHitNum];
 
 		//Recompute h & n functions for control reads, given binding component positions 
-		for(int i=0;i<sigHitNum;i++){
+		for(int i=0;i<ctrlHitNum;i++){
 	        for(int j=0;j<numComp;j++){ if(pi[j]>0){
 	            int dist = ctrlHitPlusStr[i] ? ctrlHitPos[i]-mu[j]: mu[j]-ctrlHitPos[i];
                 hCtrl[j][i] = bindingModels[ctrlRepIndices[i]].probability(dist);
@@ -416,9 +416,9 @@ public class MultiGPSMLAssignment {
 	        nCtrl[i] = noise.get(c).scorePosition(ctrlHitPos[i], ctrlRepIndices[i]);
 		}
 		//Compute responsibilities
-		for(int i=0;i<sigHitNum;i++)
+		for(int i=0;i<ctrlHitNum;i++)
 	        totalRespCtrl[i] = 0;
-		for(int i=0;i<sigHitNum;i++){
+		for(int i=0;i<ctrlHitNum;i++){
 			for(int j=0;j<numComp;j++){ if(pi[j]>0){
 				rBindCtrl[j][i] = hCtrl[j][i]*pi[j];
 				totalRespCtrl[i] +=rBindCtrl[j][i]; 
@@ -427,7 +427,7 @@ public class MultiGPSMLAssignment {
 			totalRespCtrl[i] +=rNoiseCtrl[i];
 		}
 		//Normalize responsibilities
-		for(int i=0;i<sigHitNum;i++){
+		for(int i=0;i<ctrlHitNum;i++){
 			for(int j=0;j<numComp;j++){ if(pi[j]>0){
 				rBindCtrl[j][i]/=totalRespCtrl[i];
 			}}
