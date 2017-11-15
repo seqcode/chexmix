@@ -266,7 +266,9 @@ public class ChExMix {
         EnrichmentSignificance testerR0 = new EnrichmentSignificance(evconfig, manager, bindingManager, evconfig.getMultiGPSMinEventFoldChange(), econfig.getMappableGenomeLength());
         testerR0.execute();
         
-        mixtureModel.setActiveComponents(bindingManager.getComponentsFromEnrichedEvents());
+        mixtureModel.setActiveComponents(bindingManager.getComponentsFromEnrichedEvents(potentialFilter.getPotentialRegions()));
+        
+        round++;
         		
         while (!converged){
         	

@@ -436,29 +436,21 @@ public class BindingManager {
     /**
      * Convert binding events to components
      */
-    public HashMap<Region, List<List<BindingSubComponents>>> getComponentsFromEnrichedEvents(){   	
-    	HashMap<Region, List<List<BindingSubComponents>>> enrichedComps = new HashMap<Region,List<List<BindingSubComponents>>>();   
-    	List<List<BindingEvent>> enrichedBindingEventbyCond = new ArrayList<List<BindingEvent>>();
-    	for(ExperimentCondition cond : manager.getConditions())
-    		enrichedBindingEventbyCond.add(new ArrayList<BindingEvent>());
+    public HashMap<Region, List<List<BindingSubComponents>>> getComponentsFromEnrichedEvents(List<Region> potRegions){      	
+    	HashMap<Region, List<List<BindingSubComponents>>> enrichedComps = new HashMap<Region,List<List<BindingSubComponents>>>();  
+    	for (Region reg : potRegions){
+    		enrichedComps.put(reg, new ArrayList<List<BindingSubComponents>>());
+    		for(ExperimentCondition cond : manager.getConditions())
+    			enrichedComps.get(reg).add(new ArrayList<BindingSubComponents>());
+    	}
     	for(BindingEvent e : events){
     		for(ExperimentCondition cond : manager.getConditions()){
     			double Q = e.getCondSigVCtrlP(cond);
     			if(e.isFoundInCondition(cond) && Q <=config.getMultiGPSQMinThres()){
-    				if (!enrichedComps.containsKey(e.getContainingRegion()))
-    					enrichedComps.put(e.getContainingRegion(), new ArrayList<List<BindingSubComponents>>());
-    				enrichedBindingEventbyCond.get(cond.getIndex()).add(e);
+    				BindingSubComponents currComp = new BindingSubComponents(e.getPoint(),cond.getReplicates().size());
+        			currComp.setUnstrandedSumResponsibilities(e.getCondSigHits(cond));
+    				enrichedComps.get(e.getContainingRegion()).get(cond.getIndex()).add(currComp);
     			}}}		
-    	for (Region reg : enrichedComps.keySet())
-    		for(ExperimentCondition cond : manager.getConditions())
-    			enrichedComps.get(reg).add(new ArrayList<BindingSubComponents>());	
-    	for(ExperimentCondition cond : manager.getConditions()){
-    		for (BindingEvent e : enrichedBindingEventbyCond.get(cond.getIndex())){
-    			BindingSubComponents currComp = new BindingSubComponents(e.getPoint(),cond.getReplicates().size());
-    			currComp.setUnstrandedSumResponsibilities(e.getCondSigHits(cond));
-    			enrichedComps.get(e.getContainingRegion()).get(cond.getIndex()).add(currComp);
-    		}
-    	}
 		return enrichedComps;
     }    
 }

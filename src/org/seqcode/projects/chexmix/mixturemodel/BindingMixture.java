@@ -1434,7 +1434,7 @@ public class BindingMixture {
         private List<List<BindingSubComponents>> initializeBindingComponentsFromAllConditionActive(Region currReg, List<NoiseComponent> noise, boolean addFlanking){
         	//Initialize component positions with active locations
         	List<Integer> componentPositions = new ArrayList<Integer>();
-        	for(int e=0; e<manager.getNumConditions(); e++)
+        	for(int e=0; e<manager.getNumConditions(); e++){
         		for(BindingSubComponents comp : activeComponents.get(currReg).get(e)){
         			if(!componentPositions.contains(comp.getPosition()) && comp.getPosition()>=currReg.getStart() && comp.getPosition()<currReg.getEnd())
         				componentPositions.add(comp.getPosition());
@@ -1449,6 +1449,7 @@ public class BindingMixture {
         					componentPositions.add(comp.getPosition()+config.getAddFlankingComponentSpacing());						       				
         			}
         		}
+        	}
 
         	numBindingComponents = componentPositions.size();
         	
