@@ -448,15 +448,15 @@ public class BindingEvent implements Comparable<BindingEvent>{
 				double logPC = Math.log(getInterCondP(c, c2))/config.LOG2; 
 				out = out+"\t"+String.format("%.2f", getInterCondScMean(c, c2))+"\t"+String.format("%.3f", getInterCondFold(c, c2))+"\t"+String.format("%.3f",logPC);
 			}
-		}		
-		for (int bt=0; bt < this.getTypePoints(c).length;bt++){
-			for (int s=0; s< 2;s++){
-				out = out+"\t"+this.getTypePoints(c)[bt][s]+"\t"+String.format("%.2f", this.getTypeProbs(c)[bt][s]);
-				if(config.isAddingSequences() && findMotif)
-					if (this.getSequence(c)!=null)
-						out = out+"\t"+this.getSequence(c)[bt][s]+"\t"+String.format("%.2f", this.getMotifScore(c)[bt][s]);
-			}	
-		}
+		}	
+		if (this.getTypePoints(c) != null){
+			for (int bt=0; bt < this.getTypePoints(c).length;bt++){
+				for (int s=0; s< 2;s++){
+					out = out+"\t"+this.getTypePoints(c)[bt][s]+"\t"+String.format("%.2f", this.getTypeProbs(c)[bt][s]);
+					if(config.isAddingSequences() && findMotif)
+						if (this.getSequence(c)!=null)
+							out = out+"\t"+this.getSequence(c)[bt][s]+"\t"+String.format("%.2f", this.getMotifScore(c)[bt][s]);
+				}}}		
 		
 		if(config.isAddingAnnotations())
 			if(nearestGene==null)

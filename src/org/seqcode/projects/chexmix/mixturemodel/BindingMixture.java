@@ -122,7 +122,8 @@ public class BindingMixture {
 	 * bindingEvents : if true, run EM over binding events, otherwise run EM over cross-linking points
 	 */
 	public void execute(boolean EM, boolean uniformBindingSubComponents, boolean multiGPSML){
-		trainingRound++;
+		if (EM)
+			trainingRound++;
 		
 		//Have to split the test regions up by chromosome in order to maintain compatibility with experiment file cache loading
 		//There will be some performance hit here, as all threads have to finish in a given chromosome before moving on to the next one. 
