@@ -179,7 +179,7 @@ public class BindingMixture {
 	}
 	
 	/**
-	 * Return the discovered binding events. Call after ML assignment.
+	 * Clear binding events.
 	 * @return
 	 */
 	public void clearBindingEvents(){bindingEvents = new ArrayList<BindingEvent>();}
@@ -256,6 +256,19 @@ public class BindingMixture {
         	}
 		}
 		return minLogKL;
+	}
+	
+	public void doReadDistributionClustering(){
+		// Execute affinity propagation clustering
+		if (config.getClusteringReads()){
+		
+		}
+		
+		// Find motif within clusters
+		if (config.getFindingMotifs()){
+			
+			
+		}
 	}
 	
 	
@@ -560,6 +573,10 @@ public class BindingMixture {
     	    	
     	//TODO: Incorporate KL divergence calculation later
 		return logKL;
+	}
+	
+	public void consolidateBindingModels(){
+		// Merge similar binding events
 	}
 	
 	// this method will mutate the input array

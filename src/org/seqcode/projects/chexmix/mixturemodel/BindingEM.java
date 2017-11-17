@@ -58,7 +58,6 @@ public class BindingEM {
 	protected double []    		alphaMax;	// Maximum alpha
 	protected double [][]  		betaMax;	// Maximum beta
 	protected double [][][][] 	epsilonMax; // Maximum epsilon
-//	protected double[][]   		motifPrior; // Motif prior (indexed by condition & base) 
 	protected double[][][]   	forMotifPrior; //Motif prior for forward strand (indexed by condition & base)
 	protected double[][][]   	revMotifPrior; //Motif prior for reverse strand (indexed by condition & base)
 	protected TagProbabilityDensity[][] TagProbabilityDensities; //Array of binding models for convenience

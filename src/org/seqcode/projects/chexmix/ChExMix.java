@@ -191,6 +191,11 @@ public class ChExMix {
         
         mixtureModel.setActiveComponents(bindingManager.getComponentsFromEnrichedEvents(potentialFilter.getPotentialRegions()));
         
+        if (!gpsconfig.getInitialClustPoints().isEmpty())
+        	System.out.println("round "+round + "use provided read density from clusters");
+        else
+        	mixtureModel.doReadDistributionClustering();
+        
         round++;
         		
         while (!converged){
@@ -201,14 +206,9 @@ public class ChExMix {
             //Update binding models
             String distribFilename = gpsconfig.getOutputIntermediateDir()+File.separator+gpsconfig.getOutBase()+"_t"+round;
             kl = mixtureModel.updateBindingModelUsingMotifs(distribFilename);
-//               kl = mixtureModel4.updateBindingModelUsingClustering(distribFilename);
+            kl = mixtureModel.updateBindingModelUsingReadDistributions(distribFilename);
             
-            if (!gpsconfig.getInitialClustPoints().isEmpty() && round ==0){
-            	// Use provided initial cluster points
-            	System.out.println("round "+round + "use provided read density from clusters");
-            }else{
-            	kl = mixtureModel.updateBindingModelUsingReadDistributions(distribFilename);
-            }
+            mixtureModel.consolidateBindingModels();
 
             //Add new binding models to the record
             for(ControlledExperiment rep : manager.getReplicates())           	

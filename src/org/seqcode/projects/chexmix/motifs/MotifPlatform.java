@@ -97,6 +97,34 @@ public class MotifPlatform {
 	}
 	
 	/**
+	 * Extract sequences around clustered points and call the MEME runner 
+	 * @param cond
+	 * @param activeComponents
+	 * @param trainingRound
+	 */
+	public void findMotifs(List<List<List<StrandedPoint>>> points, int trainingRound){
+		
+		// Filter out points that are outside of cashed sequence  
+		
+		for (ExperimentCondition cond : manager.getConditions()){	
+			for (List<StrandedPoint> clusterPoints : points.get(cond.getIndex())){
+				Map<Region, String> reg2seq = new HashMap<Region, String>();
+				for (StrandedPoint p : clusterPoints){
+					Region peakReg = new Region(p.getGenome(), p.getChrom(), p.getLocation()-config.MOTIF_FINDING_SEQWINDOW/2, p.getLocation()+config.MOTIF_FINDING_SEQWINDOW/2); 
+					String seq = seqgen.execute(peakReg);
+					reg2seq.put(peakReg, seq);
+					
+				}
+					
+				
+				
+			}
+		}
+		
+	}
+	
+	
+	/**
 	 * Extract sequences around top BindingComponents and call the MEME runner 
 	 * Remove sequences with motifs and recursively do motif discovery
 	 * @param cond
