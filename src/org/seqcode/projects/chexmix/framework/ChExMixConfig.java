@@ -73,8 +73,6 @@ public class ChExMixConfig {
 	protected boolean findMotifs = true; //Run motif-finding for motif prior
 	protected boolean motif_posprior=true; //You can have motif-finding without using the motif-prior
 	protected boolean clusterReadDistributions = true; //Cluster read distributions
-	protected boolean sharedCS=true;	// CS components are shared between subtypes
-	protected boolean deconvolvedModel=false; // Deconvolve composite plot and use as a read distribution model
 	protected boolean doReadFilter=false;	// Turn on per base read filter in case of highly duplicated experiment
 	protected String MEMEpath="";
 	protected String MEMEargs=" -dna -mod zoops -revcomp -nostatus ";    //Do not try using -p here; it leads to MEME runtime errors
@@ -245,10 +243,6 @@ public class ChExMixConfig {
 				
 				// Positional prior weights
 				posPriorScaling = Args.parseInteger(args,"pospriorscale",posPriorScaling);
-				// Binding subtype share same CS components
-				sharedCS = Args.parseFlags(args).contains("nosharedcs") ? false : true;	
-				// Deconvolve composite plot and use as a read distribution model
-				deconvolvedModel = Args.parseFlags(args).contains("deconvolve") ? true : false;	
 				// Turn on per base read filtering
 				doReadFilter = Args.parseFlags(args).contains("readfilter") ? true : false;	
 				
@@ -344,9 +338,7 @@ public class ChExMixConfig {
 	public boolean getMLSharedComponentConfiguration(){return MLSharedComponentConfiguration;}
 	public boolean getFindingMotifs(){return findMotifs;}
 	public boolean useMotifPrior(){return motif_posprior;}
-	public boolean useSharedCS(){return sharedCS;}
 	public boolean getClusteringReads(){return clusterReadDistributions;}
-	public boolean useDeconvolvedModel(){return deconvolvedModel;}
 	public boolean useReadFilter(){return doReadFilter;}
 	public String getMEMEpath(){return MEMEpath;}
 	public String getMEMEargs(){return MEMEargs;}

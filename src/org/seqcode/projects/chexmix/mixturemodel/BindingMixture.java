@@ -30,10 +30,7 @@ import org.seqcode.gsebricks.verbs.location.ChromosomeGenerator;
 import org.seqcode.gseutils.Pair;
 import org.seqcode.gseutils.RealValuedHistogram;
 import org.seqcode.math.stats.StatUtil;
-import org.seqcode.projects.chexmix.composite.CompositeModelComponent;
-import org.seqcode.projects.chexmix.composite.CompositeModelMixture;
 import org.seqcode.projects.chexmix.composite.CompositeTagDistribution;
-import org.seqcode.projects.chexmix.composite.ProteinDNAInteractionModel;
 import org.seqcode.projects.chexmix.composite.TagProbabilityDensity;
 import org.seqcode.projects.chexmix.composite.XLAnalysisConfig;
 import org.seqcode.projects.chexmix.events.BindingEvent;
@@ -667,12 +664,9 @@ public class BindingMixture {
 		
 		if(config.doBMUpdate()&& config.getFindingMotifs()){
 		
-			Map<ControlledExperiment, List<ProteinDNAInteractionModel>> models = new HashMap<ControlledExperiment, List<ProteinDNAInteractionModel>>();
 			Map<ControlledExperiment, List<TagProbabilityDensity>> densities = new HashMap<ControlledExperiment, List<TagProbabilityDensity>>();
-			for (ControlledExperiment rep : manager.getReplicates()){
-				models.put(rep, new ArrayList<ProteinDNAInteractionModel>());
+			for (ControlledExperiment rep : manager.getReplicates())
 				densities.put(rep, new ArrayList<TagProbabilityDensity>());
-			}
 
 			for(ExperimentCondition cond : manager.getConditions()){
 				List<WeightMatrix> motifs = bindingManager.getMotifs(cond);
@@ -695,58 +689,14 @@ public class BindingMixture {
 						if (refs.size() < config.getMinRefsForBMUpdate()){
 							System.err.println("The "+cond.getName()+" read distributions cannot be updated due to too few motif reference ("+refs.size()+"<"+config.getMinRefsForBMUpdate()+").");
 						}else{
-							// run ChExMix
 							//Load appropriate options
 							List<StrandedPoint> compositePoints = new ArrayList<StrandedPoint>();
 							compositePoints.addAll(refs);
 				
 							//Build the composite distribution(s)
-							CompositeTagDistribution signalComposite = new CompositeTagDistribution(compositePoints, cond, config.MAX_BINDINGMODEL_WIDTH,true);
-							CompositeTagDistribution controlComposite = null;	
-							
-							TagProbabilityDensity currDensity=null;
-							
-							if (config.useDeconvolvedModel()){						
-								//Initialize the mixture model 
-								CompositeModelMixture mixtureModel = new CompositeModelMixture(signalComposite, controlComposite, gconfig, econfig, mixconfig, cond);
-				
-								//Train EM
-								System.err.println("ChExMix EM training");
-								mixtureModel.trainEM();
-						
-								//ML assignment
-								System.err.println("ML assignment");
-								mixtureModel.assignML(false);
-						
-								// If there is any non zero pi XL components in DNA protein interaction model
-								boolean hasNonZeroXLComp=false;
-								for (CompositeModelComponent comp : mixtureModel.getModel().getXLComponents())
-									if (comp.getPi()>0)
-										hasNonZeroXLComp=true;
-						
-								String pointsFileName = distribFilename+"_composite-ref."+cond.getName()+"_"+WeightMatrix.getConsensus(motif)+".points";
-								printPointsToFile(pointsFileName, compositePoints);
-				
-								String compositeFileName = distribFilename+"_composite."+cond.getName()+"_"+WeightMatrix.getConsensus(motif)+".txt";
-								signalComposite.printProbsToFile(compositeFileName);
-					
-								String perSiteRespFileName = distribFilename+"_site-component-ML."+cond.getName()+"_"+WeightMatrix.getConsensus(motif)+".txt";
-								mixtureModel.printPerSiteComponentResponsibilitiesToFile(perSiteRespFileName);
-							
-								String compositePlotsFileName = distribFilename+"_"+cond.getName()+"_"+WeightMatrix.getConsensus(motif);
-								mixtureModel.saveCompositePlots(compositePlotsFileName);
-				
-								//Save the model			
-								String modelFileName = distribFilename+"_"+cond.getName()+"_"+WeightMatrix.getConsensus(motif)+".chexmix";
-								mixtureModel.getModel().saveToFile(modelFileName);
-								
-								currDensity = mixtureModel.getModel().makeTagProbabilityDensityFromAllComponents();    					
-								for (ControlledExperiment rep : cond.getReplicates())
-									models.get(rep).add(mixtureModel.getModel());								
-							}else{								
-								currDensity = new TagProbabilityDensity(signalComposite.getWinSize()-1);
-								currDensity.loadData(signalComposite.getCompositeWatson(), signalComposite.getCompositeCrick());
-							}
+							CompositeTagDistribution signalComposite = new CompositeTagDistribution(compositePoints, cond, config.MAX_BINDINGMODEL_WIDTH,true);							
+							TagProbabilityDensity currDensity = new TagProbabilityDensity(signalComposite.getWinSize()-1);
+							currDensity.loadData(signalComposite.getCompositeWatson(), signalComposite.getCompositeCrick());
 							
 							String distribFile = distribFilename+"_ReadDistrib_"+cond.getName()+"_"+WeightMatrix.getConsensus(motif)+".txt";
 							currDensity.printDensityToFile(distribFile);
@@ -761,83 +711,12 @@ public class BindingMixture {
 							mIndex++;
 						}
 					}			
-					
-					// Enforce the binding models with shared ChIP-seq components
-					if (config.useDeconvolvedModel() && config.useSharedCS() && motifs.size() >1){
-						for (ControlledExperiment rep : cond.getReplicates()){
-							List<ProteinDNAInteractionModel> repModels = models.get(rep);	
-							if (repModels.size() > 1){
-								int totalSites=0;
-								double wOffset=0; double wSigma=0; double wCSPi=0; double wBackPi=0;
-								int index=0;
-								System.out.println("size of model "+repModels.size());
-								System.out.println("size of refs "+goodRefs.size());
-								for (ProteinDNAInteractionModel model : repModels){
-									double numSites = goodRefs.get(index).size();									
-									// take weighted average of offset, sigma and pi
-									CompositeModelComponent CSModel = model.getCSComponent();
-									wOffset+=CSModel.getTagDistribution().getGaussOffsetW()*numSites;
-									wSigma +=CSModel.getTagDistribution().getGaussSigmaW()*numSites;
-									wCSPi += CSModel.getPi()*numSites;	
-									wBackPi += model.getBackgroundComponent().getPi()*numSites;
-									totalSites += numSites;
-									index++;	//model index count
-								}
-								double newOffset = wOffset/totalSites;
-								double newSigma = wSigma/totalSites;
-								double newCSPi = wCSPi/totalSites;
-								double newBackPi= wBackPi/totalSites;
-								// Set new CS distribution, CS pi, and background pi
-								for (ProteinDNAInteractionModel model: models.get(rep)){
-									TagProbabilityDensity CSdistrib = model.getCSTagDistribution();
-									CSdistrib.loadGaussianDistrib(newOffset, newSigma, -newOffset, newSigma); //Symmetric CS component
-									CompositeModelComponent CSModel = model.getCSComponent();
-									CSModel.setPi(newCSPi);
-									CompositeModelComponent BackModel = model.getBackgroundComponent();
-									BackModel.setPi(newBackPi);
-								}
-								//Normalize XL component pis
-								double newtXLPis=1-newCSPi-newBackPi;
-								for (ProteinDNAInteractionModel model: models.get(rep)){
-									double oldtXLPis=0;
-									for(CompositeModelComponent xlComp : model.getXLComponents()){										
-										if(xlComp.isNonZero())
-											oldtXLPis+=xlComp.getPi();
-									}
-									//Normalize pis
-									for(CompositeModelComponent xlComp : model.getXLComponents()){										
-										if(xlComp.isNonZero()){
-											double newXLPi= xlComp.getPi()*newtXLPis/oldtXLPis;
-											xlComp.setPi(newXLPi);
-										}
-									}
-								}
-								System.out.println("CS components shared");
-								for (ProteinDNAInteractionModel model: models.get(rep))
-									System.out.println(model.toString());
-							}							
-						}
-						// re-initialize density list
-						for (ControlledExperiment rep : cond.getReplicates())
-							densities.put(rep, new ArrayList<TagProbabilityDensity>());
-						for (ControlledExperiment rep : cond.getReplicates()){
-							int index=0;
-							for (ProteinDNAInteractionModel model : models.get(rep)){
-								// here ?
-								TagProbabilityDensity currDensity = model.makeTagProbabilityDensityFromAllComponents();
-								densities.get(rep).add(currDensity);
-								String distribFile = config.getOutputParentDir()+File.separator+config.getOutBase()+"_t"+trainingRound
-									+"_ReadDistrib-sharedCS"+cond.getName()+"_"+WeightMatrix.getConsensus(goodMotifs.get(index))+".txt";
-								currDensity.printDensityToFile(distribFile);
-								index++;
-				}}}}			
+				}			
 				
 				if (goodMotifs.isEmpty()){
 					// If there is no motif use the previous models.
-					for (ControlledExperiment rep : manager.getReplicates()){
-						models.put(rep, bindingManager.getProteinDNAInteractionModel(rep));
+					for (ControlledExperiment rep : manager.getReplicates())
 						densities.put(rep, bindingManager.getBindingModel(rep));
-					}
 					bindingManager.setMotif(cond, null);
 					bindingManager.setFreqMatrix(cond, null);
 					bindingManager.setMotifOffset(cond, null);
@@ -856,10 +735,9 @@ public class BindingMixture {
 					System.out.println();
 				}				
 			}
-			for (ControlledExperiment rep : manager.getReplicates()){
-				bindingManager.setProteinDNAInteractionModel(rep,models.get(rep));
+			for (ControlledExperiment rep : manager.getReplicates())
 				bindingManager.setBindingModel(rep,densities.get(rep));
-			}
+			
 			for(ExperimentCondition cond : manager.getConditions()){
 				bindingManager.updateMaxInfluenceRange(cond,false);	
 				System.out.println("condition "+cond.getName()+"number of binding type is : "+bindingManager.getNumBindingType(cond));

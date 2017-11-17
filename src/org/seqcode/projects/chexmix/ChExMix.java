@@ -7,8 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.seqcode.math.diff.Normalization;
-import org.seqcode.projects.chexmix.composite.CompositeModelComponent;
-import org.seqcode.projects.chexmix.composite.CompositeModelMixture;
+
 import org.seqcode.projects.chexmix.composite.CompositeTagDistribution;
 import org.seqcode.projects.chexmix.composite.ProteinDNAInteractionModel;
 import org.seqcode.projects.chexmix.composite.TagProbabilityDensity;
@@ -40,7 +39,6 @@ public class ChExMix {
 	protected ChExMixConfig gpsconfig;
 	protected XLAnalysisConfig xlconfig;
 	protected BindingManager bindingManager;
-	protected CompositeModelMixture modelmix;
 	protected BindingMixture mixtureModel;
 	protected PotentialRegionFilter potentialFilter;
 	protected OutputFormatter outFormatter;
@@ -92,8 +90,6 @@ public class ChExMix {
 			models.add(model);
 			TagProbabilityDensity density = model.makeTagProbabilityDensityFromAllComponents();
 			tagProbDensities.add(density);
-			for(ControlledExperiment rep : manager.getReplicates())
-				bindingManager.setProteinDNAInteractionModel(rep, models);
 			strandedModelSet=true;
 		}		
 		// Set tag probability density models to binding manager
@@ -142,79 +138,6 @@ public class ChExMix {
 			System.exit(1);
 		}
 		potentialFilter.printPotentialRegionsToFile();		
-	}
-	
-	/**
-	 * Make initial tag probability density to do binding event finding
-	 */
-	public TagProbabilityDensity makeInitialTagProbabilityDensity(){
-		
-		int modelWidth = xlconfig.getCompositeWinSize();		
-		// Initial density distribution for each component
-		TagProbabilityDensity initBackDistrib, initCSDistrib, initXLDistrib;
-		//CS
-		initCSDistrib = new TagProbabilityDensity(modelWidth);
-//		initCSDistrib.loadGaussianDistrib(-150, 100, 150, 100);
-		initCSDistrib.loadGaussianDistrib(-100, 75, 100, 75);
-		
-		//XO
-		initXLDistrib = new TagProbabilityDensity(200);
-		initXLDistrib.loadGaussianDistrib(-xlconfig.getXLDistribOffset(), xlconfig.getXLDistribSigma(),xlconfig.getXLDistribOffset(), xlconfig.getXLDistribSigma());
-		//Background
-		initBackDistrib = new TagProbabilityDensity(modelWidth);
-		initBackDistrib.loadFlatDistrib();
-		
-		// Make CompositeModelComponents
-		//Background component
-		CompositeModelComponent backgroundComponent = new CompositeModelComponent(initBackDistrib, modelWidth/2, 0, "Back",  false, true);
-		//ChIP-seq component
-		CompositeModelComponent CSComponent = new CompositeModelComponent(initCSDistrib, modelWidth/2, 1, "CS", false, true);
-		//XL components
-		CompositeModelComponent XLComponent = new CompositeModelComponent(initXLDistrib, modelWidth/2, 3, "XL", true, true);
-		
-		//All components
-		List<CompositeModelComponent> allComponents = new ArrayList<CompositeModelComponent>();
-		allComponents.add(backgroundComponent);
-		allComponents.add(CSComponent);
-		allComponents.add(XLComponent);
-		
-		// Setting pi(s)
-		double noisePi = gpsconfig.NOISE_EMISSION_MIN;
-		backgroundComponent.setPi(noisePi);
-		double bindingPi = 1-noisePi;
-		double initCS = 0.95; // Arbitrary choice for initial CS pi
-		CSComponent.setPi(initCS);
-		XLComponent.setPi(bindingPi*(1-initCS));
-		
-		//Sum all components to create TagProbabilityDensity
-		double[] watsons = new double [modelWidth];
-		double[] cricks = new double [modelWidth];
-		for (int i=0; i < modelWidth; i++){
-			watsons[i]=0;
-			cricks[i]=0;
-		}
-		
-		for (CompositeModelComponent comp : allComponents){
-			if (comp.getPi() >0){
-				double[] currCompWatsonProb = comp.getTagDistribution().getWatsonProbabilities();
-				double[] currCompCrickProb = comp.getTagDistribution().getCrickProbabilities();
-				for (int i=0; i < currCompWatsonProb.length ; i++){
-					int index = comp.getPosition()-comp.getTagDistribution().getWinSize()/2+i;
-					if (index >=0 && index < modelWidth){
-						watsons[index] += currCompWatsonProb[i]*comp.getPi();
-						cricks[index] += currCompCrickProb[i]*comp.getPi();
-					}					
-				}
-			}
-		}
-			
-		List<Pair<Integer,Double>> empiricalWatson = new ArrayList<Pair<Integer,Double>>(); 
-		List<Pair<Integer,Double>> empiricalCrick = new ArrayList<Pair<Integer,Double>>(); 
-		for (int i=0; i<modelWidth; i++){			
-			empiricalWatson.add(new Pair<Integer,Double>(i-modelWidth/2,watsons[i]));
-			empiricalCrick.add(new Pair<Integer,Double>(i-modelWidth/2,cricks[i]));
-		}
-		return (new TagProbabilityDensity(empiricalWatson,empiricalCrick));
 	}
 	
 	/**

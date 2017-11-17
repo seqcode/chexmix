@@ -48,7 +48,6 @@ public class BindingManager {
 	protected Map<ControlledExperiment, BindingModel> unstrandedModel;
 	protected Map<ExperimentCondition, Integer> maxInfluenceRange;
 	protected Map<ExperimentCondition, Double> alpha;
-	protected Map<ControlledExperiment, List<ProteinDNAInteractionModel>> ProteinDNAInteractionModels;
 	protected Map<ExperimentCondition, List<List<BindingSubComponents>>> ComponentsForBMUpdates;
 	protected Map<ExperimentCondition, List<StrandedPoint>> alignedEventPoints;
 	
@@ -68,7 +67,6 @@ public class BindingManager {
 		numBindingType = new HashMap<ExperimentCondition, Integer>();
 		models = new HashMap<ControlledExperiment, List<TagProbabilityDensity>>();
 		unstrandedModel = new HashMap<ControlledExperiment, BindingModel>();
-		ProteinDNAInteractionModels = new HashMap<ControlledExperiment, List<ProteinDNAInteractionModel>>();
 		ComponentsForBMUpdates = new HashMap<ExperimentCondition, List<List<BindingSubComponents>>>();
 		alignedEventPoints = new HashMap<ExperimentCondition, List<StrandedPoint>>();
 		for(ExperimentCondition cond : manager.getConditions()){
@@ -97,7 +95,6 @@ public class BindingManager {
 	public BindingModel getUnstrandedBindingModel(ControlledExperiment ce){return unstrandedModel.get(ce);}
 	public Integer getMaxInfluenceRange(ExperimentCondition ec){return maxInfluenceRange.get(ec);}
 	public Double getAlpha(ExperimentCondition ec){return alpha.get(ec);}
-	public List<ProteinDNAInteractionModel> getProteinDNAInteractionModel(ControlledExperiment ce){return ProteinDNAInteractionModels.get(ce);}
 	public List<List<BindingSubComponents>> getComponentsForBMUpdates(ExperimentCondition ec){return ComponentsForBMUpdates.get(ec);}
 	public List<StrandedPoint> getAlignedEventPoints(ExperimentCondition ec){return alignedEventPoints.get(ec);}
 
@@ -112,7 +109,6 @@ public class BindingManager {
 	public void setAlpha(ExperimentCondition ec, Double a){alpha.put(ec,a);}
 	public void setBindingModel(ControlledExperiment ce, List<TagProbabilityDensity> mod){models.put(ce, mod); numBindingType.put(ce.getCondition(), mod.size());}
 	public void setUnstrandedBindingModel(ControlledExperiment ce, BindingModel mod){unstrandedModel.put(ce, mod);}
-	public void setProteinDNAInteractionModel(ControlledExperiment ce, List<ProteinDNAInteractionModel> model) {ProteinDNAInteractionModels.put(ce, model);}
 	public void setComponentsForBMUpdates(ExperimentCondition ec, List<List<BindingSubComponents>> comps){ ComponentsForBMUpdates.put(ec, comps);}
 	public void setAlignedEventPoints(ExperimentCondition ec, List<StrandedPoint> points){alignedEventPoints.put(ec, points);}
 
