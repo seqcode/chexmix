@@ -242,6 +242,7 @@ public class ChExMix {
         
         //ML quantification of events
         System.err.println("\n============================ ML read assignment ============================");
+        mixtureModel.clearBindingEvents(); // Clear binding events found in initial multiGPS style peak calling
         mixtureModel.execute(false, false, false); //ML        
         bindingManager.setBindingEvents(mixtureModel.getBindingEvents());
         bindingManager.updateNumBindingTypes();

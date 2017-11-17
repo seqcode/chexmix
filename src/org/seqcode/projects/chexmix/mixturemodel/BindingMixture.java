@@ -38,7 +38,6 @@ import org.seqcode.projects.chexmix.events.BindingManager;
 import org.seqcode.projects.chexmix.events.EventsConfig;
 import org.seqcode.projects.chexmix.framework.ChExMixConfig;
 import org.seqcode.projects.chexmix.framework.PotentialRegionFilter;
-import org.seqcode.projects.chexmix.framework.ProfileCluster;
 import org.seqcode.projects.chexmix.motifs.MotifPlatform;
 
 
@@ -68,7 +67,6 @@ public class BindingMixture {
 	protected double relativeCtrlNoise[]; //Defines global noise
 	protected HashMap<Region, Double[]> noiseResp = new HashMap<Region, Double[]>(); //noise responsibilities after a round of execute(). Hashed by Region, indexed by condition
 	protected MotifPlatform motifFinder;
-	protected ProfileCluster cluster;
 	
 	public BindingMixture(GenomeConfig gcon, ExptConfig econ, EventsConfig evcon, ChExMixConfig c,XLAnalysisConfig mixcon, ExperimentManager eMan, BindingManager bMan, PotentialRegionFilter filter){
 		gconfig = gcon;
@@ -80,11 +78,9 @@ public class BindingMixture {
 		bindingManager = bMan;
 		potRegFilter=filter;
 		testRegions = filter.getPotentialRegions();
-		
-		cluster = new ProfileCluster(config, manager);
-		
+				
 		if(config.getFindingMotifs())
-			motifFinder = new MotifPlatform(gconfig, config, manager, bindingManager, testRegions, cluster);
+			motifFinder = new MotifPlatform(gconfig, config, manager, bindingManager, testRegions);
 		else 
 			motifFinder=null;
 		regionsToPlot = config.getRegionsToPlot();
@@ -186,6 +182,12 @@ public class BindingMixture {
 	 * Return the discovered binding events. Call after ML assignment.
 	 * @return
 	 */
+	public void clearBindingEvents(){bindingEvents = new ArrayList<BindingEvent>();}
+	
+	/**
+	 * Return the discovered binding events. Call after ML assignment.
+	 * @return
+	 */
 	public List<BindingEvent> getBindingEvents(){return bindingEvents;}
 
 	
@@ -200,183 +202,6 @@ public class BindingMixture {
 	 * Set activeComponents after an initial enrichment test
 	 */	
 	public void setActiveComponents(HashMap<Region, List<List<BindingSubComponents>>> activeComponents){this.activeComponents = activeComponents;}
-	
-	/**
-     * Update binding models for each replicate given the discovered binding components. 
-     * @param left 
-     * @param right
-     * @param String filename for new distribution file
-     * @return double array of log KL values
-	 * @throws IOException 
-     */
-	public Double[] updateBindingModelUsingClustering(String distribFilename) throws IOException{
-    	int left=0,right=0;
-    	for(ControlledExperiment rep : manager.getReplicates()){
-    		TagProbabilityDensity mod = bindingManager.getBindingModel(rep).get(0); // just avoiding build error
-    		int l=-1*mod.getLeft(),r=mod.getRight();
-    		// Consider fixing this
-//    		if(!config.getFixedModelRange()){
-//    			Pair<Integer, Integer> newEnds = mod.getNewEnds(300,200);
-//    			l=newEnds.car(); r=newEnds.cdr();
-//    		}
-    		left = Math.min(config.MAX_BINDINGMODEL_WIDTH/2, Math.max(left, l));
-    		right = Math.min(config.MAX_BINDINGMODEL_WIDTH/2, Math.max(right, r));
-    	}   	
-    	
-    	int numReps = manager.getReplicates().size();
-    	int width = left+right;
-    	int readProfileCenter = config.MAX_BINDINGMODEL_WIDTH/2;
-    	int offsetLeft = readProfileCenter-left;
-		Double[] logKL = new Double[numReps];
-		for (int x=0; x<numReps; x++)
-			logKL[x]=0.0;
-		
-		if(config.doBMUpdate()){
-			
-			Map<ControlledExperiment, List<TagProbabilityDensity>> densities = new HashMap<ControlledExperiment, List<TagProbabilityDensity>>();
-			for (ControlledExperiment rep : manager.getReplicates())
-				densities.put(rep, new ArrayList<TagProbabilityDensity>());		
-			
-	    	for(ExperimentCondition cond : manager.getConditions()){
-	    		List<Integer> motifIndexes = new ArrayList<Integer>();
-	    		if (bindingManager.getMotifIndexes(cond)!=null)
-	    			motifIndexes = bindingManager.getMotifIndexes(cond);
-	    		
-		    	List<Pair<double[][][], Integer>> newModelList = new ArrayList<Pair<double[][][], Integer>>();
-	    		List<Integer> eventCounter = new ArrayList<Integer>();
-				
-	    		List<List<BindingSubComponents>> allComps = bindingManager.getComponentsForBMUpdates(cond);	
-	    		for (List<BindingSubComponents> currComps: allComps){
-	    			
-			    	System.out.println("size of currComps used for alignment "+currComps.size());
-
-			    	List<Pair<double[][][], Integer>> currNewModel = cluster.execute(cond, currComps,true);
-			    	if (currNewModel!=null || !currNewModel.isEmpty())
-			    		newModelList.addAll(currNewModel);
-	    		}
-			    	
-			    if (newModelList.size()>0){
-			    	int numBindingModel=newModelList.size();
-			    	System.out.println("number of potential binding models "+numBindingModel);
-			    	List<double[][][]> newModels = new ArrayList<double[][][]>();
-			    	if (numBindingModel>1){
-			    		//do KL divergence to compare if they are distinct model
-			    		for (int i=0; i<numBindingModel; i++){
-			    			for (int j=i+1; j<numBindingModel;j++){
-			    				double minLogKL=getModelKLDivergenceScore(numReps,newModelList.get(i).car(),newModelList.get(j).car());
-			    				System.out.println("current minLogKL value is "+minLogKL+" threshold "+config.KL_DIVERGENCE_BM_THRES);
-			    							
-			    				if (minLogKL > config.KL_DIVERGENCE_BM_THRES){
-			    					System.out.println("Model "+i+" and Model "+j+" is distinct. Create separate models");
-			    					if (!newModels.contains(newModelList.get(i).car())){ 
-			    						newModels.add(newModelList.get(i).car());
-			    						eventCounter.add(newModelList.get(i).cdr());
-			    					}
-			    					if (!newModels.contains(newModelList.get(j).car())){
-			    						newModels.add(newModelList.get(j).car());
-			    						eventCounter.add(newModelList.get(j).cdr());
-			    					}
-			    							
-			    				}else{ 
-			    					//Add the model with more binding events
-			    					int mindex =0;
-			    					if (newModelList.get(i).cdr() > newModelList.get(j).cdr())
-			    						mindex=i;
-			    					else
-			    						mindex=j;
-			    					if (!newModels.contains(newModelList.get(mindex).car())){
-			    						newModels.add(newModelList.get(mindex).car());
-			    						eventCounter.add(newModelList.get(mindex).cdr());
-			    					}
-		    							
-			    					System.out.println("Model "+i+" and Model "+j+" is similar. Added "+mindex);
-			    						/**
-			    						// merge the profiles based on offset obtained during KL divergence test.
-			    						double[][] merged_w = new double[numReps][config.MAX_BINDINGMODEL_WIDTH];
-			    						double[][] merged_c = new double[numReps][config.MAX_BINDINGMODEL_WIDTH];
-			    						for (int r=0; r< numReps; r++){
-			    							for (int w=0; w< config.MAX_BINDINGMODEL_WIDTH; w++){
-			    								merged_w[r][w]=model_aW[r][w];
-			    								merged_c[r][w]=model_aC[r][w];
-			    							}
-			    							for (int w=0; w< config.MAX_BINDINGMODEL_WIDTH; w++){
-	            		        				if ((minOffset+w) >=0 && (minOffset+w) < config.MAX_BINDINGMODEL_WIDTH){
-	            		        					if (minReverse){
-	            		        						merged_w[r][w]=model_b[1][r][config.MAX_BINDINGMODEL_WIDTH-minOffset-w-1];
-	            		        						merged_c[r][w]=model_b[0][r][config.MAX_BINDINGMODEL_WIDTH-minOffset-w-1];
-	            		        					}else{
-	            		        						merged_w[r][w]=model_b[0][r][minOffset+w];
-	            		        						merged_c[r][w]=model_b[1][r][minOffset+w];
-	            		        			}}}}			
-			    						double[][][] temp_model=new double[2][][];
-			    						temp_model[0]=merged_w;
-			    						temp_model[1]=merged_c;
-			    						newModels.add(temp_model);
-			    						**/
-			    					}
-	            		        }}				
-			    	}else{ 
-			    		newModels.add(newModelList.get(0).car());
-			    		eventCounter.add(newModelList.get(0).cdr());	    			
-			    	}
-			    		
-			    	Map<ControlledExperiment, List<TagProbabilityDensity>> models = new HashMap<ControlledExperiment, List<TagProbabilityDensity>>();
-			    	for (ControlledExperiment rep : cond.getReplicates())
-			    		models.put(rep, new ArrayList<TagProbabilityDensity>());
-			    	for (int index=0; index< newModels.size(); index++){
-			    		motifIndexes.add(-1);
-			    			
-			    		double[][] newModel_plus = newModels.get(index)[0];
-			    		double[][] newModel_minus = newModels.get(index)[1];
-			    			
-			    		for(ControlledExperiment rep : cond.getReplicates()){
-			    			int x=rep.getIndex();
-			    			//Smooth the binding model
-			    			if(config.getSmoothingBMDuringUpdate()){
-			    				if (config.getGaussBMSmooth()){
-			    					//Gaussian window smoothing
-			    					newModel_plus[x] = StatUtil.gaussianSmoother(newModel_plus[x], config.getBindingModelGaussSmoothParam());
-			    					newModel_minus[x] = StatUtil.gaussianSmoother(newModel_minus[x], config.getBindingModelGaussSmoothParam());
-			    				}else if ((int)config.getBindingModelSplineSmoothParam()>0){
-			    					// smooth the model profile using spline (not entirely stable)
-			    					newModel_plus[x] = StatUtil.cubicSpline(newModel_plus[x], (int)config.getBindingModelSplineSmoothParam(), (int)config.getBindingModelSplineSmoothParam());
-			    					newModel_minus[x] = StatUtil.cubicSpline(newModel_minus[x], (int)config.getBindingModelSplineSmoothParam(), (int)config.getBindingModelSplineSmoothParam());
-			    				}
-			    			}
-			    			StatUtil.mutate_normalize(newModel_plus[x]);
-			    			StatUtil.mutate_normalize(newModel_minus[x]);
-
-			    			List<Pair<Integer,Double>> empiricalWatson = new ArrayList<Pair<Integer, Double>>(); 
-			    			List<Pair<Integer,Double>> empiricalCrick = new ArrayList<Pair<Integer, Double>>();
-			    			for (int i=0; i<width;i++){
-			    				double data_watson = newModel_plus[x][i];
-			    				double data_crick = newModel_minus[x][i];
-			    				data_watson = data_watson >=0? data_watson:2.0E-300;
-			    				data_crick = data_crick >=0? data_crick:2.0E-300; 
-			    				Pair<Integer, Double> p_watson = new Pair<Integer, Double>(i-left, data_watson);
-			    				Pair<Integer, Double> p_crick = new Pair<Integer, Double>(i-left, data_crick);
-			    				empiricalWatson.add(p_watson);
-			    				empiricalCrick.add(p_crick);
-			    			}
-				
-			    			TagProbabilityDensity model = new TagProbabilityDensity(empiricalWatson,empiricalCrick);
-			    			String outFile = distribFilename+"_"+rep.getName()+"_"+index+".txt";
-			    			model.printDensityToFile(outFile);
-			    			models.get(rep).add(model);	
-			    		}
-			    		System.err.println("Updated read distribution from " + eventCounter.get(index) +" binding events.");
-			    	}
-			    	for(ControlledExperiment rep : cond.getReplicates())
-			    		bindingManager.setBindingModel(rep, models.get(rep));
-	    		}
-	    		bindingManager.updateMaxInfluenceRange(cond, false);
-	    		bindingManager.setMotifIndexes(cond, motifIndexes);	    		
-	    	}
-		}else{
-			System.err.println("Read distribution updates turned off.");
-		}
-		return logKL;
-	}
 	
 	public double getModelKLDivergenceScore(int numReps, double[][][] model_a, double[][][] model_b){
 		// Measure KL divergence with a sliding window
@@ -530,20 +355,6 @@ public class BindingMixture {
         							newModel_plus[x][i]+=currProfile_minus[width-i-1];
         							newModel_minus[x][i]+=currProfile_plus[width-i-1];
         						}}}		
-        				//Smooth the binding model
-        				/**
-			    		if(config.getSmoothingBMDuringUpdate()){
-			    			if (config.getGaussBMSmooth()){
-			    				//Gaussian window smoothing
-			    				newModel_plus[x] = StatUtil.gaussianSmoother(newModel_plus[x], config.getBindingModelGaussSmoothParam());
-								newModel_minus[x] = StatUtil.gaussianSmoother(newModel_minus[x], config.getBindingModelGaussSmoothParam());
-			    			}else if ((int)config.getBindingModelSplineSmoothParam()>0){
-					    		// smooth the model profile using spline (not entirely stable)
-								newModel_plus[x] = StatUtil.cubicSpline(newModel_plus[x], (int)config.getBindingModelSplineSmoothParam(), (int)config.getBindingModelSplineSmoothParam());
-								newModel_minus[x] = StatUtil.cubicSpline(newModel_minus[x], (int)config.getBindingModelSplineSmoothParam(), (int)config.getBindingModelSplineSmoothParam());
-							}
-			    		}
-			    		**/
 			    		mutate_normalize(newModel_plus[x],newModel_minus[x]);
         			}
     				double[][][] currModel=new double[2][][];
@@ -622,7 +433,10 @@ public class BindingMixture {
 	    	bindingManager.setMotifIndexes(cond, motifIndexes);	    
     	} // end of condition loop
     	
+		}else{
+			System.err.println("Read distribution updates turned off.");
 		}
+		
 		return logKL;	
 	}
 	

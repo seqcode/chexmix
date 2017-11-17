@@ -36,7 +36,6 @@ import org.seqcode.math.stats.StatUtil;
 import org.seqcode.motifs.MarkovMotifThresholdFinder;
 import org.seqcode.projects.chexmix.composite.CompositeTagDistribution;
 import org.seqcode.projects.chexmix.events.BindingManager;
-import org.seqcode.projects.chexmix.framework.ProfileCluster;
 import org.seqcode.projects.chexmix.framework.ChExMixConfig;
 import org.seqcode.projects.chexmix.mixturemodel.BindingSubComponents;
 
@@ -54,7 +53,6 @@ public class MotifPlatform {
 	protected MEMERunner meme;
 	protected MarkovBackgroundModel backMod;
 	protected SimpleMotifAligner aligner;
-	protected ProfileCluster cluster;
 		
 	/**
 	 * Constructor for motif platform
@@ -62,7 +60,7 @@ public class MotifPlatform {
 	 * @param man
 	 * @param regionsOfInterest: this list contains all possible regions that motif-finding/scanning may be run on. 
 	 */
-	public MotifPlatform(GenomeConfig g, ChExMixConfig c, ExperimentManager man, BindingManager bman, List<Region> regionsOfInterest, ProfileCluster cluster ){
+	public MotifPlatform(GenomeConfig g, ChExMixConfig c, ExperimentManager man, BindingManager bman, List<Region> regionsOfInterest ){
 		gconfig = g;
 		genome = gconfig.getGenome();
 		config = c;
@@ -96,7 +94,6 @@ public class MotifPlatform {
 		}
 		
 		aligner = new SimpleMotifAligner(config.getMinMotifLength());
-		this.cluster = cluster;
 	}
 	
 	/**
