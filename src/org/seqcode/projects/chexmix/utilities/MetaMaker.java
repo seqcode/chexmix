@@ -14,6 +14,7 @@ import org.seqcode.deepseq.experiments.ExptConfig;
 import org.seqcode.genome.Genome;
 import org.seqcode.genome.GenomeConfig;
 import org.seqcode.genome.location.Point;
+import org.seqcode.projects.chexmix.framework.ChExMixConfig;
 import org.seqcode.viz.metaprofile.BinningParameters;
 import org.seqcode.viz.metaprofile.MetaConfig;
 import org.seqcode.viz.metaprofile.MetaProfileHandler;
@@ -26,18 +27,16 @@ import org.seqcode.viz.metaprofile.swing.MetaNonFrameMultiSet;
 
 public class MetaMaker {
 	
+	private ChExMixConfig config;
 	private GenomeConfig gconfig;
 	private MetaConfig mconfig;
-	private ExptConfig econfig;
 	private ExperimentManager manager;
 	
-	public MetaMaker(GenomeConfig g, MetaConfig m, ExptConfig e){
+	public MetaMaker(ChExMixConfig con, GenomeConfig g, MetaConfig m, ExperimentManager man){
+		config = con;
 		gconfig = g;
 		mconfig = m;
-		econfig = e;
-		if(mconfig.profilerType.equals("nucleosome"))
-			econfig.setLoadPairs(true);
-		manager = new ExperimentManager(econfig, true);
+		manager = man;
 	}
 	
 	public void run(){
@@ -45,8 +44,7 @@ public class MetaMaker {
 			if(mconfig.printHelp){
 				System.err.println("MetaMaker:\n" +
 						gconfig.getArgsList()+"\n"+
-						mconfig.getArgsList()+"\n"+
-						econfig.getArgsList()+"\n");
+						mconfig.getArgsList()+"\n");
 			}else{
 				Genome gen = gconfig.getGenome();
 				
@@ -54,6 +52,8 @@ public class MetaMaker {
 				System.out.println("Binding Parameters:\tWindow size: "+params.getWindowSize()+"\tBins: "+params.getNumBins());
 				
 				for (ExperimentCondition cond : manager.getConditions()){
+					
+				String prefix = config.getOutputImagesDir()+File.separator+config.getOutBase()+"_"+cond.getName()+"_"+mconfig.strand;
 								
 				PointProfiler profiler= new Stranded5PrimeProfiler(gconfig, params, cond, mconfig.strand, mconfig.fivePrimeShift, mconfig.baseLimit, mconfig.baseLimitRelPosition);
 				boolean normalizeProfile=false;
@@ -71,41 +71,6 @@ public class MetaMaker {
 							System.out.println("Single set mode...");
 							String peakFile = mconfig.peakFiles.get(0);
 							Vector<Point> points = nonframe.getUtils().loadPoints(new File(peakFile));
-							if(mconfig.printMatrix){
-								File file_mat = new File(mconfig.outName+'_'+cond.getName()+"_"+mconfig.strand+"_matrix.peaks");
-								if(!file_mat.exists()){
-									file_mat.createNewFile();
-								}
-								FileWriter fw_mat = new FileWriter(file_mat.getAbsoluteFile());
-								BufferedWriter br_mat = new BufferedWriter(fw_mat);
-								
-								
-								double[][] mat_out = null;
-								for(int k=0; k<points.size(); k++){
-									if(k==0){
-										PointProfile temp = (PointProfile) profiler.execute(points.get(k));
-										mat_out = new double[points.size()][temp.length()];
-										for(int j=0; j< temp.length(); j++){
-											mat_out[k][j] = temp.value(j);
-										}
-									}
-									else{
-										PointProfile temp = (PointProfile) profiler.execute(points.get(k));
-										for(int j=0; j< temp.length(); j++){
-											mat_out[k][j] = temp.value(j);
-										}
-									}
-								}
-								for(int k =0; k< mat_out.length; k++ ){
-									br_mat.write(points.get(k).getLocationString()+"\t");
-									for (int j=0; j< mat_out[k].length; j++){
-										br_mat.write(mat_out[k][j]+"\t");
-									}
-									br_mat.write("\n");
-								}
-								br_mat.close();
-								fw_mat.close();
-							}
 							handler.addPoints(points);
 						}else{
 							System.out.println("All TSS mode...");
@@ -120,8 +85,8 @@ public class MetaMaker {
 						nonframe.setLineMax(mconfig.lineMax);
 						nonframe.setLineMin(mconfig.lineMin);
 						nonframe.setLineThick(mconfig.lineThick);
-						nonframe.saveImages(mconfig.outName+'_'+cond.getName()+"_"+mconfig.strand);
-						nonframe.savePointsToFile(mconfig.outName+'_'+cond.getName()+"_"+mconfig.strand);
+						nonframe.saveImages(prefix);
+						nonframe.savePointsToFile(prefix);
 					}else if(mconfig.peakFiles.size()>1){
 						System.out.println("Multiple set mode...");
 						MetaNonFrameMultiSet multinonframe = new MetaNonFrameMultiSet(mconfig.peakFiles, gen, params, profiler, true);
@@ -132,8 +97,8 @@ public class MetaMaker {
 							handlers.get(x).addPoints(points);
 							while(handlers.get(x).addingPoints()){}
 						}
-						multinonframe.saveImage(mconfig.outName+'_'+cond.getName()+"_"+mconfig.strand);
-						multinonframe.savePointsToFile(mconfig.outName+'_'+cond.getName()+"_"+mconfig.strand);
+						multinonframe.saveImage(prefix);
+						multinonframe.savePointsToFile(prefix);
 					}
 					System.out.println("Finished");
 					if(profiler!=null)
@@ -168,10 +133,12 @@ public class MetaMaker {
 	
 	public static void main(String[] args) {
 		GenomeConfig gconfig = new GenomeConfig(args);
+		ChExMixConfig cconfig = new ChExMixConfig(gconfig, args);
 		ExptConfig econfig = new ExptConfig(gconfig.getGenome(), args);
+		ExperimentManager manager = new ExperimentManager(econfig);
 		MetaConfig mconfig = new MetaConfig(args);
 		
-		MetaMaker maker = new MetaMaker(gconfig, mconfig, econfig);
+		MetaMaker maker = new MetaMaker(cconfig, gconfig, mconfig, manager);
 		
 		maker.run();
 	}

@@ -36,7 +36,6 @@ public class EventsPostAnalysis {
 	protected GenomeConfig gconfig;
 	protected EventsConfig evconfig;
 	protected ChExMixConfig config;
-	protected ExptConfig econfig;
 	protected ExperimentManager manager;
 	protected BindingManager bindingManager;
 	protected MotifPlatform motifFinder = null;
@@ -454,7 +453,7 @@ public class EventsPostAnalysis {
 	public void runMetaMaker(String args){
 		String[] words = args.split("\\s+");
 		MetaConfig mconfig = new MetaConfig(words);
-		MetaMaker maker = new MetaMaker(gconfig, mconfig, econfig);			
+		MetaMaker maker = new MetaMaker(config, gconfig, mconfig, manager);		
 		maker.run();	
 	}
 	
