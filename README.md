@@ -59,7 +59,7 @@ Options (Required/important options are in __bold__.)
 
   * --__exptCONDNAME-REPNAME__ \<file\>: Defines a file containing reads from a signal experiment. Replace CONDNAME and REPNAME with appropriate condition and replicate labels.
   * --__ctrlCONDNAME-REPNAME__ \<file\>: Optional arguments. Defines a file containing reads from a control experiment. Replace CONDNAME and REPNAME with appropriate labels to match a signal experiment (i.e. to tell ChExMix which condition/replicate this is a control for). If you leave out a REPNAME, this file will be used as a control for all replicates of CONDNAME.  
-  * --__format__ \<SAM/BED/IDX\>: Format of data files. All files must be the same format if specifying experiments on the command line. Supported formats are SAM/BAM, BED, and IDX index files.
+  * --__format__ \<SAM/BAM/BED/IDX\>: Format of data files. All files must be the same format if specifying experiments on the command line. Supported formats are SAM/BAM, BED, and IDX index files.
  
 Instead of using the above options to specify each and every ChIP-seq data file on the command-line, you can instead use a design file:
  
@@ -84,7 +84,7 @@ This example runs ChExMix v0.1.2 on simulated dataset. Simulated data to run thi
 
 Command:
 ```{r, engine='sh', count_lines}
-java -Xmx20G -jar chexmix.jar --threads 10 --expt example.bam --BAM --memepath path-to-meme --geninfo sacCer3.info --seq path-to-genomes/sacCer3/ --verbose  --out example
+java -Xmx20G -jar chexmix.jar --threads 10 --expt example.bam --format BAM --memepath path-to-meme --geninfo sacCer3.info --seq path-to-genomes/sacCer3/ --verbose  --out example
 ```
 
 Results can be found [here]
