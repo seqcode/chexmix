@@ -275,9 +275,11 @@ public class BindingManager {
 					if (getMotifs(cond)!=null){
 						//Print aligned points
 						List<List<StrandedPoint>> subtypePoints = new ArrayList<List<StrandedPoint>>();
+						List<List<Region>> potReg = new ArrayList<List<Region>>();
 						List<List<StrandedPoint>> alignedPoints = new ArrayList<List<StrandedPoint>>();
 						for (int bt=0; bt < getNumBindingType(cond); bt++){
 							subtypePoints.add(new ArrayList<StrandedPoint>());
+							potReg.add(new ArrayList<Region>());
 							alignedPoints.add(new ArrayList<StrandedPoint>());
 						}
 						for(BindingEvent e : events){
@@ -285,6 +287,9 @@ public class BindingManager {
 							//Because of the ML step and component sharing, I think that an event could be assigned a significant number of reads without being "present" in the condition's EM model.
 							if(e.isFoundInCondition(cond) && Q <=qMinThres){
 								Pair<Integer, StrandedPoint>p=e.getMaxSubtypePoint(cond);
+								subtypePoints.get(p.car()).add(p.cdr());
+								potReg.get(p.car()).add(e.getContainingRegion());
+								
 								Region r = e.getContainingRegion();
 								// Filter out sequences that are on the edge of cashed sequences
 								if((p.cdr().getLocation()-r.getStart()>config.SEQPLOTWIN) && (r.getEnd()-p.cdr().getLocation()>config.SEQPLOTWIN))
@@ -300,19 +305,30 @@ public class BindingManager {
 		    					int offset = getMotifOffsets(cond).get(motifIndex);
 		    					boolean reverse = getReverseMotifs(cond).get(motifIndex);
 		    					if (reverse){
+		    						int c=0;
 		    						for (StrandedPoint p : points){
 		    							int location = p.getStrand()=='+' ? p.getLocation()-offset : p.getLocation()+offset;
-		    							alignedPoints.get(bt).add(new StrandedPoint(p.getGenome(),p.getChrom(),location,p.getStrand() =='+' ? '-' : '+'));
+		    							// Filter out sequences that are on the edge of cashed sequences
+										if((location-potReg.get(bt).get(c).getStart()>config.SEQPLOTWIN) && (potReg.get(bt).get(c).getEnd()-location>config.SEQPLOTWIN))
+											alignedPoints.get(bt).add(new StrandedPoint(p.getGenome(),p.getChrom(),location,p.getStrand() =='+' ? '-' : '+'));
+										c++;
 		    						}	    						
 		    					}else{
+		    						int c=0;
 		    						for (StrandedPoint p : points){
 		    							int location = p.getStrand()=='+' ? p.getLocation()+offset : p.getLocation()-offset;
-		    							alignedPoints.get(bt).add(new StrandedPoint(p.getGenome(),p.getChrom(),location,p.getStrand()));
+		    							if((location-potReg.get(bt).get(c).getStart()>config.SEQPLOTWIN) && (potReg.get(bt).get(c).getEnd()-location>config.SEQPLOTWIN))
+		    								alignedPoints.get(bt).add(new StrandedPoint(p.getGenome(),p.getChrom(),location,p.getStrand()));
+		    							c++;
 		    						}	    						
 		    					}	    					
 							}else{
-								for (StrandedPoint p : points)
-									alignedPoints.get(bt).add(p);
+								int c=0;
+								for (StrandedPoint p : points){
+									if((p.getLocation()-potReg.get(bt).get(c).getStart()>config.SEQPLOTWIN) && (potReg.get(bt).get(c).getEnd()-p.getLocation()>config.SEQPLOTWIN))
+										alignedPoints.get(bt).add(p);
+									c++;
+								}
 							}
 						}
 						filename = filePrefix+"_"+condName+".subtype.aligned.events";
