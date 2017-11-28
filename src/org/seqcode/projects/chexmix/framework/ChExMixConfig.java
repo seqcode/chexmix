@@ -81,7 +81,7 @@ public class ChExMixConfig {
 	protected String markovBackMode; // Markov background model file
 	protected boolean verbose = false; //Print extra output
 	protected List<List<StrandedPoint>> initialClustPoints = new ArrayList<List<StrandedPoint>>(); // Initial cluster points
-	protected String MetaMakerArgs="--win 250 --bins 250 --profiler fiveprime --noread2 --batch --nocolorbar --linemax 1 --linethick 1 --transparent --peaks $1";
+	protected String MetaMakerArgs="--win 250 --bins 250 --batch --nocolorbar --linemax 1 --linethick 1 --transparent";
 	
     
 	//Constants
