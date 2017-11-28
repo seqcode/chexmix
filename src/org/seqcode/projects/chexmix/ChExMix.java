@@ -21,6 +21,8 @@ import org.seqcode.projects.chexmix.framework.OutputFormatter;
 import org.seqcode.projects.chexmix.framework.PotentialRegionFilter;
 import org.seqcode.projects.chexmix.mixturemodel.BindingMixture;
 import org.seqcode.projects.chexmix.utilities.EventsPostAnalysis;
+import org.seqcode.viz.metaprofile.MetaConfig;
+import org.seqcode.viz.metaprofile.MetaMaker;
 import org.seqcode.deepseq.experiments.ControlledExperiment;
 import org.seqcode.deepseq.experiments.ExperimentCondition;
 import org.seqcode.deepseq.experiments.ExperimentManager;

@@ -52,6 +52,7 @@ public class EventsConfig {
 	public final double LOG2 = Math.log(2);
 	public final double LOG_FC_LIMIT = 10; //Maximum absolute log fold-change reported
 	public final boolean CALC_EVENTS_LL=false; //Calculate component-wise log-likelihoods during ML
+	public final int SEQPLOTWIN = 15; // Half the window size for sequence plots
 
 	
 	protected String[] args;

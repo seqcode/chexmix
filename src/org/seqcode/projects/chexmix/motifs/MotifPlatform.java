@@ -533,7 +533,7 @@ public class MotifPlatform {
 						Pair<Integer,Double> forAlignment = aligner.align(refMotif, fm.get(index));
 						Pair<Integer,Double> revAlignment = aligner.align(refMotif, WeightMatrix.reverseComplement(fm.get(index)));
 						int refOffset=(int)((refMotif.length()-fm.get(index).length())/2);
-						if(revAlignment.cdr()>forAlignment.cdr() && refMotif.length()-fm.get(index).length()%2 !=0)
+						if(revAlignment.cdr()>forAlignment.cdr() && (refMotif.length()-fm.get(index).length())%2 !=0)
 							refOffset = (int)((refMotif.length()-fm.get(index).length())/2-1);
 						System.out.println("fscore "+forAlignment.cdr()+" alignment offset "+forAlignment.car()+" total offset "+(refOffset+forAlignment.car()));
 						System.out.println("rscore "+revAlignment.cdr()+" alignment offset "+revAlignment.car()+" total offset "+(refOffset+revAlignment.car()));

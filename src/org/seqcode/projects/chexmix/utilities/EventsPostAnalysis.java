@@ -16,6 +16,7 @@ import org.seqcode.data.motifdb.WeightMatrix;
 import org.seqcode.deepseq.experiments.ControlledExperiment;
 import org.seqcode.deepseq.experiments.ExperimentCondition;
 import org.seqcode.deepseq.experiments.ExperimentManager;
+import org.seqcode.deepseq.experiments.ExptConfig;
 import org.seqcode.genome.GenomeConfig;
 import org.seqcode.genome.location.StrandedPoint;
 import org.seqcode.genome.location.StrandedRegion;
@@ -26,6 +27,7 @@ import org.seqcode.projects.chexmix.events.BindingManager;
 import org.seqcode.projects.chexmix.events.EventsConfig;
 import org.seqcode.projects.chexmix.framework.ChExMixConfig;
 import org.seqcode.projects.chexmix.motifs.MotifPlatform;
+import org.seqcode.viz.metaprofile.MetaConfig;
 import org.seqcode.viz.metaprofile.SequenceAlignmentFigure;
 
 
@@ -34,6 +36,7 @@ public class EventsPostAnalysis {
 	protected GenomeConfig gconfig;
 	protected EventsConfig evconfig;
 	protected ChExMixConfig config;
+	protected ExptConfig econfig;
 	protected ExperimentManager manager;
 	protected BindingManager bindingManager;
 	protected MotifPlatform motifFinder = null;
@@ -410,13 +413,13 @@ public class EventsPostAnalysis {
 			try {
 				String outFile = config.getOutputImagesDir()+File.separator+config.getOutBase()+"_"+cond.getName()+"_seq.png";
 				String seqOutFile = config.getOutputIntermediateDir()+File.separator+config.getOutBase()+"."+cond.getName()+".seq";
-				int win = config.EM_MU_UPDATE_WIN;
 				SequenceGenerator seqgen = gconfig.getSequenceGenerator();
-				seqgen.useCache(true);
     	
 				List<StrandedRegion> regions = new ArrayList<StrandedRegion>();
-                for (StrandedPoint p : bindingManager.getAlignedEventPoints(cond))
-                    regions.add(p.expand(win/2, win/2));
+                for (List<StrandedPoint> pl : bindingManager.getAlignedEventPoints(cond))            
+                	for (StrandedPoint p : pl)
+                		regions.add(p.expand(evconfig.SEQPLOTWIN, evconfig.SEQPLOTWIN));
+                
                 List<String> seqs = RegionFileUtilities.getSequencesForStrandedRegions(regions, seqgen);
         	
         		if(seqs !=null){
@@ -436,5 +439,23 @@ public class EventsPostAnalysis {
 				e.printStackTrace();
 			}
 		}
+		
+		// Make heatmap
+		for (ExperimentCondition cond : manager.getConditions()){
+			String pointArgs = " --peaks "+config.getOutputParentDir()+File.separator+config.getOutBase()+"_"+cond.getName()+".subtype.aligned.events";
+			// Run for each strand
+			runMetaMaker(config.getMetaMakerArgs()+pointArgs+" --strand + --color blue");
+			runMetaMaker(config.getMetaMakerArgs()+pointArgs+" --strand - --color red");
+		}
+		
+		
 	}
+	
+	public void runMetaMaker(String args){
+		String[] words = args.split("\\s+");
+		MetaConfig mconfig = new MetaConfig(words);
+		MetaMaker maker = new MetaMaker(gconfig, mconfig, econfig);			
+		maker.run();	
+	}
+	
 }

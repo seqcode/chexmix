@@ -81,6 +81,7 @@ public class ChExMixConfig {
 	protected String markovBackMode; // Markov background model file
 	protected boolean verbose = false; //Print extra output
 	protected List<List<StrandedPoint>> initialClustPoints = new ArrayList<List<StrandedPoint>>(); // Initial cluster points
+	protected String MetaMakerArgs="--win 250 --bins 250 --profiler fiveprime --noread2 --batch --nocolorbar --linemax 1 --linethick 1 --transparent --peaks $1";
 	
     
 	//Constants
@@ -342,6 +343,7 @@ public class ChExMixConfig {
 	public boolean useReadFilter(){return doReadFilter;}
 	public String getMEMEpath(){return MEMEpath;}
 	public String getMEMEargs(){return MEMEargs;}
+	public String getMetaMakerArgs(){return MetaMakerArgs;}
 	public String getBackModel(){return markovBackMode;}
 	public double getPosPriorScaling(){return posPriorScaling;}
 	public int getMinMotifLength(){return MEMEminw;}

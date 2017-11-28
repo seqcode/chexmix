@@ -49,7 +49,7 @@ public class BindingManager {
 	protected Map<ExperimentCondition, Integer> maxInfluenceRange;
 	protected Map<ExperimentCondition, Double> alpha;
 	protected Map<ExperimentCondition, List<List<BindingSubComponents>>> ComponentsForBMUpdates;
-	protected Map<ExperimentCondition, List<StrandedPoint>> alignedEventPoints;
+	protected Map<ExperimentCondition, List<List<StrandedPoint>>> alignedEventPoints;
 	
 	public BindingManager(EventsConfig con, ExperimentManager exptman){
 		config = con;
@@ -68,7 +68,7 @@ public class BindingManager {
 		models = new HashMap<ControlledExperiment, List<TagProbabilityDensity>>();
 		unstrandedModel = new HashMap<ControlledExperiment, BindingModel>();
 		ComponentsForBMUpdates = new HashMap<ExperimentCondition, List<List<BindingSubComponents>>>();
-		alignedEventPoints = new HashMap<ExperimentCondition, List<StrandedPoint>>();
+		alignedEventPoints = new HashMap<ExperimentCondition, List<List<StrandedPoint>>>();
 		for(ExperimentCondition cond : manager.getConditions()){
 			conditionEvents.put(cond, new ArrayList<BindingEvent>());
 			motifOffsets.put(cond,new ArrayList<Integer>());
@@ -78,7 +78,7 @@ public class BindingManager {
 			alpha.put(cond, 0.0);
 			motifReferencePoints.put(cond, new ArrayList<Set<StrandedPoint>>());	
 			ComponentsForBMUpdates.put(cond, new ArrayList<List<BindingSubComponents>>());
-			alignedEventPoints.put(cond, new ArrayList<StrandedPoint>());
+			alignedEventPoints.put(cond, new ArrayList<List<StrandedPoint>>());
 		}
 	}
 	
@@ -96,7 +96,7 @@ public class BindingManager {
 	public Integer getMaxInfluenceRange(ExperimentCondition ec){return maxInfluenceRange.get(ec);}
 	public Double getAlpha(ExperimentCondition ec){return alpha.get(ec);}
 	public List<List<BindingSubComponents>> getComponentsForBMUpdates(ExperimentCondition ec){return ComponentsForBMUpdates.get(ec);}
-	public List<StrandedPoint> getAlignedEventPoints(ExperimentCondition ec){return alignedEventPoints.get(ec);}
+	public List<List<StrandedPoint>> getAlignedEventPoints(ExperimentCondition ec){return alignedEventPoints.get(ec);}
 
 	public void setBindingEvents(List<BindingEvent> e){events =e;}
 	public void setConditionBindingEvents(ExperimentCondition ec, List<BindingEvent> e){conditionEvents.put(ec, e);}
@@ -110,7 +110,7 @@ public class BindingManager {
 	public void setBindingModel(ControlledExperiment ce, List<TagProbabilityDensity> mod){models.put(ce, mod); numBindingType.put(ce.getCondition(), mod.size());}
 	public void setUnstrandedBindingModel(ControlledExperiment ce, BindingModel mod){unstrandedModel.put(ce, mod);}
 	public void setComponentsForBMUpdates(ExperimentCondition ec, List<List<BindingSubComponents>> comps){ ComponentsForBMUpdates.put(ec, comps);}
-	public void setAlignedEventPoints(ExperimentCondition ec, List<StrandedPoint> points){alignedEventPoints.put(ec, points);}
+	public void setAlignedEventPoints(ExperimentCondition ec, List<List<StrandedPoint>> points){alignedEventPoints.put(ec, points);}
 
 	public void updateMaxInfluenceRange(ExperimentCondition ec, boolean firstround){
 		int max=0; 
@@ -276,7 +276,6 @@ public class BindingManager {
 						//Print aligned points
 						List<List<StrandedPoint>> subtypePoints = new ArrayList<List<StrandedPoint>>();
 						List<List<StrandedPoint>> alignedPoints = new ArrayList<List<StrandedPoint>>();
-						List<StrandedPoint> allPoints = new ArrayList<StrandedPoint>();
 						for (int bt=0; bt < getNumBindingType(cond); bt++){
 							subtypePoints.add(new ArrayList<StrandedPoint>());
 							alignedPoints.add(new ArrayList<StrandedPoint>());
@@ -286,7 +285,10 @@ public class BindingManager {
 							//Because of the ML step and component sharing, I think that an event could be assigned a significant number of reads without being "present" in the condition's EM model.
 							if(e.isFoundInCondition(cond) && Q <=qMinThres){
 								Pair<Integer, StrandedPoint>p=e.getMaxSubtypePoint(cond);
-								subtypePoints.get(p.car()).add(p.cdr());
+								Region r = e.getContainingRegion();
+								// Filter out sequences that are on the edge of cashed sequences
+								if((p.cdr().getLocation()-r.getStart()>config.SEQPLOTWIN) && (r.getEnd()-p.cdr().getLocation()>config.SEQPLOTWIN))
+									subtypePoints.get(p.car()).add(p.cdr());
 							}
 						}	
 						
@@ -315,13 +317,14 @@ public class BindingManager {
 						}
 						filename = filePrefix+"_"+condName+".subtype.aligned.events";
 						fout = new FileWriter(filename);
+						int subtypeC=0;
 						for (List<StrandedPoint> points : alignedPoints){
-							allPoints.addAll(points);
 							for (StrandedPoint p : points)
-								fout.write(p.toString()+'\n');
+								fout.write(p.toString()+"\tSubtype"+subtypeC+'\n');
+							subtypeC++;
 						}
 						fout.close();
-						setAlignedEventPoints(cond,allPoints);
+						setAlignedEventPoints(cond,alignedPoints);
 					}
 	    		}
 	    		
