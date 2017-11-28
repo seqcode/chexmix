@@ -289,11 +289,6 @@ public class BindingManager {
 								Pair<Integer, StrandedPoint>p=e.getMaxSubtypePoint(cond);
 								subtypePoints.get(p.car()).add(p.cdr());
 								potReg.get(p.car()).add(e.getContainingRegion());
-								
-								Region r = e.getContainingRegion();
-								// Filter out sequences that are on the edge of cashed sequences
-								if((p.cdr().getLocation()-r.getStart()>config.SEQPLOTWIN) && (r.getEnd()-p.cdr().getLocation()>config.SEQPLOTWIN))
-									subtypePoints.get(p.car()).add(p.cdr());
 							}
 						}	
 						
@@ -304,7 +299,7 @@ public class BindingManager {
 							if (motifIndex != -1){
 		    					int offset = getMotifOffsets(cond).get(motifIndex);
 		    					boolean reverse = getReverseMotifs(cond).get(motifIndex);
-		    					if (reverse){
+		    					if (reverse){ //reverse complement
 		    						int c=0;
 		    						for (StrandedPoint p : points){
 		    							int location = p.getStrand()=='+' ? p.getLocation()-offset : p.getLocation()+offset;
@@ -322,7 +317,7 @@ public class BindingManager {
 		    							c++;
 		    						}	    						
 		    					}	    					
-							}else{
+							}else{ // no motif found
 								int c=0;
 								for (StrandedPoint p : points){
 									if((p.getLocation()-potReg.get(bt).get(c).getStart()>config.SEQPLOTWIN) && (potReg.get(bt).get(c).getEnd()-p.getLocation()>config.SEQPLOTWIN))

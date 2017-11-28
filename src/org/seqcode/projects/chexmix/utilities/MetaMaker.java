@@ -1,8 +1,6 @@
 package org.seqcode.projects.chexmix.utilities;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.List;
@@ -18,7 +16,6 @@ import org.seqcode.projects.chexmix.framework.ChExMixConfig;
 import org.seqcode.viz.metaprofile.BinningParameters;
 import org.seqcode.viz.metaprofile.MetaConfig;
 import org.seqcode.viz.metaprofile.MetaProfileHandler;
-import org.seqcode.viz.metaprofile.PointProfile;
 import org.seqcode.viz.metaprofile.PointProfiler;
 import org.seqcode.viz.metaprofile.swing.MetaFrame;
 import org.seqcode.viz.metaprofile.swing.MetaNonFrame;
