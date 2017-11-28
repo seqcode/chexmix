@@ -446,9 +446,15 @@ public class EventsPostAnalysis {
 			System.out.println(config.getMetaMakerArgs()+pointArgs+" --strand + --color blue");
 			runMetaMaker(config.getMetaMakerArgs()+pointArgs+" --strand + --color blue");
 			runMetaMaker(config.getMetaMakerArgs()+pointArgs+" --strand - --color red");
-		}
-		
-		
+			// Combine plots
+			String pngPath=config.getOutputImagesDir()+File.separator+config.getOutBase()+"_"+cond.getName();
+			try {
+				Process proc = Runtime.getRuntime().exec("composite -dissolve 60,100 -transparent-color white "+pngPath+"_+_lines.png "+pngPath+"_-_lines.png "+pngPath+"_heatmap.png");
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}		
 	}
 	
 	public void runMetaMaker(String args){
