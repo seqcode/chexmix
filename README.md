@@ -84,7 +84,7 @@ This example runs ChExMix v0.1.2 on simulated dataset. Simulated data to run thi
 
 Command:
 ```{r, engine='sh', count_lines}
-java -Xmx20G -jar chexmix.jar --threads 10 --expt example.bam --BAM --memepath path-to-meme --geninfo sacCer3.info --seq path-to-genomes/sacCer3/ --verbose  --out example
+java -Xmx20G -jar chexmix.jar --threads 10 --expt example.bam --format BAM --memepath path-to-meme --geninfo sacCer3.info --seq path-to-genomes/sacCer3/ --verbose  --out example
 ```
 
 Results can be found [here]
