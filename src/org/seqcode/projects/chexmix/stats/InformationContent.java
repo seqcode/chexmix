@@ -18,8 +18,8 @@ import org.seqcode.gseutils.Args;
 public class InformationContent {
 		
 	public static double[] calculateMotifIC(WeightMatrix wm){ 
-		double[] ic = new double[wm.length()];
-		for (int j=0; j < wm.length(); j++){
+		double[] ic = new double[wm.matrix.length];
+		for (int j=0; j < wm.matrix.length; j++){
 			double v = 0.0;
 			for (int i=0; i < wm.matrix[j].length;i++){
 				double p=wm.matrix[j][i];
@@ -56,11 +56,11 @@ public class InformationContent {
 		RegionFileUtilities.getSequencesForStrandedRegions(peakReg, gconfig.getSequenceGenerator());
 		WeightMatrix wm = WeightMatrixImport.buildAlignedSequenceMatrix(peakSeq);
 		
-		System.out.println(wm.consensus);
+//		System.out.println(wm.consensus);
 		if (wm!=null){
 			for (int c=0; c < wm.matrix[0].length; c++){
 				for (int i=0 ; i< wm.matrix.length; i++){
-					System.out.print(wm.matrix[c][i]);
+					System.out.print(wm.matrix[c][i]+",");
 				}
 				System.out.println();
 			}
