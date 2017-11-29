@@ -11,6 +11,7 @@ import org.seqcode.genome.GenomeConfig;
 import org.seqcode.genome.location.Region;
 import org.seqcode.genome.sequence.SequenceGenerator;
 import org.seqcode.gseutils.ArgParser;
+import org.seqcode.gseutils.Args;
 
 /**
  * Information content of set of sequences
@@ -46,7 +47,7 @@ public class InformationContent {
 		List<Region> peakReg = null;
 		List<String> peakSeq = new ArrayList<String>();
 		if(ap.hasKey("peaks")){
-			peakReg = RegionFileUtilities.loadRegionsFromPeakFile(gconfig.getGenome(), "peaks", 50);
+			peakReg = RegionFileUtilities.loadRegionsFromPeakFile(gconfig.getGenome(), Args.parseString(args, "peaks", null), 50);
 		}else{
 			System.out.println("please provide peaks !");
 			System.exit(1);
