@@ -55,6 +55,19 @@ public class InformationContent {
 		
 		RegionFileUtilities.getSequencesForStrandedRegions(peakReg, gconfig.getSequenceGenerator());
 		WeightMatrix wm = WeightMatrixImport.buildAlignedSequenceMatrix(peakSeq);
+		
+		System.out.println(wm.consensus);
+		if (wm!=null){
+			for (int c=0; c < wm.matrix[0].length; c++){
+				for (int i=0 ; i< wm.matrix.length; i++){
+					System.out.print(wm.matrix[c][i]);
+				}
+				System.out.println();
+			}
+		}else{
+			System.out.println("weight matrix is null");
+		}		
+		
 		double[] ic = calculateMotifIC(wm);
 		System.out.println(ic.toString());
 		System.out.println("max IC position "+maxPosition(ic));
