@@ -8,8 +8,7 @@ import org.seqcode.data.io.RegionFileUtilities;
 import org.seqcode.data.motifdb.WeightMatrix;
 import org.seqcode.data.motifdb.WeightMatrixImport;
 import org.seqcode.genome.GenomeConfig;
-import org.seqcode.genome.location.Region;
-import org.seqcode.genome.sequence.SequenceGenerator;
+import org.seqcode.genome.location.StrandedRegion;
 import org.seqcode.gseutils.ArgParser;
 import org.seqcode.gseutils.Args;
 
@@ -44,16 +43,17 @@ public class InformationContent {
 	public static void main(String[] args) throws ParseException{
 		GenomeConfig gconfig = new GenomeConfig(args);
 		ArgParser ap = new ArgParser(args);
-		List<Region> peakReg = null;
+		List<StrandedRegion> peakReg = null;
 		List<String> peakSeq = new ArrayList<String>();
+		int win = Args.parseInteger(args,"win",50);
 		if(ap.hasKey("peaks")){
-			peakReg = RegionFileUtilities.loadRegionsFromPeakFile(gconfig.getGenome(), Args.parseString(args, "peaks", null), 50);
+			peakReg = RegionFileUtilities.loadStrandedRegionsFromMotifFile(gconfig.getGenome(), Args.parseString(args, "peaks", null), win);
 		}else{
 			System.out.println("please provide peaks !");
 			System.exit(1);
 		}
-		SequenceGenerator seqgen = gconfig.getSequenceGenerator();
-		for (Region reg : peakReg){peakSeq.add(seqgen.execute(reg));}
+		
+		RegionFileUtilities.getSequencesForStrandedRegions(peakReg, gconfig.getSequenceGenerator());
 		WeightMatrix wm = WeightMatrixImport.buildAlignedSequenceMatrix(peakSeq);
 		double[] ic = calculateMotifIC(wm);
 		System.out.println(ic.toString());
