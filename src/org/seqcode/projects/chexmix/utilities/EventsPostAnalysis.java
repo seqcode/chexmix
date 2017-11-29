@@ -443,17 +443,21 @@ public class EventsPostAnalysis {
 		for (ExperimentCondition cond : manager.getConditions()){
 			String pointArgs = " --peaks "+config.getOutputParentDir()+File.separator+config.getOutBase()+"_"+cond.getName()+".subtype.aligned.events";
 			// Run for each strand
-			System.out.println(config.getMetaMakerArgs()+pointArgs+" --strand + --color blue");
-			runMetaMaker(config.getMetaMakerArgs()+pointArgs+" --strand + --color blue");
-			runMetaMaker(config.getMetaMakerArgs()+pointArgs+" --strand - --color red");
+			System.out.println(config.getMetaMakerArgs()+pointArgs+" --strand + --color blue --out "+cond.getName()+".events");
+			runMetaMaker(config.getMetaMakerArgs()+pointArgs+" --strand + --color blue --out "+cond.getName()+".events");
+			runMetaMaker(config.getMetaMakerArgs()+pointArgs+" --strand - --color red --out "+cond.getName()+".events");
+			
 			// Combine plots
-			String pngPath=config.getOutputImagesDir()+File.separator+config.getOutBase()+"_"+cond.getName();
-			try {
-				Process proc = Runtime.getRuntime().exec("composite -dissolve 60,100 -transparent-color white "+pngPath+"_+_lines.png "+pngPath+"_-_lines.png "+pngPath+"_heatmap.png");
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			for (ExperimentCondition pcond : manager.getConditions()){				
+				String pngPath=config.getOutputImagesDir()+File.separator+config.getOutBase()+"_"+pcond.getName()+".events"+cond.getName()+"_";
+				try {
+					Process proc = Runtime.getRuntime().exec("composite -dissolve 60,100 -transparent-color white "+pngPath+"+_lines.png "+pngPath+"-_lines.png "+pngPath+"heatmap.png");
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
+			
 		}		
 	}
 	

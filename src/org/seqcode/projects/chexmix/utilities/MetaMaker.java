@@ -50,8 +50,8 @@ public class MetaMaker {
 				
 				for (ExperimentCondition cond : manager.getConditions()){
 					
-					String imagePrefix = config.getOutputImagesDir()+File.separator+config.getOutBase()+"_"+cond.getName()+"_"+mconfig.strand;
-					String intPrefix = config.getOutputIntermediateDir()+File.separator+config.getOutBase()+"_"+cond.getName()+"_"+mconfig.strand;
+					String imagePrefix = config.getOutputImagesDir()+File.separator+config.getOutBase()+"_"+mconfig.outName+"_"+cond.getName()+"_"+mconfig.strand;
+					String intPrefix = config.getOutputIntermediateDir()+File.separator+config.getOutBase()+"_"+mconfig.outName+"_"+cond.getName()+"_"+mconfig.strand;
 								
 					PointProfiler profiler= new Stranded5PrimeProfiler(gconfig, params, cond, mconfig.strand, mconfig.fivePrimeShift, mconfig.baseLimit, mconfig.baseLimitRelPosition);
 					boolean normalizeProfile=false;
@@ -119,6 +119,7 @@ public class MetaMaker {
 						frame.setLineMax(mconfig.lineMax);
 						frame.setLineMin(mconfig.lineMin);
 					}
+					
 				}
 				
 				manager.close();
