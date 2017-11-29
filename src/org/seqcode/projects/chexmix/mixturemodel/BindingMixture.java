@@ -266,7 +266,7 @@ public class BindingMixture {
 		
 		// Find motif within clusters
 		if (config.getFindingMotifs()){
-			
+		
 			
 		}
 	}

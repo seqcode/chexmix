@@ -17,6 +17,7 @@ import org.seqcode.data.io.BackgroundModelIO;
 import org.seqcode.data.motifdb.CountsBackgroundModel;
 import org.seqcode.data.motifdb.MarkovBackgroundModel;
 import org.seqcode.data.motifdb.WeightMatrix;
+import org.seqcode.data.motifdb.WeightMatrixImport;
 import org.seqcode.deepseq.experiments.ExperimentCondition;
 import org.seqcode.deepseq.experiments.ExperimentManager;
 import org.seqcode.genome.Genome;
@@ -101,21 +102,21 @@ public class MotifPlatform {
 	 * @param cond
 	 * @param activeComponents
 	 * @param trainingRound
+	 * @throws ParseException 
 	 */
-	public void findMotifs(List<List<List<StrandedPoint>>> points, int trainingRound){
+	public void findClusterMotifs(List<List<List<StrandedPoint>>> points, int trainingRound) throws ParseException{
 		
 		// Filter out points that are outside of cashed sequence  
 		
 		for (ExperimentCondition cond : manager.getConditions()){	
 			for (List<StrandedPoint> clusterPoints : points.get(cond.getIndex())){
-				Map<Region, String> reg2seq = new HashMap<Region, String>();
+				List<String> seqs = new ArrayList<String>();
 				for (StrandedPoint p : clusterPoints){
 					Region peakReg = new Region(p.getGenome(), p.getChrom(), p.getLocation()-config.MOTIF_FINDING_SEQWINDOW/2, p.getLocation()+config.MOTIF_FINDING_SEQWINDOW/2); 
-					String seq = seqgen.execute(peakReg);
-					reg2seq.put(peakReg, seq);
-					
+					String currSeq = seqgen.execute(peakReg);
+					if(lowercaseFraction(currSeq)<=config.MOTIF_FINDING_ALLOWED_REPETITIVE){seqs.add(currSeq);}				
 				}
-					
+				WeightMatrix m = WeightMatrixImport.buildAlignedSequenceMatrix(seqs);	
 				
 				
 			}
@@ -469,7 +470,7 @@ public class MotifPlatform {
 		}
 		
 		double minLogKL = Double.MAX_VALUE;
-		for (int offset=-config.PCC_SLIDING_WINDOW/2; offset<=config.PCC_SLIDING_WINDOW/2; offset++){
+		for (int offset=-config.SLIDING_WINDOW/2; offset<=config.SLIDING_WINDOW/2; offset++){
             double currLogKL=0;
             //copy current window
             double[] currW = new double[config.MAX_BINDINGMODEL_WIDTH];

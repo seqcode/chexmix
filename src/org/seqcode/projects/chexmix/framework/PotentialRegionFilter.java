@@ -114,6 +114,7 @@ public class PotentialRegionFilter {
 	public Double getPotRegCountsSigChannelByRep(ControlledExperiment e){ return potRegCountsSigChannelByRep.get(e);}
 	public Double getNonPotRegCountsSigChannelByRep(ControlledExperiment e){ return nonPotRegCountsSigChannelByRep.get(e);}
 	public List<Region> getPotentialRegions(){return potentialRegions;}
+	public List<Region> getSeqPotentialRegions(){return potentialRegions;}
 	public double getPotRegionLengthTotal(){return potRegionLengthTotal;}
 	
 	/**

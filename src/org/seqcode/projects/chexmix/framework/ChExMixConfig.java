@@ -109,15 +109,15 @@ public class ChExMixConfig {
     public final int MAX_BINDINGMODEL_WIDTH=500; //Maximum width for binding models (affects how large the read profiles are for binding components)
 	public final boolean CALC_LL=false; //Calculate the log-likelihood during EM.
 	public final boolean CALC_COMP_LL=false; //Calculate component-wise log-likelihoods during ML
-    public final int MOTIF_FINDING_SEQWINDOW=60; //Bases to extract around components for motif-finding			public final boolean CALC_LL=false; //Calculate the log-likelihood during EM. **reduced from 80 to 50
-    public final int MOTIF_FINDING_TOPSEQS=1000; //Number of top components to analyze			public final boolean CALC_COMP_LL=false; //Calculate component-wise log-likelihoods during ML **increased from 500 to 1000
+    public final int MOTIF_FINDING_SEQWINDOW=60; //Bases to extract around components for motif-finding			public final boolean CALC_LL=false; //Calculate the log-likelihood during EM. 
+    public final int MOTIF_FINDING_TOPSEQS=1000; //Number of top components to analyze			public final boolean CALC_COMP_LL=false; //Calculate component-wise log-likelihoods during ML 
     public final double MOTIF_FINDING_ALLOWED_REPETITIVE = 0.2; //Percentage of the examined sequence window allowed to be lowercase or N			
     public final int MOTIF_FINDING_NEGSEQ=5000; //Number of negative sequences for motif significance tests		
     public final double MARKOV_BACK_MODEL_THRES = 0.05; // Markov background threshold for making models
     public final double MARKOV_BACK_SEQ_RM_THRES = 0.1; // Markov background threshold for removind sequences
+    public final int SLIDING_WINDOW=60; // Sliding window range in computing KL divergence 
     public final double MOTIF_PCC_THRES = 0.95; //Motif length adjusted similarity threshold for selecting one motif
     public final int MARKOV_NUM_TEST=100000;
-    public final int PCC_SLIDING_WINDOW=60; // Sliding window range in computing PCC among different profiles. 
     public final int KMEANS_TRAIN_REPEATS=10;
     public final int KMEANS_MAX_ITER = 100;
     public final int KMEANS_K = 2;
