@@ -18,8 +18,8 @@ import org.seqcode.gseutils.Args;
 public class InformationContent {
 		
 	public static double[] calculateMotifIC(WeightMatrix wm){ 
-		double[] ic = new double[wm.matrix.length];
-		for (int j=0; j < wm.matrix.length; j++){
+		double[] ic = new double[wm.length()];
+		for (int j=0; j < wm.length(); j++){
 			double v = 0.0;
 			for (int i=0; i < wm.matrix[j].length;i++){
 				double p=wm.matrix[j][i];
@@ -44,7 +44,6 @@ public class InformationContent {
 		GenomeConfig gconfig = new GenomeConfig(args);
 		ArgParser ap = new ArgParser(args);
 		List<StrandedRegion> peakReg = null;
-		List<String> peakSeq = new ArrayList<String>();
 		int win = Args.parseInteger(args,"win",50);
 		if(ap.hasKey("peaks")){
 			peakReg = RegionFileUtilities.loadStrandedRegionsFromMotifFile(gconfig.getGenome(), Args.parseString(args, "peaks", null), win);
@@ -53,7 +52,7 @@ public class InformationContent {
 			System.exit(1);
 		}
 		
-		RegionFileUtilities.getSequencesForStrandedRegions(peakReg, gconfig.getSequenceGenerator());
+		List<String> peakSeq = RegionFileUtilities.getSequencesForStrandedRegions(peakReg, gconfig.getSequenceGenerator());
 		WeightMatrix wm = WeightMatrixImport.buildAlignedSequenceMatrix(peakSeq);
 		
 //		System.out.println(wm.consensus);
