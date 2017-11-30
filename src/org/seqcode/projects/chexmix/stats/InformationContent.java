@@ -2,6 +2,7 @@ package org.seqcode.projects.chexmix.stats;
 
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.seqcode.data.io.RegionFileUtilities;
@@ -61,8 +62,8 @@ public class InformationContent {
 		
 		System.out.println(wm.consensus);
 		if (wm!=null){
-			for (int c=0; c < wm.matrix[0].length; c++){
-				for (int i=0 ; i< wm.matrix.length; i++){
+			for (int i=0; i < wm.length(); i++){
+				for (int c=0 ; c < wm.matrix[i].length; c++){
 					System.out.print(wm.matrix[i][c]+",");
 				}
 				System.out.println();
@@ -72,7 +73,7 @@ public class InformationContent {
 		}		
 		
 		double[] ic = calculateMotifIC(wm);
-		System.out.println(ic.toString());
+		System.out.println(Arrays.toString(ic));
 		System.out.println("max IC position "+maxPosition(ic));
 	}
 }
