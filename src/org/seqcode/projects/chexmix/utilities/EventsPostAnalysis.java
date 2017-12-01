@@ -22,6 +22,7 @@ import org.seqcode.genome.location.StrandedPoint;
 import org.seqcode.genome.location.StrandedRegion;
 import org.seqcode.genome.sequence.SequenceGenerator;
 import org.seqcode.gseutils.RealValuedHistogram;
+import org.seqcode.motifs.DrawMotifs;
 import org.seqcode.projects.chexmix.events.BindingEvent;
 import org.seqcode.projects.chexmix.events.BindingManager;
 import org.seqcode.projects.chexmix.events.EventsConfig;
@@ -201,13 +202,13 @@ public class EventsPostAnalysis {
 							String imName = config.getOutputImagesDir()+File.separator+config.getOutBase()+"_"+cond.getName()+"_"+WeightMatrix.getConsensus(currMotif)+".png";
 							String imName2 = "images/"+config.getOutBase()+"_"+cond.getName()+"_"+WeightMatrix.getConsensus(currMotif)+".png";
 							String motifLabel = cond.getName()+" "+WeightMatrix.getConsensus(currMotif)+", MEME";
-							org.seqcode.motifs.DrawMotifs.printMotifLogo(currMotif, new File(imName), 75, motifLabel);
+							DrawMotifs.printMotifLogo(currMotif, new File(imName), 75, motifLabel);
 							mImageNames.add(imName2);
 							WeightMatrix wm_rc = WeightMatrix.reverseComplement(currMotif);
 							imName = config.getOutputImagesDir()+File.separator+config.getOutBase()+"_"+cond.getName()+"_"+WeightMatrix.getConsensus(currMotif)+"_rc.png";
 							imName2 = "images/"+config.getOutBase()+"_"+cond.getName()+"_"+WeightMatrix.getConsensus(currMotif)+"_rc.png";
 							motifLabel = cond.getName()+" revcomp "+WeightMatrix.getConsensus(currMotif)+", MEME";
-							org.seqcode.motifs.DrawMotifs.printMotifLogo(wm_rc, new File(imName), 75, motifLabel);
+							DrawMotifs.printMotifLogo(wm_rc, new File(imName), 75, motifLabel);
 							mRCImageNames.add(imName2);
 						}
 						motifImageNames.put(cond, mImageNames);
