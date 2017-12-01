@@ -21,26 +21,41 @@ import org.seqcode.motifs.DrawMotifs;
 /**
  * Information content of weight matrix build from aligned a set of sequence
  */
-public class InformationContent {
+public class InformationContent { 
 		
 	protected double[] IC;
 	protected int maxPos=0;
 	protected double maxScore=0.0;
 	
-	public InformationContent (WeightMatrix wm, MarkovBackgroundModel back){
+	public InformationContent (WeightMatrix fm, MarkovBackgroundModel back){
 		
-		// Convert frequency matrix to log odds
-		if (!wm.islogodds){
-			if (back !=null){ wm.toLogOdds();}
+		// Get log odds version from frequency matrix
+		WeightMatrix wm = new WeightMatrix(fm.length());
+        //clone
+        for (int i = 0; i < fm.length(); i++) {
+        	wm.matrix[i]['A'] = fm.matrix[i]['A'];
+        	wm.matrix[i]['C'] = fm.matrix[i]['C'];
+        	wm.matrix[i]['G'] = fm.matrix[i]['G'];
+        	wm.matrix[i]['T'] = fm.matrix[i]['T'];
+        	wm.matrix[i]['a'] = fm.matrix[i]['a'];
+        	wm.matrix[i]['c'] = fm.matrix[i]['c'];
+        	wm.matrix[i]['g'] = fm.matrix[i]['g'];
+        	wm.matrix[i]['t'] = fm.matrix[i]['t'];
+        }
+        if (!fm.islogodds) { 
+        	wm.islogodds = true;
+        	if (back !=null){ wm.toLogOdds();}
 			else{ wm.toLogOdds(back);}
-		}		
-		IC = new double[wm.length()];
-		for (int i=0; i < wm.length(); i++){
+        }
+        
+		IC = new double[fm.length()];
+		for (int i=0; i < fm.length(); i++){
 			double v = 0.0;
 			for (int c=0; c < wm.letters.length; c++){
-				char letter = wm.letters[c];
+				char letter = wm.letters[c];				
+				double f=fm.matrix[i][letter];
 				double p=wm.matrix[i][letter];
-				if (p > 0) { v = v - p*Math.log(p)/Math.log(2);}
+				v = v + f*p;
 			}
 			IC[i]=v;
 		}
