@@ -14,33 +14,37 @@ import org.seqcode.gseutils.ArgParser;
 import org.seqcode.gseutils.Args;
 
 /**
- * Information content of set of sequences
+ * Information content of weight matrix build from aligned a set of sequence
  */
 public class InformationContent {
 		
-	public static double[] calculateMotifIC(WeightMatrix wm){ 
-		double[] ic = new double[wm.length()];
-		for (int j=0; j < wm.length(); j++){
+	protected double[] IC;
+	protected int maxPos=0;
+	protected double maxScore=0.0;
+	
+	public InformationContent (WeightMatrix wm){
+		
+		IC = new double[wm.length()];
+		for (int i=0; i < wm.length(); i++){
 			double v = 0.0;
-			for (int i=0; i < wm.matrix[j].length;i++){
-				double p=wm.matrix[j][i];
-				if (p > 0){ v = v - p*Math.log(p)/Math.log(2);}
+			for (int c=0; c < wm.letters.length; c++){
+				char letter = wm.letters[c];
+				double p=wm.matrix[i][letter];
+				if (p > 0) { v = v - p*Math.log(p)/Math.log(2);}
 			}
-			ic[j]=v;
+			IC[i]=v;
 		}
-		return ic;
+		for (int i=0; i < IC.length; i++){
+			if (IC[i] > maxScore){
+				maxScore=IC[i]; maxPos=i;
+			}
+		}		
 	}
 	
-	public static int maxPosition(double[] array){
-		int pos=0; double maxScore=0.0;
-		for (int i=0; i < array.length; i++){
-			if (array[i] > maxScore){
-				maxScore=array[i]; pos=i;
-			}
-		}
-		return pos;
-	}
-	
+	public double[] getMotifIC(){return IC;}
+	public int getMaxPosition(){return maxPos;}
+	public double getMaxScore(){return maxScore;}
+		
 	public static void main(String[] args) throws ParseException{
 		GenomeConfig gconfig = new GenomeConfig(args);
 		ArgParser ap = new ArgParser(args);
@@ -61,19 +65,16 @@ public class InformationContent {
 		}
 		
 		System.out.println(wm.consensus);
-		if (wm!=null){
+		for (int c=0; c < wm.letters.length; c++){
+			char letter = wm.letters[c];
 			for (int i=0; i < wm.length(); i++){
-				for (int c=0 ; c < wm.matrix[i].length; c++){
-					System.out.print(wm.matrix[i][c]+",");
-				}
-				System.out.println();
+				System.out.print(wm.matrix[i][letter]+",");
 			}
-		}else{
-			System.out.println("weight matrix is null");
-		}		
+			System.out.println();
+		}
 		
-		double[] ic = calculateMotifIC(wm);
-		System.out.println(Arrays.toString(ic));
-		System.out.println("max IC position "+maxPosition(ic));
+		InformationContent ic =  new InformationContent(wm);
+		System.out.println(Arrays.toString(ic.getMotifIC()));
+		System.out.println("max IC position "+ic.getMaxPosition());
 	}
 }
