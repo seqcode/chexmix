@@ -112,7 +112,7 @@ public class InformationContent {
 		System.out.println(Arrays.toString(ic.getMotifIC()));
 		System.out.println("max IC position "+ic.getMaxPosition());
 		
-		double[] sic = StatUtil.gaussianSmoother(ic.getMotifIC(),1);
+		double[] sic = StatUtil.gaussianSmoother(ic.getMotifIC(),0.1);
 		double maxScore = 0.0;
 		int maxPos = 0;
 		for (int i=0; i < sic.length; i++){
