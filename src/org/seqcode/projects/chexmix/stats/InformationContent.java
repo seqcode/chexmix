@@ -16,6 +16,7 @@ import org.seqcode.genome.GenomeConfig;
 import org.seqcode.genome.location.StrandedRegion;
 import org.seqcode.gseutils.ArgParser;
 import org.seqcode.gseutils.Args;
+import org.seqcode.math.stats.StatUtil;
 import org.seqcode.motifs.DrawMotifs;
 
 /**
@@ -110,6 +111,19 @@ public class InformationContent {
 		InformationContent ic =  new InformationContent(wm, backMod);
 		System.out.println(Arrays.toString(ic.getMotifIC()));
 		System.out.println("max IC position "+ic.getMaxPosition());
+		
+		double[] sic = StatUtil.gaussianSmoother(ic.getMotifIC(),1);
+		double maxScore = 0.0;
+		int maxPos = 0;
+		for (int i=0; i < sic.length; i++){
+			if (sic[i] > maxScore){
+				maxScore=sic[i]; maxPos=i;
+			}
+		}
+		System.out.println("smoothed ");
+		System.out.println(Arrays.toString(sic));
+		System.out.println("max pos after smoothing "+maxPos);
+		
 		
 		// Print motif 
 		String motifLabel = WeightMatrix.getConsensus(wm)+", MEME";
