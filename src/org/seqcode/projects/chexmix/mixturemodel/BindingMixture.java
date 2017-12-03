@@ -922,18 +922,19 @@ public class BindingMixture {
 		            	for(BindingEvent b: currEvents){
 		            		if (b.isFoundInCondition(cond)){
 		            			for (int bt=0; bt < numBindingType; bt++){
-		            				BindingSubtype subtype = bindingManager.getBindingSubtype(cond).get(bt);
-		            				scores[bt][0]=0; seqs[bt][0] = ""; scores[bt][1]=0; seqs[bt][1]="";
-		            				if (subtype.hasMotif() && b.getTypePoints(cond)!=null){
-		            					if (b.getTypePoints(cond)[bt][0].getLocation()-w.getStart()>0){
-		            						scores[bt][0] = motifForScores.car()[cond.getIndex()][bt][b.getTypePoints(cond)[bt][0].getLocation()-w.getStart()];
-		            						seqs[bt][0] = motifForScores.cdr()[cond.getIndex()][bt][b.getTypePoints(cond)[bt][0].getLocation()-w.getStart()];
-		            					}
-		            					if (b.getTypePoints(cond)[bt][1].getLocation()-w.getStart()>0){
-		            						scores[bt][1] = motifRevScores.car()[cond.getIndex()][bt][b.getTypePoints(cond)[bt][1].getLocation()-w.getStart()];
-		            						seqs[bt][1] = motifRevScores.cdr()[cond.getIndex()][bt][b.getTypePoints(cond)[bt][1].getLocation()-w.getStart()];
-		            					}
-		            				}}}		
+		            				if (bindingManager.getBindingSubtype(cond).get(bt)!=null){
+		            					BindingSubtype subtype = bindingManager.getBindingSubtype(cond).get(bt);
+		            					scores[bt][0]=0; seqs[bt][0] = ""; scores[bt][1]=0; seqs[bt][1]="";
+		            					if (subtype.hasMotif() && b.getTypePoints(cond)!=null){
+		            						if (b.getTypePoints(cond)[bt][0].getLocation()-w.getStart()>0){
+		            							scores[bt][0] = motifForScores.car()[cond.getIndex()][bt][b.getTypePoints(cond)[bt][0].getLocation()-w.getStart()];
+		            							seqs[bt][0] = motifForScores.cdr()[cond.getIndex()][bt][b.getTypePoints(cond)[bt][0].getLocation()-w.getStart()];
+		            						}
+		            						if (b.getTypePoints(cond)[bt][1].getLocation()-w.getStart()>0){
+		            							scores[bt][1] = motifRevScores.car()[cond.getIndex()][bt][b.getTypePoints(cond)[bt][1].getLocation()-w.getStart()];
+		            							seqs[bt][1] = motifRevScores.cdr()[cond.getIndex()][bt][b.getTypePoints(cond)[bt][1].getLocation()-w.getStart()];
+		            						}
+		            				}}}}		
 		            		b.setMotifScore(cond,scores);
 		            		b.setSequence(cond, seqs);	          			
 		            	}}}}
