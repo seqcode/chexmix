@@ -16,6 +16,7 @@ import org.seqcode.genome.location.StrandedPoint;
 import org.seqcode.projects.chexmix.composite.TagProbabilityDensity;
 import org.seqcode.projects.chexmix.events.BindingEvent;
 import org.seqcode.projects.chexmix.events.BindingManager;
+import org.seqcode.projects.chexmix.events.BindingSubtype;
 import org.seqcode.projects.chexmix.events.EventsConfig;
 import org.seqcode.projects.chexmix.framework.ChExMixConfig;
 
@@ -132,12 +133,14 @@ public class BindingMLAssignment {
         int c = cond.getIndex();
         numBindingType = bindingManager.getNumBindingType(cond);
         	
-        //Add bindingModels to array
-        for(ControlledExperiment rep : cond.getReplicates()){
-        	TagProbabilityDensities[rep.getIndex()] = new TagProbabilityDensity[numBindingType];
-        	for (int bt=0; bt< numBindingType; bt++)
-        		TagProbabilityDensities[rep.getIndex()][bt] = bindingManager.getBindingModel(rep).get(bt);
-        }
+      //Add bindingModels to array
+    	for(ControlledExperiment rep : cond.getReplicates()){
+    		TagProbabilityDensities[rep.getIndex()] = new TagProbabilityDensity[numBindingType];
+    		for (int bt=0; bt< numBindingType; bt++){
+    			BindingSubtype subtype = bindingManager.getBindingSubtype(rep.getCondition()).get(bt);
+    			TagProbabilityDensities[rep.getIndex()][bt] = subtype.getBindingModel(0);
+    		}
+    	}
         	
         //Load Reads (merge from all replicates)
         List<StrandedBaseCount> sigBases = new ArrayList<StrandedBaseCount>();

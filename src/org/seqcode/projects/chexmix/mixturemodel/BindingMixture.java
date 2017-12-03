@@ -11,7 +11,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.seqcode.data.motifdb.WeightMatrix;
 import org.seqcode.deepseq.StrandedBaseCount;
@@ -31,7 +30,6 @@ import org.seqcode.gsebricks.verbs.location.ChromosomeGenerator;
 import org.seqcode.gseutils.Pair;
 import org.seqcode.gseutils.RealValuedHistogram;
 import org.seqcode.math.stats.StatUtil;
-import org.seqcode.projects.chexmix.composite.CompositeTagDistribution;
 import org.seqcode.projects.chexmix.composite.TagProbabilityDensity;
 import org.seqcode.projects.chexmix.composite.XLAnalysisConfig;
 import org.seqcode.projects.chexmix.events.BindingEvent;
@@ -918,29 +916,28 @@ public class BindingMixture {
 	            Pair<Double[][][], String[][][]> motifRevScores = config.getFindingMotifs() ? motifFinder.scanRegionWithMotifsGetSeqs(w, seq, false) : null;
 	            if(seq!=null && motifForScores!=null && motifRevScores!=null){
 		            for(ExperimentCondition cond : manager.getConditions()){
-		            	if (bindingManager.getMotifs(cond)!=null){
-		            		int numBindingType = bindingManager.getNumBindingType(cond);
-		            		double[][] scores = new double[numBindingType][2];
-		            		String[][] seqs = new String[numBindingType][2];
-		            		for(BindingEvent b: currEvents){
-		            			if (b.isFoundInCondition(cond)){
-		            				for (int bt=0; bt < numBindingType; bt++){
-		            					int motifIndex = bindingManager.getMotifIndexes(cond).get(bt);
-		            					scores[bt][0]=0; seqs[bt][0] = ""; scores[bt][1]=0; seqs[bt][1]="";
-		            					if (motifIndex != -1 && b.getTypePoints(cond)!=null){
-		            						if (b.getTypePoints(cond)[bt][0].getLocation()-w.getStart()>0){
-		            							scores[bt][0] = motifForScores.car()[cond.getIndex()][motifIndex][b.getTypePoints(cond)[bt][0].getLocation()-w.getStart()];
-		            							seqs[bt][0] = motifForScores.cdr()[cond.getIndex()][motifIndex][b.getTypePoints(cond)[bt][0].getLocation()-w.getStart()];
-		            						}
-		            						if (b.getTypePoints(cond)[bt][1].getLocation()-w.getStart()>0){
-		            							scores[bt][1] = motifRevScores.car()[cond.getIndex()][motifIndex][b.getTypePoints(cond)[bt][1].getLocation()-w.getStart()];
-		            							seqs[bt][1] = motifRevScores.cdr()[cond.getIndex()][motifIndex][b.getTypePoints(cond)[bt][1].getLocation()-w.getStart()];
-		            						}
-		            					}}}		
-		            			b.setMotifScore(cond,scores);
-		            			b.setSequence(cond, seqs);	          			
-		            		}}}}}
-            
+		            	int numBindingType = bindingManager.getNumBindingType(cond);
+		            	double[][] scores = new double[numBindingType][2];
+		            	String[][] seqs = new String[numBindingType][2];
+		            	for(BindingEvent b: currEvents){
+		            		if (b.isFoundInCondition(cond)){
+		            			for (int bt=0; bt < numBindingType; bt++){
+		            				BindingSubtype subtype = bindingManager.getBindingSubtype(cond).get(bt);
+		            				scores[bt][0]=0; seqs[bt][0] = ""; scores[bt][1]=0; seqs[bt][1]="";
+		            				if (subtype.hasMotif() && b.getTypePoints(cond)!=null){
+		            					if (b.getTypePoints(cond)[bt][0].getLocation()-w.getStart()>0){
+		            						scores[bt][0] = motifForScores.car()[cond.getIndex()][bt][b.getTypePoints(cond)[bt][0].getLocation()-w.getStart()];
+		            						seqs[bt][0] = motifForScores.cdr()[cond.getIndex()][bt][b.getTypePoints(cond)[bt][0].getLocation()-w.getStart()];
+		            					}
+		            					if (b.getTypePoints(cond)[bt][1].getLocation()-w.getStart()>0){
+		            						scores[bt][1] = motifRevScores.car()[cond.getIndex()][bt][b.getTypePoints(cond)[bt][1].getLocation()-w.getStart()];
+		            						seqs[bt][1] = motifRevScores.cdr()[cond.getIndex()][bt][b.getTypePoints(cond)[bt][1].getLocation()-w.getStart()];
+		            					}
+		            				}}}		
+		            		b.setMotifScore(cond,scores);
+		            		b.setSequence(cond, seqs);	          			
+		            	}}}}
+
             return currEvents;
         }//end of analyzeWindowML method
 

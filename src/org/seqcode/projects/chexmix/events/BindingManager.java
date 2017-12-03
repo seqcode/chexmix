@@ -8,7 +8,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.seqcode.data.motifdb.WeightMatrix;
 import org.seqcode.deepseq.experiments.ControlledExperiment;
@@ -266,12 +265,11 @@ public class BindingManager {
 						
 						// Align points
 						for (int bt=0;bt< getNumBindingType(cond); bt++){
-							int motifIndex = getMotifIndexes(cond).get(bt);
 							List<StrandedPoint> points = subtypePoints.get(bt);
-							if (motifIndex != -1){
-		    					int offset = getMotifOffsets(cond).get(motifIndex);
-		    					boolean reverse = getReverseMotifs(cond).get(motifIndex);
-		    					if (reverse){ //reverse complement
+							BindingSubtype currSubtype = bindingSubtypes.get(cond).get(bt);
+							if (currSubtype.hasMotif()){
+		    					int offset = currSubtype.getMotifOffset();
+		    					if (currSubtype.reverseMotif()){ //reverse complement
 		    						int c=0;
 		    						for (StrandedPoint p : points){
 		    							int location = p.getStrand()=='+' ? p.getLocation()-offset : p.getLocation()+offset;

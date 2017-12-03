@@ -25,6 +25,7 @@ import org.seqcode.gseutils.RealValuedHistogram;
 import org.seqcode.motifs.DrawMotifs;
 import org.seqcode.projects.chexmix.events.BindingEvent;
 import org.seqcode.projects.chexmix.events.BindingManager;
+import org.seqcode.projects.chexmix.events.BindingSubtype;
 import org.seqcode.projects.chexmix.events.EventsConfig;
 import org.seqcode.projects.chexmix.framework.ChExMixConfig;
 import org.seqcode.projects.chexmix.motifs.MotifPlatform;
@@ -91,31 +92,30 @@ public class EventsPostAnalysis {
 	    		FileWriter fout = new FileWriter(pcmfilename);
 	    		fout.write("#Peaks to closest motifs distance histograms\n\n");
 				for(ExperimentCondition cond : manager.getConditions()){
-					if(bindingManager.getMotifs(cond)!=null){
-						fout.write("#Condition:"+cond.getName()+"\n");
-						RealValuedHistogram peakMotifHisto = new RealValuedHistogram(0, histoWin, histoWin/5);
-						for(BindingEvent ev : events){
-							double Q = ev.getCondSigVCtrlP(cond);
-							if(ev.isFoundInCondition(cond) && Q <=evconfig.getQMinThres()){			
-								int loc = ev.getPoint().getLocation();
-								if(ev.getContainingRegion()!=null){	
-									if(loc - ev.getContainingRegion().getStart() > histoWin && ev.getContainingRegion().getEnd()-loc >histoWin){
-										double[][] scores = motifFinder.scanRegionWithMotif(ev.getContainingRegion(), cond);
-										int index = loc - ev.getContainingRegion().getStart();
-										int closestMatch = Integer.MAX_VALUE;
-										for (int m=0; m < bindingManager.getMotifs(cond).size(); m++){
-											double currThreshold = bindingManager.getMotifs(cond).get(m).getMaxScore() * motifThres;
-											for(int x=0; x<scores[m].length; x++)
-												if(scores[m][x]>=currThreshold && Math.abs(x-index)<closestMatch)
-													closestMatch = Math.abs(x-index);
-										}
-										peakMotifHisto.addValue(closestMatch);										
+					List<BindingSubtype> subtypes = bindingManager.getBindingSubtype(cond);
+					fout.write("#Condition:"+cond.getName()+"\n");
+					RealValuedHistogram peakMotifHisto = new RealValuedHistogram(0, histoWin, histoWin/5);
+					for(BindingEvent ev : events){
+						double Q = ev.getCondSigVCtrlP(cond);
+						if(ev.isFoundInCondition(cond) && Q <=evconfig.getQMinThres()){			
+							int loc = ev.getPoint().getLocation();
+							if(ev.getContainingRegion()!=null){	
+								if(loc - ev.getContainingRegion().getStart() > histoWin && ev.getContainingRegion().getEnd()-loc >histoWin){
+									double[][] scores = motifFinder.scanRegionWithMotif(ev.getContainingRegion(), cond);
+									int index = loc - ev.getContainingRegion().getStart();
+									int closestMatch = Integer.MAX_VALUE;
+									for (int m=0; m < subtypes.size(); m++){
+										double currThreshold = subtypes.get(m).getMotif().getMaxScore() * motifThres;
+										for(int x=0; x<scores[m].length; x++)
+											if(scores[m][x]>=currThreshold && Math.abs(x-index)<closestMatch)
+												closestMatch = Math.abs(x-index);
 									}
+									peakMotifHisto.addValue(closestMatch);										
 								}
 							}
 						}
-						fout.write(peakMotifHisto.contentsToString()+"\n");
 					}
+					fout.write(peakMotifHisto.contentsToString()+"\n");
 				}
 				fout.close();
 			}
@@ -195,10 +195,11 @@ public class EventsPostAnalysis {
 			HashMap<ExperimentCondition, List<String>> motifRCImageNames = new HashMap<ExperimentCondition, List<String>>();
 			if(config.getFindingMotifs()){
 				for(ExperimentCondition cond : manager.getConditions()){
-					if(bindingManager.getMotifs(cond)!=null){
-						List<String> mImageNames = new ArrayList<String>();
-						List<String> mRCImageNames = new ArrayList<String>();
-						for (WeightMatrix currMotif : bindingManager.getMotifs(cond)){
+					List<String> mImageNames = new ArrayList<String>();
+					List<String> mRCImageNames = new ArrayList<String>();
+					for (BindingSubtype subtype : bindingManager.getBindingSubtype(cond)){
+						if (subtype.hasMotif()){
+							WeightMatrix currMotif = subtype.getMotif();
 							String imName = config.getOutputImagesDir()+File.separator+config.getOutBase()+"_"+cond.getName()+"_"+WeightMatrix.getConsensus(currMotif)+".png";
 							String imName2 = "images/"+config.getOutBase()+"_"+cond.getName()+"_"+WeightMatrix.getConsensus(currMotif)+".png";
 							String motifLabel = cond.getName()+" "+WeightMatrix.getConsensus(currMotif)+", MEME";
@@ -210,12 +211,12 @@ public class EventsPostAnalysis {
 							motifLabel = cond.getName()+" revcomp "+WeightMatrix.getConsensus(currMotif)+", MEME";
 							DrawMotifs.printMotifLogo(wm_rc, new File(imName), 75, motifLabel);
 							mRCImageNames.add(imName2);
+						}else{
+							mImageNames.add("");
+							mRCImageNames.add("");
 						}
 						motifImageNames.put(cond, mImageNames);
 						motifRCImageNames.put(cond, mRCImageNames);
-					}else{
-						motifImageNames.put(cond,  null);
-						motifRCImageNames.put(cond,  null);
 					}
 				}
 			}
@@ -261,7 +262,7 @@ public class EventsPostAnalysis {
 		    		if(motifImageNames.get(cond)!=null){
 		    			for (int i=0; i< motifImageNames.get(cond).size();i++){
 		    				fout.write("\t\t<td><img src='"+motifImageNames.get(cond).get(i)+"'><a href='#' onclick='return motifpopitup(\""+motifRCImageNames.get(cond).get(i)+"\")'>rc</a></td>\n" +
-		    					"\t\t<td>"+bindingManager.getMotifOffsets(cond).get(i)+"</td>\n");
+		    					"\t\t<td>"+bindingManager.getBindingSubtype(cond).get(i).getMotifOffset()+"</td>\n");
 		    			}
 		    		}
 		    		else
@@ -393,15 +394,14 @@ public class EventsPostAnalysis {
 		try {
 			if(config.getFindingMotifs()){
 				for(ExperimentCondition cond : manager.getConditions()){
-					if(bindingManager.getFreqMatrices(cond)!=null){
-						String motfilename = config.getOutputIntermediateDir()+File.separator+config.getOutBase()+"."+cond.getName()+".transfac";
-						FileWriter fout = new FileWriter(motfilename);
-						String out = "";
-						for (WeightMatrix fm : bindingManager.getFreqMatrices(cond))
-							out = out+WeightMatrix.printTransfacMatrix(fm,fm.getName());
-						fout.write(out);
-						fout.close();
-					}
+					String motfilename = config.getOutputIntermediateDir()+File.separator+config.getOutBase()+"."+cond.getName()+".transfac";
+					FileWriter fout = new FileWriter(motfilename);
+					String out = "";
+					for (BindingSubtype sub : bindingManager.getBindingSubtype(cond))
+						if (sub.hasMotif())
+							out = out+WeightMatrix.printTransfacMatrix(sub.getFreqMatrix(),sub.getFreqMatrix().getName());
+					fout.write(out);
+					fout.close();
 				}
 			}
 		}catch (IOException e) {

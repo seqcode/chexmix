@@ -551,30 +551,31 @@ public class MotifPlatform {
 	 * @return array of array of motif scores. Indexed by condition. 
 	 */
 	public double[][][] scanRegionWithMotifs(Region reg, String regSeq){			
-		double[][][] scanScores = new double[manager.getNumConditions()][][];		
+		double[][][] scanScores = new double[manager.getNumConditions()][][];	
+		
 		for(ExperimentCondition cond : manager.getConditions()){
-			List<WeightMatrix> motifs = bindingManager.getMotifs(cond);
+			List<BindingSubtype> subtypes = bindingManager.getBindingSubtype(cond);
 			int e = cond.getIndex();
-			scanScores[e] = new double[motifs.size()][reg.getWidth()];
-			for(int z=0; z<reg.getWidth(); z++)
-				for (int i=0; i<motifs.size(); i++)
-					scanScores[e][i][z]=0;
-			
-			if(motifs!=null){
-				List<Integer> motifOffsets = bindingManager.getMotifOffsets(cond);
-				for (int i=0; i < motifs.size(); i++){
-					WeightMatrixScorer scorer = new WeightMatrixScorer(motifs.get(i));
+			scanScores[e] = new double[subtypes.size()][reg.getWidth()];
+			for (int i=0; i<subtypes.size(); i++)
+				for(int z=0; z<reg.getWidth(); z++)
+					scanScores[e][i][z]=0;			
+			int i=0;	//Subtype counter
+			for (BindingSubtype sub : subtypes){
+				if (sub.hasMotif()){
+					int motifOffset = sub.getMotifOffset();
+					WeightMatrixScorer scorer = new WeightMatrixScorer(sub.getMotif());
 					WeightMatrixScoreProfile profiler = scorer.execute(regSeq);
-					Integer halfMotifWidth = motifs.get(i).length()/2;
-					for(int z=0; z<reg.getWidth()-motifs.get(i).length()+1; z++){
+					Integer halfMotifWidth = sub.getMotif().length()/2;
+					for(int z=0; z<reg.getWidth()-sub.getMotif().length()+1; z++){
 						double currScore= profiler.getMaxScore(z);
-						int zOff = z+motifOffsets.get(i)+halfMotifWidth;
-						if(currScore>0){
+						int zOff = z+motifOffset+halfMotifWidth;
+						if(currScore>0)
 							if(zOff > 0 && zOff < reg.getWidth())
 								scanScores[e][i][zOff] = currScore;
-						}
-					}
-				}
+					}					
+				}		
+			i++;	
 			}
 		}
 		return scanScores;
@@ -590,32 +591,30 @@ public class MotifPlatform {
 		double[][][] scanScores = new double[manager.getNumConditions()][][];
 				
 		for(ExperimentCondition cond : manager.getConditions()){
+			List<BindingSubtype> subtypes = bindingManager.getBindingSubtype(cond);
 			int e = cond.getIndex();
-			List<WeightMatrix> motifs = bindingManager.getMotifs(cond);
-			
-			if(motifs!=null){
-				scanScores[e] = new double [motifs.size()][reg.getWidth()];
+			scanScores[e] = new double[subtypes.size()][reg.getWidth()];
+			for (int i=0; i<subtypes.size(); i++)
 				for(int z=0; z<reg.getWidth(); z++)
-					for (int i=0; i <motifs.size(); i++)
-						scanScores[e][i][z]=0;
-				
-				List<Integer> motifOffsets = bindingManager.getMotifOffsets(cond);
-				for (int i=0; i < motifs.size(); i++){	
-					int motifLen = bindingManager.getMotifs(cond).get(i).length();
-					int halfMotifWidth = (motifLen % 2 == 0 && forwardScores) ? motifLen/2-1 : motifLen/2;
-					WeightMatrixScorer scorer = new WeightMatrixScorer(motifs.get(i));
-					WeightMatrixScoreProfile profiler = scorer.execute(regSeq);				
+					scanScores[e][i][z]=0;			
+			int i=0;	//Subtype counter
+			for (BindingSubtype sub : subtypes){
+				if (sub.hasMotif()){
+					int motifLen = sub.getMotif().length();
+					int halfMotifWidth = (motifLen % 2 == 0 && forwardScores) ? motifLen/2-1 : motifLen/2;					
+					WeightMatrixScorer scorer = new WeightMatrixScorer(sub.getMotif());
+					WeightMatrixScoreProfile profiler = scorer.execute(regSeq);
 					// profile stores either forward or reverse strand scores
 					double[] scores = forwardScores ? profiler.getForwardScores() : profiler.getReverseScores();
-					for(int z=0; z<reg.getWidth()-motifs.get(i).length()+1; z++){
+					for(int z=0; z<reg.getWidth()-sub.getMotif().length()+1; z++){
 						double currScore= scores[z];
-						int zOff = z+motifOffsets.get(i)+halfMotifWidth;
-						if(currScore>0){
+						int zOff = z+sub.getMotifOffset()+halfMotifWidth;
+						if(currScore>0)
 							if (zOff>=0 && zOff<reg.getWidth())
-								scanScores[e][i][zOff] = currScore;
-						}
-					}
-				}
+								scanScores[e][i][zOff] = currScore;						
+					}			
+				}		
+			i++;	
 			}
 		}
 		return scanScores;
@@ -628,30 +627,29 @@ public class MotifPlatform {
 	 * @return array of array of motif scores. Indexed by motif and condition. 
 	 */
 	public double[][] scanStrandedRegionWithMotifsByCondition(ExperimentCondition cond, Region reg, String regSeq, boolean forwardScores){
-		double[][] scanScores = null;
-		List<WeightMatrix> motifs = bindingManager.getMotifs(cond);
-		if(motifs!=null){
-			scanScores = new double [motifs.size()][reg.getWidth()];
-			List<Integer> motifOffsets = bindingManager.getMotifOffsets(cond);
-			for (int i=0; i < motifs.size(); i++){
-				for(int z=0; z<reg.getWidth(); z++)
-					scanScores[i][z]=0;
-				
-				int motifLen = motifs.get(i).length();
-				int halfMotifWidth = (motifLen % 2 == 0 && forwardScores) ? motifLen/2-1 : motifLen/2;
-				WeightMatrixScorer scorer = new WeightMatrixScorer(motifs.get(i));
-				WeightMatrixScoreProfile profiler = scorer.execute(regSeq);				
+		List<BindingSubtype> subtypes = bindingManager.getBindingSubtype(cond);
+		double[][]scanScores = new double[subtypes.size()][reg.getWidth()];
+		for (int i=0; i<subtypes.size(); i++)
+			for(int z=0; z<reg.getWidth(); z++)
+				scanScores[i][z]=0;			
+		int i=0;	//Subtype counter
+		for (BindingSubtype sub : subtypes){
+			if (sub.hasMotif()){
+				int motifLen = sub.getMotif().length();
+				int halfMotifWidth = (motifLen % 2 == 0 && forwardScores) ? motifLen/2-1 : motifLen/2;					
+				WeightMatrixScorer scorer = new WeightMatrixScorer(sub.getMotif());
+				WeightMatrixScoreProfile profiler = scorer.execute(regSeq);
 				// profile stores either forward or reverse strand scores
 				double[] scores = forwardScores ? profiler.getForwardScores() : profiler.getReverseScores();
-				for(int z=0; z<reg.getWidth()-motifs.get(i).length()+1; z++){
+				for(int z=0; z<reg.getWidth()-sub.getMotif().length()+1; z++){
 					double currScore= scores[z];
-					int zOff = z+motifOffsets.get(i)+halfMotifWidth;
-					if(currScore>0){
+					int zOff = z+sub.getMotifOffset()+halfMotifWidth;
+					if(currScore>0)
 						if (zOff>=0 && zOff<reg.getWidth())
-							scanScores[i][zOff] = currScore;
-					}
-				}
-			}
+							scanScores[i][zOff] = currScore;						
+				}			
+			}		
+		i++;	
 		}
 		return scanScores;
 	}
@@ -666,38 +664,39 @@ public class MotifPlatform {
 		Double[][][] scanScores = new Double[manager.getNumConditions()][][];
 		String[][][] scanSeqs = new String[manager.getNumConditions()][][];	
 		for(ExperimentCondition cond : manager.getConditions()){
+			List<BindingSubtype> subtypes = bindingManager.getBindingSubtype(cond);
 			int e = cond.getIndex();
-			List<WeightMatrix> motifs = bindingManager.getMotifs(cond);
-			if(motifs!=null){			
-				scanScores[e] = new Double[motifs.size()][reg.getWidth()];
-				scanSeqs[e] = new String[motifs.size()][reg.getWidth()];
+			scanScores[e] = new Double[subtypes.size()][reg.getWidth()];
+			scanSeqs[e] = new String[subtypes.size()][reg.getWidth()];
+			for (int i=0; i<subtypes.size(); i++){
 				for(int z=0; z<reg.getWidth(); z++){
-					for (int i=0; i< motifs.size(); i++){
-						scanScores[e][i][z]=0.0;
-						scanSeqs[e][i][z]="";
-					}
-				}		
-				List<Integer> motifOffsets = bindingManager.getMotifOffsets(cond);
-				for (int i=0; i < motifs.size(); i++){	
-					int motifLen = bindingManager.getMotifs(cond).get(i).length();
-					int halfMotifWidth = (motifLen % 2 == 0 && forwardScores) ? motifLen/2-1 : motifLen/2;
-					WeightMatrixScorer scorer = new WeightMatrixScorer(motifs.get(i));
-					WeightMatrixScoreProfile profiler = scorer.execute(regSeq);				
+					scanScores[e][i][z]=0.0;	
+					scanSeqs[e][i][z]="";
+				}
+			}
+			int i=0;	//Subtype counter
+			for (BindingSubtype sub : subtypes){
+				if (sub.hasMotif()){
+					int motifLen = sub.getMotif().length();
+					int halfMotifWidth = (motifLen % 2 == 0 && forwardScores) ? motifLen/2-1 : motifLen/2;					
+					WeightMatrixScorer scorer = new WeightMatrixScorer(sub.getMotif());
+					WeightMatrixScoreProfile profiler = scorer.execute(regSeq);
 					// profile stores either forward or reverse strand scores
 					double[] scores = forwardScores ? profiler.getForwardScores() : profiler.getReverseScores();
-					for(int z=0; z<reg.getWidth()-motifs.get(i).length()+1; z++){
+					for(int z=0; z<reg.getWidth()-sub.getMotif().length()+1; z++){
 						double currScore= scores[z];
-						String currSeq = regSeq.substring(z, z+motifs.get(i).length());
+						String currSeq = regSeq.substring(z, z+sub.getMotif().length());
 						if (!forwardScores)
 							currSeq = SequenceUtils.reverseComplement(currSeq);
-						int zOff = z+motifOffsets.get(i)+halfMotifWidth;
+						int zOff = z+sub.getMotifOffset()+halfMotifWidth;
 						if (zOff>=0 && zOff<reg.getWidth()){
 							if(currScore>0)
 								scanScores[e][i][zOff] = currScore;
 							scanSeqs[e][i][zOff] = currSeq;
-						}
-					}
-				}
+						}					
+					}			
+				}		
+			i++;	
 			}
 		}
 		Pair<Double[][][],String[][][]> scoresAndSeqs = new Pair<Double[][][],String[][][]>(scanScores, scanSeqs);
@@ -719,27 +718,27 @@ public class MotifPlatform {
 	 * @return array of array of motif scores. Indexed by condition. 
 	 */
 	public double[][] scanRegionWithMotif(Region reg, ExperimentCondition cond){
-		List<WeightMatrix> motifs = bindingManager.getMotifs(cond);
-		double[][] scanScores = new double[motifs.size()][reg.getWidth()];
+		List<BindingSubtype> subtypes = bindingManager.getBindingSubtype(cond);
+		double[][] scanScores = new double[subtypes.size()][reg.getWidth()];
 		String regSeq = seqgen.execute(reg);
-		for (int i=0; i < motifs.size(); i++)
+		for (int i=0; i<subtypes.size(); i++)
 			for(int z=0; z<reg.getWidth(); z++)
-				scanScores[i][z]=0;
-		
-		if(motifs!=null){
-			List<Integer> motifOffsets = bindingManager.getMotifOffsets(cond);			
-			for (int i=0 ; i < motifs.size(); i++){			
-				WeightMatrixScorer scorer = new WeightMatrixScorer(motifs.get(i));
+				scanScores[i][z]=0;			
+		int i=0;	//Subtype counter
+		for (BindingSubtype sub : subtypes){
+			if (sub.hasMotif()){
+				WeightMatrixScorer scorer = new WeightMatrixScorer(sub.getMotif());
 				WeightMatrixScoreProfile profiler = scorer.execute(regSeq);
-				for(int z=0; z<reg.getWidth()-motifs.get(i).length()+1; z++){
+				for(int z=0; z<reg.getWidth()-sub.getMotif().length()+1; z++){
 					double currScore= profiler.getMaxScore(z);
-					int zOff = z+motifOffsets.get(i);
+					int zOff = z+sub.getMotifOffset();
 					if(currScore>0){
 						if(zOff>0 && zOff<reg.getWidth())
 							scanScores[i][zOff] = currScore;
 					}
 				}
-			}
+			}		
+		i++;	
 		}
 		return scanScores;
 	}

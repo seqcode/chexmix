@@ -14,6 +14,7 @@ import org.seqcode.genome.location.Region;
 import org.seqcode.genome.location.StrandedPoint;
 import org.seqcode.projects.chexmix.composite.TagProbabilityDensity;
 import org.seqcode.projects.chexmix.events.BindingManager;
+import org.seqcode.projects.chexmix.events.BindingSubtype;
 import org.seqcode.projects.chexmix.framework.ChExMixConfig;
 
 
@@ -145,8 +146,10 @@ public class BindingEM {
         	//Add bindingModels to array
         	for(ControlledExperiment rep : cond.getReplicates()){
         		TagProbabilityDensities[rep.getIndex()] = new TagProbabilityDensity[numBindingType[c]];
-        		for (int bt=0; bt< numBindingType[c]; bt++)
-        			TagProbabilityDensities[rep.getIndex()][bt] = bindingManager.getBindingModel(rep).get(bt);
+        		for (int bt=0; bt< numBindingType[c]; bt++){
+        			BindingSubtype subtype = bindingManager.getBindingSubtype(rep.getCondition()).get(bt);
+        			TagProbabilityDensities[rep.getIndex()][bt] = subtype.getBindingModel(0);
+        		}
         	}
         	
         	//Set maximum alphas
@@ -310,148 +313,7 @@ public class BindingEM {
 	    	noise.get(c).setSumResponsibility(noise_resp);
         }        
         setComponentResponsibilityProfiles(activeComponents, signals, rBind);
-
-        /** test **/
-    	for(ExperimentCondition cond : manager.getConditions()){
-    		int c = cond.getIndex(); 
-    		for(int j=0;j<activeComponents.get(c).size();j++){ 
-        		BindingSubComponents comp = activeComponents.get(c).get(j);
-        		boolean printRegion=false;
-        		Region Reb1_1 = new Region(comp.getCoord().getGenome(), "15", 631892, 631992);
-        		Region Reb1_2 = new Region(comp.getCoord().getGenome(), "15", 316518, 316618);
-        		Region Reb1_3 = new Region(comp.getCoord().getGenome(), "13", 306801, 306901);
-        		if (Reb1_1.contains(comp.getCoord()) || Reb1_2.contains(comp.getCoord()) || Reb1_3.contains(comp.getCoord()))
-        			printRegion = true;
-        		// Make arrays of responsibilities
-        		double[][][] w_resp = new double[numBindingType[c]][2][config.MAX_BINDINGMODEL_WIDTH];
-        		double[][][] c_resp = new double[numBindingType[c]][2][config.MAX_BINDINGMODEL_WIDTH];
-        		for (int bt=0; bt < numBindingType[c]; bt++){
-        			for (int s=0; s< 2; s++){
-        				for (int i=0; i< config.MAX_BINDINGMODEL_WIDTH; i++){
-        					w_resp[bt][s][i] = 0;
-        					c_resp[bt][s][i] = 0;
-        				}
-        			}
-        		}
-        		for (int bt=0; bt< numBindingType[c]; bt++){
-					for(int i=0;i<hitNum[c];i++){
-						int offset = hitPos[c][i]-mu[c][j][bt][0]+(config.MAX_BINDINGMODEL_WIDTH/2);
-						if (offset >=0 && offset<config.MAX_BINDINGMODEL_WIDTH){
-							if (hitPlusStr[c][i])
-								w_resp[bt][0][offset]=rBind[c][j][i][bt][0]*hitCounts[c][i];
-							else
-								c_resp[bt][0][offset]=rBind[c][j][i][bt][0]*hitCounts[c][i];
-						}
-						offset = mu[c][j][bt][1]-hitPos[c][i]+(config.MAX_BINDINGMODEL_WIDTH/2);
-						if (offset >=0 && offset<config.MAX_BINDINGMODEL_WIDTH){
-							if (hitPlusStr[c][i])
-								c_resp[bt][1][offset]=rBind[c][j][i][bt][1]*hitCounts[c][i];
-							else
-								w_resp[bt][1][offset]=rBind[c][j][i][bt][1]*hitCounts[c][i];
-						}
-					}
-				}
-				
-        		// Make arrays of responsibilities * model read distribution
-        		double[][][] w_resp_distrib = new double[numBindingType[c]][2][config.MAX_BINDINGMODEL_WIDTH];
-        		double[][][] c_resp_distrib = new double[numBindingType[c]][2][config.MAX_BINDINGMODEL_WIDTH];
-        		double[][][] w_motif = new double[numBindingType[c]][2][config.MAX_BINDINGMODEL_WIDTH];
-        		double[][][] c_motif = new double[numBindingType[c]][2][config.MAX_BINDINGMODEL_WIDTH];
-        		for (int bt=0; bt < numBindingType[c]; bt++){
-        			for (int s=0; s< 2; s++){
-        				for (int i=0; i< config.MAX_BINDINGMODEL_WIDTH; i++){
-        					w_resp_distrib[bt][s][i] = 0;
-        					c_resp_distrib[bt][s][i] = 0;
-        					w_motif[bt][s][i]=0;
-        					c_motif[bt][s][i]=0;
-        				}
-        			}
-        		}
-        		for (int bt=0; bt< numBindingType[c]; bt++){
-					for(int i=0;i<hitNum[c];i++){
-						int dist = hitPos[c][i]-mu[c][j][bt][0];
-						int offset = hitPos[c][i]-mu[c][j][bt][0]+(config.MAX_BINDINGMODEL_WIDTH/2);
-						if (offset >=0 && offset<config.MAX_BINDINGMODEL_WIDTH){
-							if (hitPlusStr[c][i])
-								w_resp_distrib[bt][0][offset]=rBind[c][j][i][bt][0]*hitCounts[c][i]*TagProbabilityDensities[repIndices[c][i]][bt].logProbability(dist,true);	//Watson
-							else
-								c_resp_distrib[bt][0][offset]=rBind[c][j][i][bt][0]*hitCounts[c][i]*TagProbabilityDensities[repIndices[c][i]][bt].logProbability(dist,false);	//Crick;
-						}
-						dist = mu[c][j][bt][1]-hitPos[c][i];
-						offset = mu[c][j][bt][1]-hitPos[c][i]+(config.MAX_BINDINGMODEL_WIDTH/2);
-						if (offset >=0 && offset<config.MAX_BINDINGMODEL_WIDTH){
-							if (hitPlusStr[c][i])
-								c_resp_distrib[bt][1][offset]=rBind[c][j][i][bt][1]*hitCounts[c][i]*TagProbabilityDensities[repIndices[c][i]][bt].logProbability(dist, false);	//Crick
-							else
-								w_resp_distrib[bt][1][offset]=rBind[c][j][i][bt][1]*hitCounts[c][i]*TagProbabilityDensities[repIndices[c][i]][bt].logProbability(dist, true);	//Watson
-						}
-					}
-
-					ExperimentCondition ec = manager.getConditions().get(c); 
-					// add motif score
-					if (bindingManager.getMotifs(ec)!=null){
-						for (int index=0; index< 10; index++){
-							int offset = mu[c][j][bt][0]-w.getStart()-5+index;
-							if (offset >=0 && offset<forMotifPrior[c][bt].length){
-								w_motif[bt][0][index]=forMotifPrior[c][bt][offset];
-								c_motif[bt][0][index]=revMotifPrior[c][bt][offset];
-							}
-							
-							offset = mu[c][j][bt][1]-w.getStart()-5+index;
-							if (offset >=0 && offset<forMotifPrior[c][bt].length){
-								w_motif[bt][1][index]=revMotifPrior[c][bt][offset];
-								c_motif[bt][1][index]=forMotifPrior[c][bt][offset];
-							}
-						}
-					}
-        		}
-        		printRegion= false;
-        		if (printRegion){
-        			System.out.println("print responsibilities for point "+comp.toString());
-        			for (int bt=0; bt<numBindingType[c]; bt++){
-        				for (int s=0; s< 2; s++){
-        					System.out.println("binding type "+bt+" strand "+s+" tau "+comp.getTau()[bt][s]);
-        					System.out.println("#watson");
-        					for (int i=0; i< w_resp[bt][s].length; i++)
-        						System.out.print(w_resp[bt][s][i]+",");
-        					System.out.println("\n"+"#crick");
-        					for (int i=0; i< c_resp[bt][s].length; i++)
-        						System.out.print(c_resp[bt][s][i]+",");
-        					System.out.println();
-        				}
-        			}
-      
-        			System.out.println("print responsibilities times tag probability densities "+comp.toString());
-        			for (int bt=0; bt<numBindingType[c]; bt++){
-        				for (int s=0; s< 2; s++){
-        					System.out.println("binding type "+bt+" strand "+s+" tau "+comp.getTau()[bt][s]);
-        					System.out.println("#watson");
-        					for (int i=0; i< w_resp_distrib[bt][s].length; i++)
-        						System.out.print(w_resp_distrib[bt][s][i]+",");
-        					System.out.println("\n"+"#crick");
-        					for (int i=0; i< c_resp_distrib[bt][s].length; i++)
-        						System.out.print(c_resp_distrib[bt][s][i]+",");
-        					System.out.println();
-        				}
-        			}
-        			System.out.println("motif score");
-        			for (int bt=0; bt<numBindingType[c]; bt++){
-        				for (int s=0; s< 2; s++){
-        					System.out.println("binding type "+bt+" strand "+s+" tau "+comp.getTau()[bt][s]);
-        					System.out.println("#watson");
-        					for (int i=0; i< w_motif[bt][s].length; i++)
-        						System.out.print(w_motif[bt][s][i]+",");
-        					System.out.println("\n"+"#crick");
-        					for (int i=0; i< c_motif[bt][s].length; i++)
-        						System.out.print(c_motif[bt][s][i]+",");
-        					System.out.println();
-        				}
-        			}
-        		}
-    		}	  		
-    	} 	
-		
-        
+     
         return activeComponents;
     }//end of EMTrain method
 
@@ -627,14 +489,12 @@ public class BindingEM {
        				
         				ExperimentCondition ec = manager.getConditions().get(c); 
         				// add scores from motif prior
-        				if(bindingManager.getMotifs(ec)!=null && config.useMotifPrior()){
+        				if (config.useMotifPrior()){
         					for (int bt=0; bt < numBindingType[c]; bt++){
-        						int motifIndex = bindingManager.getMotifIndexes(ec).get(bt);
-        						if (motifIndex != -1){
-        							currScore[bt][0] += (forMotifPrior[c][motifIndex][x-regStart]*config.getPosPriorScaling());
-        							currScore[bt][1] += (revMotifPrior[c][motifIndex][x-regStart]*config.getPosPriorScaling());
-        						}
-        				}}	
+        						if (bindingManager.getBindingSubtype(ec).get(bt).hasMotif()){
+        							currScore[bt][0] += (forMotifPrior[c][bt][x-regStart]*config.getPosPriorScaling());
+        							currScore[bt][1] += (revMotifPrior[c][bt][x-regStart]*config.getPosPriorScaling());    							
+        						}}}
         				
         				// Needed in multi-condition
 //        				if(numConditions>1 && t>config.ALPHA_ANNEALING_ITER)   //Save the score
@@ -835,17 +695,16 @@ public class BindingEM {
             			currBeta[c][j] = betaMax[c][j];
     				
     				//Update epsilonMax
-    				if(bindingManager.getMotifs(ec)!=null && config.useMotifPrior()){
+    				if(config.useMotifPrior()){
     					double[][] motif_w = new double[numBindingType[c]][2];
     					for (int bt=0; bt< numBindingType[c]; bt++){
-    						int motifIndex = bindingManager.getMotifIndexes(ec).get(bt);
-    						if (motifIndex != -1){
+    						if(bindingManager.getBindingSubtype(ec).get(bt).hasMotif()){
     							int start = Math.max(mu[c][j][bt][0]-config.MOTIF_FINDING_SEQWINDOW/2 , regStart);
     							int end = Math.min(mu[c][j][bt][0]+config.MOTIF_FINDING_SEQWINDOW/2, regEnd);
     							double maxMotifScore=0.0;
     							for (int i=start; i<=end; i++)
-    								if (forMotifPrior[c][motifIndex][i-regStart] > maxMotifScore)
-    									maxMotifScore=forMotifPrior[c][motifIndex][i-regStart];   						
+    								if (forMotifPrior[c][bt][i-regStart] > maxMotifScore)
+    									maxMotifScore=forMotifPrior[c][bt][i-regStart];   						
     							motif_w[bt][0]= maxMotifScore;
 						
     							// Evaluate negative strands
@@ -853,8 +712,8 @@ public class BindingEM {
     							end = Math.min(mu[c][j][bt][1]+config.MOTIF_FINDING_SEQWINDOW/2, regEnd);
     							maxMotifScore=0.0;
     							for (int i=start; i<=end; i++)
-    								if (revMotifPrior[c][motifIndex][i-regStart] > maxMotifScore)
-    									maxMotifScore=revMotifPrior[c][motifIndex][i-regStart];						
+    								if (revMotifPrior[c][bt][i-regStart] > maxMotifScore)
+    									maxMotifScore=revMotifPrior[c][bt][i-regStart];						
     							motif_w[bt][1]= maxMotifScore;
     						}else{
     							motif_w[bt][0]= 0;
@@ -863,9 +722,8 @@ public class BindingEM {
     					}   				
     					//Scale according to sum of responsibilities and scaling factor, and normalize epsilon 
     					for (int bt=0; bt< numBindingType[c]; bt++){
-    						int motifIndex = bindingManager.getMotifIndexes(ec).get(bt);
-    						if (motifIndex != -1){
-    							double motifMaxScore = bindingManager.getMotifs(ec).get(motifIndex).getMaxScore();
+    						if (bindingManager.getBindingSubtype(ec).get(bt).hasMotif()){
+    							double motifMaxScore = bindingManager.getBindingSubtype(ec).get(bt).getMotif().getMaxScore();
     							for (int s=0; s< 2; s++)
     								epsilonMax[c][j][bt][s] = motif_w[bt][s]*sumR*config.getEpsilonScalingFactor()/motifMaxScore;
     						}
@@ -928,9 +786,9 @@ public class BindingEM {
 	            	//Motif prior
 //TODO:	            	//I don't think I'm doing this correctly
 	            	if(forMotifPrior!=null && config.useMotifPrior()){
-	            		for (int i=0; i < bindingManager.getMotifs(cond).size();i++){
+	            		for (int bt=0; bt< numBindingType[c]; bt++){
 	            			for(int x=0; x<currRegion.getWidth(); x++)
-	            				sum_pos_prior += Math.max(forMotifPrior[c][i][x], revMotifPrior[c][i][x]);
+	            				sum_pos_prior += Math.max(forMotifPrior[c][bt][x], revMotifPrior[c][bt][x]);
 	            		}	            		
 	            	}
 	            	LP+=-(currAlpha[c]*sum_log_pi)+sum_pos_prior;
