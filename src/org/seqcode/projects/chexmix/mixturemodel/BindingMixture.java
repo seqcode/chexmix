@@ -3,6 +3,7 @@ package org.seqcode.projects.chexmix.mixturemodel;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -35,6 +36,7 @@ import org.seqcode.projects.chexmix.composite.TagProbabilityDensity;
 import org.seqcode.projects.chexmix.composite.XLAnalysisConfig;
 import org.seqcode.projects.chexmix.events.BindingEvent;
 import org.seqcode.projects.chexmix.events.BindingManager;
+import org.seqcode.projects.chexmix.events.BindingSubtype;
 import org.seqcode.projects.chexmix.events.EventsConfig;
 import org.seqcode.projects.chexmix.framework.ChExMixConfig;
 import org.seqcode.projects.chexmix.framework.PotentialRegionFilter;
@@ -203,32 +205,32 @@ public class BindingMixture {
 	 */	
 	public void setActiveComponents(HashMap<Region, List<List<BindingSubComponents>>> activeComponents){this.activeComponents = activeComponents;}
 	
-	public double getModelKLDivergenceScore(int numReps, double[][][] model_a, double[][][] model_b){
+	/**
+	 * Return minimum score for KL divergence comparison between two distribution with sliding window
+	 */		
+	public double getMinKLDivergenceScore(TagProbabilityDensity densityA, TagProbabilityDensity densityB){
 		// Measure KL divergence with a sliding window
 		double minLogKL = Double.MAX_VALUE;
 		int minOffset= 0;
 		boolean minReverse=false;
-		double[][] model_aW = model_a[0];
-		double[][] model_aC = model_a[1];
-		for (int offset=-config.EM_MU_UPDATE_WIN/2; offset<=config.EM_MU_UPDATE_WIN/2; offset++){
+		for (int offset=-config.SLIDING_WINDOW/2; offset<=config.SLIDING_WINDOW/2; offset++){
 			double currLogKL=0;
 			//copy current window
-			double[][] currW = new double[numReps][config.MAX_BINDINGMODEL_WIDTH];
-			double[][] currC = new double[numReps][config.MAX_BINDINGMODEL_WIDTH];
-			for (int r=0; r< numReps;r++){
-				for (int w=0; w< config.MAX_BINDINGMODEL_WIDTH; w++){
-					currW[r][w]=0; currC[r][w]=0;
+			double[] currW = new double[config.MAX_BINDINGMODEL_WIDTH];
+			double[] currC = new double[config.MAX_BINDINGMODEL_WIDTH];
+			for (int w=0; w< config.MAX_BINDINGMODEL_WIDTH; w++){
+				currW[w]=0; currC[w]=0;
+			}
+			for (int w=0; w< config.MAX_BINDINGMODEL_WIDTH; w++){
+				if ((offset+w) >=0 && (offset+w) < config.MAX_BINDINGMODEL_WIDTH){
+					currW[w]=densityB.getWatsonProbabilities()[offset+w];
+					currC[w]=densityB.getCrickProbabilities()[offset+w];
 				}
-				for (int w=0; w< config.MAX_BINDINGMODEL_WIDTH; w++){
-					if ((offset+w) >=0 && (offset+w) < config.MAX_BINDINGMODEL_WIDTH){
-						currW[r][w]=model_b[0][r][offset+w];
-						currC[r][w]=model_b[1][r][offset+w];
-					}
-				}
-				//Calc KL        		        				
-				currLogKL += StatUtil.log_KL_Divergence(model_aW[r], currW[r]) + StatUtil.log_KL_Divergence(currW[r], model_aW[r]);
-				currLogKL += StatUtil.log_KL_Divergence(model_aC[r], currC[r]) + StatUtil.log_KL_Divergence(currC[r], model_aC[r]); 
-			}	
+			}
+			//Calc KL        		        				
+			currLogKL += StatUtil.log_KL_Divergence(densityA.getWatsonProbabilities(), currW) + StatUtil.log_KL_Divergence(currW, densityA.getWatsonProbabilities());
+			currLogKL += StatUtil.log_KL_Divergence(densityA.getCrickProbabilities(), currC) + StatUtil.log_KL_Divergence(currC, densityA.getCrickProbabilities()); 
+	
 			if (currLogKL < minLogKL) {
 				minLogKL=currLogKL;
 				minOffset=offset;
@@ -238,17 +240,16 @@ public class BindingMixture {
         	// calculate divergence in reversed tags
         	currLogKL = 0;		
         	//copy current window
-        	for (int r=0; r<numReps;r++){
-        		double[] rcurrW = new double[config.MAX_BINDINGMODEL_WIDTH];
-        		double[] rcurrC = new double[config.MAX_BINDINGMODEL_WIDTH];
-        		for (int w=0; w< config.MAX_BINDINGMODEL_WIDTH; w++){
-        			rcurrW[w]=currC[r][config.MAX_BINDINGMODEL_WIDTH-w-1];
-        			rcurrC[w]=currW[r][config.MAX_BINDINGMODEL_WIDTH-w-1];
-        		}							       							
-        		//Calc KL        		        				
-        		currLogKL += StatUtil.log_KL_Divergence(model_aW[r], rcurrW) + StatUtil.log_KL_Divergence(rcurrW, model_aW[r]);
-        		currLogKL += StatUtil.log_KL_Divergence(model_aC[r], rcurrC) + StatUtil.log_KL_Divergence(rcurrC, model_aC[r]);  
-        	}
+        	double[] rcurrW = new double[config.MAX_BINDINGMODEL_WIDTH];
+        	double[] rcurrC = new double[config.MAX_BINDINGMODEL_WIDTH];
+        	for (int w=0; w< config.MAX_BINDINGMODEL_WIDTH; w++){
+        		rcurrW[w]=currC[config.MAX_BINDINGMODEL_WIDTH-w-1];
+        		rcurrC[w]=currW[config.MAX_BINDINGMODEL_WIDTH-w-1];
+        	}							       							
+        	//Calc KL        		        				
+        	currLogKL += StatUtil.log_KL_Divergence(densityA.getWatsonProbabilities(), rcurrW) + StatUtil.log_KL_Divergence(rcurrW, densityA.getWatsonProbabilities());
+        	currLogKL += StatUtil.log_KL_Divergence(densityA.getCrickProbabilities(), rcurrC) + StatUtil.log_KL_Divergence(rcurrC, densityA.getCrickProbabilities());  
+
         	if (currLogKL < minLogKL) { 
         		minLogKL=currLogKL;
         		minOffset=offset;
@@ -258,16 +259,33 @@ public class BindingMixture {
 		return minLogKL;
 	}
 	
-	public void doReadDistributionClustering(){
+	
+	public void doReadDistributionClustering() throws Exception{
 		// Execute affinity propagation clustering
 		if (config.getClusteringReads()){
+			List<List<List<StrandedPoint>>> clustPoints = null;	
 		
-		}
-		
-		// Find motif within clusters
-		if (config.getFindingMotifs()){
-		
+			// Find motif within clusters
+			if (config.getFindingMotifs()){
+				try {
+					clustPoints=motifFinder.findClusterMotifs(clustPoints, trainingRound);
+				} catch (ParseException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
 			
+			// Make binding subtype
+			for (ExperimentCondition cond : manager.getConditions()){
+				List<BindingSubtype> subtypes = new ArrayList<BindingSubtype>();
+				for (List<StrandedPoint> modelRefs : clustPoints.get(cond.getIndex())){
+					BindingSubtype currType = new BindingSubtype(cond, modelRefs, config.MAX_BINDINGMODEL_WIDTH);
+					currType.setClusteredProfile(true);
+					subtypes.add(currType);
+				}
+				bindingManager.setBindingSubtypes(cond, subtypes);					
+				bindingManager.updateMaxInfluenceRange(cond, false);
+			}
 		}
 	}
 	
@@ -280,28 +298,9 @@ public class BindingMixture {
      * @return double array of log KL values
 	 * @throws IOException 
      */
-	public Double[] updateBindingModelUsingReadDistributions(String distribFilename) throws IOException{
-    	int left=0,right=0;
-    	for(ControlledExperiment rep : manager.getReplicates()){
-    		TagProbabilityDensity mod = bindingManager.getBindingModel(rep).get(0); // just avoiding build error
-    		int l=-1*mod.getLeft(),r=mod.getRight();
-    		// Consider fixing this
-//    		if(!config.getFixedModelRange()){
-//    			Pair<Integer, Integer> newEnds = mod.getNewEnds(300,200);
-//    			l=newEnds.car(); r=newEnds.cdr();
-//    		}
-    		left = Math.min(config.MAX_BINDINGMODEL_WIDTH/2, Math.max(left, l));
-    		right = Math.min(config.MAX_BINDINGMODEL_WIDTH/2, Math.max(right, r));
-    	}   	
+	public void updateBindingModelUsingReadDistributions(String distribFilename) throws IOException{
     	
-    	int numReps = manager.getReplicates().size();
-//    	int width = left+right;
     	int width = config.MAX_BINDINGMODEL_WIDTH;
-    	int readProfileCenter = config.MAX_BINDINGMODEL_WIDTH/2;
-    	int offsetLeft = readProfileCenter-left;
-		Double[] logKL = new Double[numReps];
-		for (int x=0; x<numReps; x++)
-			logKL[x]=0.0;
 		
 		if(config.doBMUpdate()&& config.getClusteringReads()){
 		
@@ -337,7 +336,7 @@ public class BindingMixture {
     		
     		// Update read profile using assigned reads to a binding component per subtype group
     		int currentType=0;
-    		List<double[][][]> newModelList = new ArrayList<double[][][]>();
+    		List<double[][]> newModelList = new ArrayList<double[][]>();
     		List<Integer> eventCounter = new ArrayList<Integer>();
     		for (List<BindingSubComponents> compGroups : currComps){	//Iterate each subtype group
     			// Check to see if there are enough components
@@ -345,14 +344,13 @@ public class BindingMixture {
     				System.out.println("removing components with size "+compGroups.size()+" < "+Math.max(config.getMinSubtypeFraction()*numPeaks, config.getMinComponentsForBMUpdate()));
     			}else{
     				eventCounter.add(compGroups.size());
-    				double[][] newModel_plus=new double[numReps][width];
-    				double[][] newModel_minus=new double[numReps][width];
-    				for (int x=0; x<numReps; x++){
-    					for (int i=0;i<width;i++){
-    						newModel_plus[x][i]=1;
-    						newModel_minus[x][i]=1;
-    					}
+    				double[] newModel_plus=new double[width];
+    				double[] newModel_minus=new double[width];
+    				for (int i=0;i<width;i++){
+    					newModel_plus[i]=1;
+    					newModel_minus[i]=1;
     				}
+
     				for (ControlledExperiment rep : cond.getReplicates()){
         				int x = rep.getIndex();
         				for(BindingSubComponents comp : compGroups){
@@ -360,223 +358,125 @@ public class BindingMixture {
         		    		double[] currProfile_minus = comp.getReadProfile_minus(rep.getIndex());
         					if (comp.getMaxTypeStrand()=='+'){
         						for (int i=0; i< width; i++){
-        							newModel_plus[x][i]+=currProfile_plus[i];
-        							newModel_minus[x][i]+=currProfile_minus[i];
+        							newModel_plus[i]+=currProfile_plus[i];
+        							newModel_minus[i]+=currProfile_minus[i];
         						}
         					}else{
         						for (int i=0; i< width; i++){
-        							newModel_plus[x][i]+=currProfile_minus[width-i-1];
-        							newModel_minus[x][i]+=currProfile_plus[width-i-1];
+        							newModel_plus[i]+=currProfile_minus[width-i-1];
+        							newModel_minus[i]+=currProfile_plus[width-i-1];
         						}}}		
-			    		mutate_normalize(newModel_plus[x],newModel_minus[x]);
+			    		mutate_normalize(newModel_plus,newModel_minus);
         			}
-    				double[][][] currModel=new double[2][][];
+    				double[][] currModel=new double[2][];
     				currModel[0]=newModel_plus; currModel[1]=newModel_minus;
     				newModelList.add(currModel);
     			}
     			currentType++;
     		} // end of iterating each subtype group
     		
-    		int numBindingModel=newModelList.size();
-	    	System.out.println("number of potential binding models "+numBindingModel);
-	    	List<double[][][]> newModels = new ArrayList<double[][][]>();
-    		// Check to see if they are similar distributions
-    		if (numBindingModel > 1){
-    			//do KL divergence to compare if they are distinct model
-	    		for (int i=0; i<numBindingModel; i++){
-	    			for (int j=i+1; j<numBindingModel;j++){
-	    				double minLogKL=getModelKLDivergenceScore(numReps,newModelList.get(i),newModelList.get(j));
-	    				System.out.println("current minLogKL value is "+minLogKL+" threshold "+config.KL_DIVERGENCE_BM_THRES);
-	    				if (minLogKL > config.KL_DIVERGENCE_BM_THRES){
-	    					System.out.println("Model "+i+" and Model "+j+" is distinct. Create separate models");
-	    					if (!newModels.contains(newModelList.get(i))) 
-	    						newModels.add(newModelList.get(i));
-	    					if (!newModels.contains(newModelList.get(j)))
-	    						newModels.add(newModelList.get(j));    							
-	    				}else{ 
-	    					//Add the model with more binding events
-	    					int minIndex = eventCounter.get(i) > eventCounter.get(j) ? i: j;
-	    					if (!newModels.contains(newModelList.get(minIndex)))
-	    						newModels.add(newModelList.get(minIndex));
-	    					System.out.println("Model "+i+" and Model "+j+" is similar. Added "+minIndex);
-	    				}
-	    			}
-	    		}
-    		}else{
-    			newModels.add(newModelList.get(0));
-    		}
-    		
-    		Map<ControlledExperiment, List<TagProbabilityDensity>> models = new HashMap<ControlledExperiment, List<TagProbabilityDensity>>();
-	    	for (ControlledExperiment rep : cond.getReplicates())
-	    		models.put(rep, new ArrayList<TagProbabilityDensity>());
-    		List<Integer> motifIndexes = new ArrayList<Integer>();
-    		for (int index=0; index< newModels.size(); index++){
-	    		motifIndexes.add(-1);
+    		List<BindingSubtype> subtypes = new ArrayList<BindingSubtype>();
+    		for (int index=0; index< newModelList.size(); index++){
 	    			
-	    		double[][] newModel_plus = newModels.get(index)[0];
-	    		double[][] newModel_minus = newModels.get(index)[1];
-	    			
-	    		for(ControlledExperiment rep : cond.getReplicates()){
-	    			int x=rep.getIndex();
+	    		double[] newModel_plus = newModelList.get(index)[0];
+	    		double[] newModel_minus = newModelList.get(index)[1];    			
 
-	    			List<Pair<Integer,Double>> empiricalWatson = new ArrayList<Pair<Integer, Double>>(); 
-	    			List<Pair<Integer,Double>> empiricalCrick = new ArrayList<Pair<Integer, Double>>();
-	    			for (int i=0; i<width;i++){
-	    				double data_watson = newModel_plus[x][i];
-	    				double data_crick = newModel_minus[x][i];
-	    				data_watson = data_watson >=0? data_watson:2.0E-300;
-	    				data_crick = data_crick >=0? data_crick:2.0E-300; 
-	    				Pair<Integer, Double> p_watson = new Pair<Integer, Double>(i-left, data_watson);
-	    				Pair<Integer, Double> p_crick = new Pair<Integer, Double>(i-left, data_crick);
-	    				empiricalWatson.add(p_watson);
-	    				empiricalCrick.add(p_crick);
-	    			}
-		
-	    			TagProbabilityDensity model = new TagProbabilityDensity(empiricalWatson,empiricalCrick);
-	    			String outFile = distribFilename+"_"+rep.getName()+"_"+index+".txt";
-	    			model.printDensityToFile(outFile);
-	    			models.get(rep).add(model);	
+	    		List<Pair<Integer,Double>> empiricalWatson = new ArrayList<Pair<Integer, Double>>(); 
+	    		List<Pair<Integer,Double>> empiricalCrick = new ArrayList<Pair<Integer, Double>>();
+	    		for (int i=0; i<width;i++){
+	    			double data_watson = newModel_plus[i];
+	    			double data_crick = newModel_minus[i];
+	    			data_watson = data_watson >=0? data_watson:2.0E-300;
+	    			data_crick = data_crick >=0? data_crick:2.0E-300; 
+	    			Pair<Integer, Double> p_watson = new Pair<Integer, Double>(i, data_watson);
+	    			Pair<Integer, Double> p_crick = new Pair<Integer, Double>(i, data_crick);
+	    			empiricalWatson.add(p_watson);
+	    			empiricalCrick.add(p_crick);
 	    		}
+		
+	    		TagProbabilityDensity model = new TagProbabilityDensity(empiricalWatson,empiricalCrick);
+	    		String outFile = distribFilename+"_"+cond.getName()+"_"+index+".txt";
+	    		model.printDensityToFile(outFile);
+	    		subtypes.add(new BindingSubtype(cond, model,eventCounter.get(index)));	    			
+
 	    		System.err.println("Updated read distribution from " + eventCounter.get(index) +" binding events.");
 	    	}
-	    	for(ControlledExperiment rep : cond.getReplicates())
-	    		bindingManager.setBindingModel(rep, models.get(rep));
-	    	
+    		
+    		bindingManager.setBindingSubtypes(cond, subtypes);
 	    	bindingManager.updateMaxInfluenceRange(cond, false);
-	    	bindingManager.setMotifIndexes(cond, motifIndexes);	    
     	} // end of condition loop
     	
 		}else{
 			System.err.println("Read distribution updates turned off.");
-		}
-		
-		return logKL;	
-	}
-	
-	
-	/**
-     * Update binding models for each replicate given the discovered binding components using motifs as references. 
-     * @param left 
-     * @param right
-     * @param String filename for new distribution file
-     * @return double array of log KL values
-	 * @throws Exception 
-     */
-	public Double[] updateBindingModelUsingMotifs(String distribFilename) throws Exception{
-    	int left=0,right=0;
-//    	for(ControlledExperiment rep : manager.getReplicates()){
-//    		TagProbabilityDensity mod = bindingManager.getBindingModel(rep);
-//    		int l=-1*mod.getLeft(),r=mod.getRight();
-//    		left = Math.min(config.MAX_BINDINGMODEL_WIDTH/2, Math.max(left, l));
-//    		right = Math.min(config.MAX_BINDINGMODEL_WIDTH/2, Math.max(right, r));
-//    	}    	
-    	
-    	int numReps = manager.getReplicates().size();
-    	int width = left+right;
-    	int readProfileCenter = config.MAX_BINDINGMODEL_WIDTH/2;
-    	int offsetLeft = readProfileCenter-left;
-		double[][] newModel_plus=new double[numReps][width];
-		double[][] newModel_minus=new double[numReps][width];
-		double[][] newModel=new double[numReps][width];
-		Double[] logKL = new Double[numReps];
-		int[] eventCounter = new int[numReps];
-		for (int x=0; x<numReps; x++){
-			for (int i=0;i<width;i++){
-				newModel_plus[x][i]=1;
-				newModel_minus[x][i]=1;
-			}
-			logKL[x]=0.0;
-			eventCounter[x]=0;
-		}
-		
-		if(config.doBMUpdate()&& config.getFindingMotifs()){
-		
-			Map<ControlledExperiment, List<TagProbabilityDensity>> densities = new HashMap<ControlledExperiment, List<TagProbabilityDensity>>();
-			for (ControlledExperiment rep : manager.getReplicates())
-				densities.put(rep, new ArrayList<TagProbabilityDensity>());
-
-			for(ExperimentCondition cond : manager.getConditions()){
-				List<WeightMatrix> motifs = bindingManager.getMotifs(cond);
-				
-				List<WeightMatrix> goodMotifs = new ArrayList<WeightMatrix>();
-				List<WeightMatrix> goodFreqMatrices = new ArrayList<WeightMatrix>();
-				List<Integer> goodOffsets = new ArrayList<Integer>();
-				List<Set<StrandedPoint>> goodRefs = new ArrayList<Set<StrandedPoint>>();
-				List<Integer> motifIndexes = new ArrayList<Integer>();
-
-				if (motifs!=null){	
-					int mIndex=0;
-					for (int m=0; m< motifs.size(); m++){
-						WeightMatrix motif = motifs.get(m);
-						System.out.println(WeightMatrix.getConsensus(motif));
-						Set<StrandedPoint> refs = bindingManager.getMotifReferences(cond).get(m);
-						System.out.println("motif reference size "+refs.size());
-//        				for(ControlledExperiment rep : cond.getReplicates())
-//        					logKL[rep.getIndex()]=Double.NaN;				
-						if (refs.size() < config.getMinRefsForBMUpdate()){
-							System.err.println("The "+cond.getName()+" read distributions cannot be updated due to too few motif reference ("+refs.size()+"<"+config.getMinRefsForBMUpdate()+").");
-						}else{
-							//Load appropriate options
-							List<StrandedPoint> compositePoints = new ArrayList<StrandedPoint>();
-							compositePoints.addAll(refs);
-				
-							//Build the composite distribution(s)
-							CompositeTagDistribution signalComposite = new CompositeTagDistribution(compositePoints, cond, config.MAX_BINDINGMODEL_WIDTH,true);							
-							TagProbabilityDensity currDensity = new TagProbabilityDensity(signalComposite.getWinSize()-1);
-							currDensity.loadData(signalComposite.getCompositeWatson(), signalComposite.getCompositeCrick());
-							
-							String distribFile = distribFilename+"_ReadDistrib_"+cond.getName()+"_"+WeightMatrix.getConsensus(motif)+".txt";
-							currDensity.printDensityToFile(distribFile);
-							for (ControlledExperiment rep : cond.getReplicates())
-								densities.get(rep).add(currDensity);								
-							
-							goodMotifs.add(motif);
-							goodFreqMatrices.add(bindingManager.getFreqMatrices(cond).get(m));
-							goodOffsets.add(bindingManager.getMotifOffsets(cond).get(m));
-							goodRefs.add(refs);		
-							motifIndexes.add(mIndex);
-							mIndex++;
-						}
-					}			
-				}			
-				
-				if (goodMotifs.isEmpty()){
-					// If there is no motif use the previous models.
-					for (ControlledExperiment rep : manager.getReplicates())
-						densities.put(rep, bindingManager.getBindingModel(rep));
-					bindingManager.setMotif(cond, null);
-					bindingManager.setFreqMatrix(cond, null);
-					bindingManager.setMotifOffset(cond, null);
-					bindingManager.setMotifReferece(cond, null);
-					bindingManager.setMotifIndexes(cond, null);
-				}else{
-					bindingManager.setMotif(cond, goodMotifs);
-					bindingManager.setFreqMatrix(cond, goodFreqMatrices);
-					bindingManager.setMotifOffset(cond, goodOffsets);
-					bindingManager.setMotifReferece(cond, goodRefs);	
-					bindingManager.setMotifIndexes(cond, motifIndexes);
-					System.out.println("setting motif indexes");
-					for (Integer index : motifIndexes){
-						System.out.print(index+"\t");
-					}
-					System.out.println();
-				}				
-			}
-			for (ControlledExperiment rep : manager.getReplicates())
-				bindingManager.setBindingModel(rep,densities.get(rep));
-			
-			for(ExperimentCondition cond : manager.getConditions()){
-				bindingManager.updateMaxInfluenceRange(cond,false);	
-				System.out.println("condition "+cond.getName()+"number of binding type is : "+bindingManager.getNumBindingType(cond));
-			}
-		}
-    	    	
-    	//TODO: Incorporate KL divergence calculation later
-		return logKL;
+		}		
 	}
 	
 	public void consolidateBindingModels(){
-		// Merge similar binding events
+		// Merge similar binding models
+		for (ExperimentCondition cond : manager.getConditions()){	
+			List<BindingSubtype> currSubtypes = bindingManager.getBindingSubtype(cond);
+			int numTypes = bindingManager.getNumBindingType(cond);
+			if (numTypes > 1){
+				double[][] klScores = new double[numTypes][numTypes];
+				for (int i=0; i < numTypes ; i++)
+					for (int j=0; j < numTypes; j++)
+						klScores[i][j]=0;
+				for (int a=0; a < numTypes; a++)
+					for (int b=0; b < numTypes; b++)
+						klScores[a][b]=getMinKLDivergenceScore(currSubtypes.get(a).getBindingModel(0),currSubtypes.get(b).getBindingModel(0));
+				// Identify similar binding model one by one
+				List<Integer> model2remove = new ArrayList<Integer>();
+				boolean checkSimilarity=true;
+				do{
+					double minScore=Double.MAX_VALUE;
+					int indexA=0; int indexB=0;
+					for (int i=0; i < numTypes; i++){
+						for (int j=i+1; j < numTypes; j++){
+							if (!model2remove.contains(i) && !model2remove.contains(j)){
+								if (klScores[i][j] < minScore ){
+									minScore =klScores[i][j];
+									indexA=i; indexB=j;								
+								}}}}
+					if (minScore <config.KL_DIVERGENCE_BM_THRES){
+						BindingSubtype subA = currSubtypes.get(indexA);
+						BindingSubtype subB = currSubtypes.get(indexB);
+						if (subA.hasMotif() && subB.hasMotif()){
+							double maxscore = motifFinder.motifAlignMaxScore(subA.getFreqMatrix(), subB.getFreqMatrix());
+							System.out.println("max score is "+maxscore/config.getMinMotifLength());
+							if (maxscore/config.getMinMotifLength() > config.MOTIF_PCC_THRES){
+								if (subA.getNumEvents() < subB.getNumEvents())
+									model2remove.add(indexA);
+								else
+									model2remove.add(indexB);						
+							}else{
+								klScores[indexA][indexB]=Double.MAX_VALUE;
+							}
+						}else if (subA.hasMotif()){ // only subtype A has motif
+							model2remove.add(indexB);
+						}else if (subB.hasMotif()){ // only subtype B has motif
+							model2remove.add(indexA);
+						}else{						// subtype A and subtype B do not have motif
+							if (subA.getNumEvents() < subB.getNumEvents())
+								model2remove.add(indexA);
+							else
+								model2remove.add(indexB);	
+						}
+					}else{
+						checkSimilarity=false;
+					}							
+				}while (checkSimilarity); // End of while loop
+				
+				System.out.println("models to be removed "+model2remove.toString());
+				System.out.println("number of motifs before removing "+model2remove.size());
+				List<BindingSubtype> subs2remove = new ArrayList<BindingSubtype>();
+				for (Integer i : model2remove){
+					subs2remove.add(currSubtypes.get(i));
+				}
+				currSubtypes.removeAll(subs2remove);
+				System.out.println("number of motifs after removing "+currSubtypes.size());	
+				bindingManager.setBindingSubtypes(cond, currSubtypes);
+			}
+		}
 	}
 	
 	// this method will mutate the input array
@@ -615,19 +515,22 @@ public class BindingMixture {
     
     /**
      * Run motif-finding, given the current BindingSubComponentss
+     * @throws Exception 
      */
-    public void updateMotifs(){
+    public void updateBindingModelUsingMotifs() throws Exception{
     	if(config.getFindingMotifs()){
     		motifFinder.recursivelyFindMotifs(activeComponents, trainingRound);
     		
     		//Print progress
     		for(ExperimentCondition cond : manager.getConditions()){
-    			if(bindingManager.getFreqMatrices(cond)!=null){
-    				for (int i=0; i < bindingManager.getFreqMatrices(cond).size(); i++)
-    					System.err.println(cond.getName()+"\t"+WeightMatrix.getConsensus(bindingManager.getFreqMatrices(cond).get(i))+"\toffset:"+bindingManager.getFreqMatrices(cond).get(i));
-    			}else{
-    				System.err.println(cond.getName()+"\tNOMOTIF");
+    			boolean noMotif=true;
+    			for (BindingSubtype sub : bindingManager.getBindingSubtype(cond)){
+    				if (sub.hasMotif()){
+    					System.err.println(cond.getName()+"\t"+WeightMatrix.getConsensus(sub.getFreqMatrix())+"\toffset:"+sub.getMotifOffset());
+    					noMotif=false;
+    				}
     			}
+    			if (noMotif) {System.err.println(cond.getName()+"\tNOMOTIF");}
     		}
     	}
     }

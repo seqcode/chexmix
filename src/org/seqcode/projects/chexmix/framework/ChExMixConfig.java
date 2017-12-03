@@ -59,11 +59,8 @@ public class ChExMixConfig {
 	protected int minRefsForBMUpdate = 50;
 	protected double minSubtypeFraction = 0.05; // A subtype needs to be associated with at least this fraction of binding events to be supported 
 	protected double minComponentReadFactorForBM = 3; //Components must have (this factor times the condition alpha) number of reads assigned before being included in BM update
-	protected boolean smoothingBMDuringUpdate=true;
-	protected boolean gaussianSmoothingBMDuringUpdate=false;
 	protected boolean updateBM=true; //Set to false to turn off binding model update
-	protected double bindingmodel_spline_smooth = 10; //Smoothing step for cubic spline in binding model reestimation
-    protected double bindingmodel_gauss_smooth = 1; //Variance for Gaussian smoothing in binding model reestimation
+    protected double gauss_smooth = 1; //Variance for Gaussian smoothing 
     protected int addFlankingComponentSpacing=20; //In non-first rounds of EM, the components are initialized using the positions from the last round with additional flanking components added at this spacing
 	protected List<Region> regionsToPlot = new ArrayList<Region>(); //List of regions that will be printed during EM training (for debugging/demonstration)
 	protected List<Region> regionsToIgnore = new ArrayList<Region>(); //List of regions that will be ignored during EM training (i.e. known towers, etc)
@@ -110,6 +107,7 @@ public class ChExMixConfig {
 	public final boolean CALC_LL=false; //Calculate the log-likelihood during EM.
 	public final boolean CALC_COMP_LL=false; //Calculate component-wise log-likelihoods during ML
     public final int MOTIF_FINDING_SEQWINDOW=60; //Bases to extract around components for motif-finding			public final boolean CALC_LL=false; //Calculate the log-likelihood during EM. 
+    public final int MOTIF_FINDING_LOCAL_SEQWINDOW=20; //Bases to extract around components for focused motif-finding
     public final int MOTIF_FINDING_TOPSEQS=1000; //Number of top components to analyze			public final boolean CALC_COMP_LL=false; //Calculate component-wise log-likelihoods during ML 
     public final double MOTIF_FINDING_ALLOWED_REPETITIVE = 0.2; //Percentage of the examined sequence window allowed to be lowercase or N			
     public final int MOTIF_FINDING_NEGSEQ=5000; //Number of negative sequences for motif significance tests		
@@ -185,14 +183,8 @@ public class ChExMixConfig {
 				minComponentsForBMUpdate = Args.parseInteger(args,"minmodelupdateevents",minComponentsForBMUpdate);
 				//Minimum number of motif references  to support a binding model update		
 				minRefsForBMUpdate = Args.parseInteger(args,"minmodelupdaterefs",minRefsForBMUpdate);
-				//Turn off smoothing during binding model updates 
-				smoothingBMDuringUpdate = Args.parseFlags(args).contains("nomodelsmoothing") ? false : true;
-				//Parameter for spline smoothing
-				bindingmodel_spline_smooth = Args.parseDouble(args,"splinesmoothparam",bindingmodel_spline_smooth); 
-				//Turn on Gaussian smoothing during binding model updates
-				gaussianSmoothingBMDuringUpdate = Args.parseFlags(args).contains("gaussmodelsmoothing") ? true : false;
 				//Parameter for Gaussian smoothing (std. dev.)
-				bindingmodel_gauss_smooth = Args.parseDouble(args,"gausssmoothparam",bindingmodel_gauss_smooth);
+				gauss_smooth = Args.parseDouble(args,"gausssmoothparam",gauss_smooth);
 				//Output path
 				DateFormat df = new SimpleDateFormat("yyyy-MM-dd-hh-mm-ss");  
 			    df.setTimeZone(TimeZone.getTimeZone("EST"));
@@ -329,10 +321,7 @@ public class ChExMixConfig {
 	public int getMinRefsForBMUpdate(){return minRefsForBMUpdate;}
 	public double getMinSubtypeFraction(){return minSubtypeFraction;}
 	public double getMinComponentReadFactorForBM(){return minComponentReadFactorForBM;}
-	public boolean getSmoothingBMDuringUpdate(){return smoothingBMDuringUpdate;}
-	public double getBindingModelSplineSmoothParam(){return bindingmodel_spline_smooth;}
-	public boolean getGaussBMSmooth(){return gaussianSmoothingBMDuringUpdate;}
-	public double getBindingModelGaussSmoothParam(){return bindingmodel_gauss_smooth;}
+	public double getGaussSmoothParam(){return gauss_smooth;}
 	public int getMinModelUpdateRounds(){return minModelUpdateRounds;}
 	public int getMaxModelUpdateRounds(){return maxModelUpdateRounds;}
 	public double getModelConvergenceKL(){return modelConvergenceKL;}
@@ -422,10 +411,7 @@ public class ChExMixConfig {
 				"\t--fixedalpha <impose this alpha (default: set automatically)>\n" +
 				"\t--extwin <number of bp expansion centered around gff points (default: 500)]\n" +
 				"\t--nomodelupdate [flag to turn off binding model updates]\n" +
-				"\t--nomodelsmoothing [flag to turn off binding model smoothing]\n" +
-				"\t--splinesmoothparam <spline smoothing parameter (default="+bindingmodel_spline_smooth+">\n" +
-				"\t--gaussmodelsmoothing [flag to turn o Gaussian model smoothing (default = cubic spline)]\n" +
-				"\t--gausssmoothparam <Gaussian smoothing std dev (default="+bindingmodel_gauss_smooth+">\n" +
+				"\t--gausssmoothparam <Gaussian smoothing std dev (default="+gauss_smooth+">\n" +
 				"\t--mlconfignotshared [flag to not share component configs in the ML step]\n" +
 				"\t--exclude <file of regions to ignore>\n" +
 				"\t--plotregions <regions to print during EM training>\n" +

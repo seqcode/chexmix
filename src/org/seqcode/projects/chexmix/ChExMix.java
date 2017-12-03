@@ -14,6 +14,7 @@ import org.seqcode.projects.chexmix.composite.TagProbabilityDensity;
 import org.seqcode.projects.chexmix.composite.XLAnalysisConfig;
 import org.seqcode.projects.chexmix.events.BindingManager;
 import org.seqcode.projects.chexmix.events.BindingModel;
+import org.seqcode.projects.chexmix.events.BindingSubtype;
 import org.seqcode.projects.chexmix.events.EnrichmentSignificance;
 import org.seqcode.projects.chexmix.events.EventsConfig;
 import org.seqcode.projects.chexmix.framework.ChExMixConfig;
@@ -96,9 +97,11 @@ public class ChExMix {
 		}		
 		// Set tag probability density models to binding manager
 		if (strandedModelSet){
-			for(ControlledExperiment rep : manager.getReplicates()){
-				bindingManager.setBindingModel(rep, tagProbDensities);
-				repBindingModels.get(rep).addAll(bindingManager.getBindingModel(rep));	
+			List<BindingSubtype> initSubtypes = new ArrayList<BindingSubtype>();
+			for(ExperimentCondition cond : manager.getConditions()){
+				for (TagProbabilityDensity currDensity : tagProbDensities)
+					initSubtypes.add(new BindingSubtype(cond, currDensity, 0));
+				bindingManager.setBindingSubtypes(cond, initSubtypes);
 			}
 		}
 		
@@ -117,11 +120,8 @@ public class ChExMix {
 		
 		// Testing only
 		if (strandedModelSet){printInitialDistribution();}
-		List<Integer> motifIndexes = new ArrayList<Integer>();
-		motifIndexes.add(-1);
 		for(ExperimentCondition cond : manager.getConditions()){
 			bindingManager.updateMaxInfluenceRange(cond, true);
-			bindingManager.setMotifIndexes(cond, motifIndexes);
 		}
 		
 		//Find potential binding regions
@@ -148,10 +148,10 @@ public class ChExMix {
 	public void printInitialDistribution(){
 		// write tag probability density of initial distribution
 		String distribFilename = gpsconfig.getOutputIntermediateDir()+File.separator+gpsconfig.getOutBase()+"_t"+0+"_ReadDistrib_CompositeComponents";
-		for(ControlledExperiment rep : manager.getReplicates()){
+		for (ExperimentCondition cond : manager.getConditions()){
 			int i=0;
-			for (TagProbabilityDensity probs : bindingManager.getBindingModel(rep)){
-				probs.printDensityToFile(distribFilename+"_"+i);
+			for (BindingSubtype sub : bindingManager.getBindingSubtype(cond)){
+				sub.getBindingModel(0).printDensityToFile(distribFilename+"_"+i);
 				i++;
 			}
 		}
@@ -164,7 +164,6 @@ public class ChExMix {
 	 */
 	public void runMixtureModel() throws Exception {
 		
-		Double[] kl;
 		System.err.println("Initialzing mixture model");
 		mixtureModel = new BindingMixture(gconfig, econfig, evconfig, gpsconfig,xlconfig, manager, bindingManager, potentialFilter);
 		
@@ -193,28 +192,28 @@ public class ChExMix {
         
         mixtureModel.setActiveComponents(bindingManager.getComponentsFromEnrichedEvents(potentialFilter.getPotentialRegions()));
         
-        if (!gpsconfig.getInitialClustPoints().isEmpty())
-        	System.out.println("round "+round + "use provided read density from clusters");
-        else
-        	mixtureModel.doReadDistributionClustering();
-        
         round++;
         		
         while (!converged){
         	
         	//Update motifs
-            mixtureModel.updateMotifs();
+            mixtureModel.updateBindingModelUsingMotifs();
             
             //Update binding models
             String distribFilename = gpsconfig.getOutputIntermediateDir()+File.separator+gpsconfig.getOutBase()+"_t"+round;
-            kl = mixtureModel.updateBindingModelUsingMotifs(distribFilename);
-            kl = mixtureModel.updateBindingModelUsingReadDistributions(distribFilename);
-            
+            if (round <= 1){
+            	if (!gpsconfig.getInitialClustPoints().isEmpty())
+                	System.out.println("round "+round + "use provided read density from clusters");
+                else
+                	mixtureModel.doReadDistributionClustering();
+            }else{
+            	mixtureModel.updateBindingModelUsingReadDistributions(distribFilename);
+            }
+             
+            // Merge similar binding models
             mixtureModel.consolidateBindingModels();
-
-            //Add new binding models to the record
-            for(ControlledExperiment rep : manager.getReplicates())           	
-    			repBindingModels.get(rep).addAll(bindingManager.getBindingModel(rep));
+            
+            // Update alpha
             mixtureModel.updateAlphas();	
         	
             System.err.println("\n============================ Round "+round+" ============================");
@@ -231,14 +230,15 @@ public class ChExMix {
             round++;
             
             //Check for convergence
-            if(round>gpsconfig.getMaxModelUpdateRounds()){
+            if(round>gpsconfig.getMaxModelUpdateRounds())
             	converged=true;
-            }else{
-            	converged = true;
-            	for(int l=0; l<kl.length; l++)
-            		converged = converged && (kl[l]<-5 || kl[l].isNaN());
-            }
+
         }
+        
+        //Add new binding models to the record
+        for(ControlledExperiment rep : manager.getReplicates())
+        	for (BindingSubtype sub : bindingManager.getBindingSubtype(rep.getCondition()))
+        		repBindingModels.get(rep).add(sub.getBindingModel(0));    
        
         outFormatter.plotAllReadDistributions(repBindingModels);
         

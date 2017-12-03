@@ -22,6 +22,7 @@ public class BindingSubComponents implements Comparable<BindingSubComponents>{
 	protected double[][][][] sub_readProfile_plus; 
 	protected double[][][][] sub_readProfile_minus; 
 	protected int index=0;
+	protected boolean isSubtype=false;
 	
 	public BindingSubComponents(Point pos, int numReps){
 		coord=pos;
@@ -49,6 +50,7 @@ public class BindingSubComponents implements Comparable<BindingSubComponents>{
 	public int[][] getPositions(){return positions;}
 	public int getIndex(){return index;}
 	public double[][] getTau(){return tau;}
+	public boolean isSubtype(){return isSubtype;}
 	
 	public boolean isNonZero(){return pi>0;}
 
@@ -97,7 +99,7 @@ public class BindingSubComponents implements Comparable<BindingSubComponents>{
 	public void setCoord(Point p){coord=p; position=p.getLocation();}
 	public void updateCoordFromLocation(){Point newCoord = new Point(coord.getGenome(), coord.getChrom(), position); coord=newCoord;}
 	public void setIndex(int i){index=i;}
-	public void setTau(double[][] t){tau=t;}
+	public void setTau(double[][] t){tau=t;isSubtype=true;}
 	public void setSumResponsibilities(double sumRespW, double sumRespC) { this.sumRespW=sumRespW; this.sumRespC=sumRespC; }
 	public void setUnstrandedSumResponsibilities(double sumResp) { this.sumRespW=sumResp/2; this.sumRespC=sumResp/2; }
 	

@@ -1,5 +1,6 @@
 package org.seqcode.projects.chexmix.motifs;
 
+import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -37,8 +38,10 @@ import org.seqcode.math.stats.StatUtil;
 import org.seqcode.motifs.MarkovMotifThresholdFinder;
 import org.seqcode.projects.chexmix.composite.CompositeTagDistribution;
 import org.seqcode.projects.chexmix.events.BindingManager;
+import org.seqcode.projects.chexmix.events.BindingSubtype;
 import org.seqcode.projects.chexmix.framework.ChExMixConfig;
 import org.seqcode.projects.chexmix.mixturemodel.BindingSubComponents;
+import org.seqcode.projects.chexmix.stats.InformationContent;
 
 
 public class MotifPlatform {
@@ -104,24 +107,92 @@ public class MotifPlatform {
 	 * @param trainingRound
 	 * @throws ParseException 
 	 */
-	public void findClusterMotifs(List<List<List<StrandedPoint>>> points, int trainingRound) throws ParseException{
+	public List<List<List<StrandedPoint>>> findClusterMotifs(List<List<List<StrandedPoint>>> points, int trainingRound) throws ParseException{
+		
+		List<List<List<StrandedPoint>>> adjPoints=new ArrayList<List<List<StrandedPoint>>>();
 		
 		// Filter out points that are outside of cashed sequence  
-		
+				
 		for (ExperimentCondition cond : manager.getConditions()){	
+			List<List<StrandedPoint>> modelRefs = new ArrayList<List<StrandedPoint>>();
+			int counter=0;
 			for (List<StrandedPoint> clusterPoints : points.get(cond.getIndex())){
+				List<StrandedPoint> newCenterPos = new ArrayList<StrandedPoint>();
 				List<String> seqs = new ArrayList<String>();
+				boolean motifFound =false;
 				for (StrandedPoint p : clusterPoints){
-					Region peakReg = new Region(p.getGenome(), p.getChrom(), p.getLocation()-config.MOTIF_FINDING_SEQWINDOW/2, p.getLocation()+config.MOTIF_FINDING_SEQWINDOW/2); 
-					String currSeq = seqgen.execute(peakReg);
-					if(lowercaseFraction(currSeq)<=config.MOTIF_FINDING_ALLOWED_REPETITIVE){seqs.add(currSeq);}				
+					Region peakReg = new Region(p.getGenome(), p.getChrom(), p.getLocation()-config.MOTIF_FINDING_SEQWINDOW, p.getLocation()+config.MOTIF_FINDING_SEQWINDOW); 
+					seqs.add(seqgen.execute(peakReg));				
 				}
+				
 				WeightMatrix m = WeightMatrixImport.buildAlignedSequenceMatrix(seqs);	
+				InformationContent ic =  new InformationContent(m, backMod);
+				// Smooth profiles and get max position
+				double[] sic = StatUtil.gaussianSmoother(ic.getMotifIC(),config.getGaussSmoothParam());
+				double maxScore = 0.0;
+				int maxPos = 0;
+				for (int i=0; i < sic.length; i++){
+					if (sic[i] > maxScore){
+						maxScore=sic[i]; maxPos=i;
+					}
+				}
 				
-				
-			}
-		}
+				// Get sequences for local MEME search at maximum information content
+				List<String> localSeqs = new ArrayList<String>();
+				for (String currSeq : seqs){
+					currSeq.substring(Math.max(0, maxPos-config.MOTIF_FINDING_LOCAL_SEQWINDOW/2), Math.min(currSeq.length()-1, maxPos+config.MOTIF_FINDING_LOCAL_SEQWINDOW/2));
+					if(lowercaseFraction(currSeq)<=config.MOTIF_FINDING_ALLOWED_REPETITIVE){localSeqs.add(currSeq);}	
+				}
+					
+				if (seqs.size() < config.getMinRefsForBMUpdate()){
+					System.err.println("cannot do motif finding due to too few regions ("+seqs.size()+"<"+config.getMinRefsForBMUpdate()+").");
+				}else{						
+					//Execute MEME
+					Pair<List<WeightMatrix>,List<WeightMatrix>> matrices = meme.execute(seqs, new String("motif_"+cond.getName()+"_t"+trainingRound+"_c"+counter), false);
+					List<WeightMatrix> wm = matrices.car();
+					List<WeightMatrix> fm = matrices.cdr();
+					if(wm.size()>0){
+						//Evaluate the significance of the discovered motifs
+						int bestMotif=0;
+						double rocScores[] = motifROCScores(wm, seqs, randomSequences);
+						double maxRoc=0;
+						for(int i=0; i<rocScores.length; i++)
+							if(rocScores[i]>maxRoc){
+								maxRoc = rocScores[i]; 
+								bestMotif=i;
+							}
+						//Results summary
+						if(config.isVerbose()){
+							System.err.println("MEME results for: "+cond.getName());
+							for(int w=0; w<fm.size(); w++){
+								if(fm.get(w)!=null){
+									System.err.println("\t"+fm.get(w).getName()+"\t"+ WeightMatrix.getConsensus(fm.get(w))+"\tROC:"+String.format("%.2f",rocScores[w]));
+								}}}		
+						
+						if(maxRoc >= config.getMotifMinROC()){
+							motifFound = true;
+							WeightMatrix currMotif = wm.get(bestMotif);
+							MarkovMotifThresholdFinder finder = new MarkovMotifThresholdFinder(currMotif, backMod, config.MARKOV_NUM_TEST);
+							finder.setRandomSeq(MarkovRandSeq);
+							double motifThres = finder.execute(config.MARKOV_BACK_MODEL_THRES);
+							for (StrandedPoint p : clusterPoints){
+								int center = p.getLocation()-config.MOTIF_FINDING_SEQWINDOW+maxPos;
+								Region peakReg = new Region(p.getGenome(), p.getChrom(), center-config.MOTIF_FINDING_LOCAL_SEQWINDOW/2, center+config.MOTIF_FINDING_LOCAL_SEQWINDOW/2);
+								StrandedPoint mPoint = getMotifPosition(currMotif, motifThres, peakReg);
+								if (Math.abs(center - mPoint.getLocation())<=5)
+									newCenterPos.add(mPoint);
+							}}}}			
+				modelRefs.add(newCenterPos);
+				if(motifFound)
+					modelRefs.add(newCenterPos);
+				else
+					modelRefs.add(clusterPoints);				
+			}	
+			adjPoints.add(modelRefs);			
+			counter++;
+		}	
 		
+		return adjPoints;
 	}
 	
 	
@@ -131,8 +202,9 @@ public class MotifPlatform {
 	 * @param cond
 	 * @param activeComponents
 	 * @param trainingRound
+	 * @throws Exception 
 	 */
-	public void recursivelyFindMotifs(HashMap<Region, List<List<BindingSubComponents>>> activeComponents, int trainingRound){
+	public void recursivelyFindMotifs(HashMap<Region, List<List<BindingSubComponents>>> activeComponents, int trainingRound) throws Exception{
 		Map<ExperimentCondition, List<BindingSubComponents>> allpeaks = new HashMap<ExperimentCondition, List<BindingSubComponents>>();
 		for (ExperimentCondition cond : manager.getConditions())
 			allpeaks.put(cond, new ArrayList<BindingSubComponents>());
@@ -235,8 +307,17 @@ public class MotifPlatform {
 						for (int m=0; m< sigMotifs.size(); m++){
 							WeightMatrix currMotif = sigMotifs.get(m);
 							WeightMatrix currFreqMatrix = sigFreqMatrix.get(m);	
-							Set<StrandedPoint> refs = getRegionWithMotifs(currMotif,config.MARKOV_BACK_MODEL_THRES, sortedRegions).cdr(); // motif references
-							List<Region> found = getRegionWithMotifs(currMotif,config.MARKOV_BACK_SEQ_RM_THRES, sortedRegions).car();	//region with motif to be removed
+							MarkovMotifThresholdFinder finder = new MarkovMotifThresholdFinder(currMotif, backMod, config.MARKOV_NUM_TEST);
+							finder.setRandomSeq(MarkovRandSeq);
+							Set<StrandedPoint> refs = new HashSet<StrandedPoint>();	// motif references
+							List<Region> found = new ArrayList<Region>();	//region with motifs to be removed from next motif finding iteration
+							double motifThres = finder.execute(config.MARKOV_BACK_MODEL_THRES); 
+							double seqRmThres = finder.execute(config.MARKOV_BACK_SEQ_RM_THRES); 
+							for (Region reg : sortedRegions){
+								refs.add(getMotifPosition(currMotif, motifThres, reg));
+								if (getMotifPosition(currMotif, seqRmThres, reg)!=null)
+									found.add(reg);
+							}
 							
 							if (refs.size() > config.getMinRefsForBMUpdate()){
 								//remove all regions that has motif hits
@@ -258,6 +339,7 @@ public class MotifPlatform {
 					}
 				} // End of while loop to recursively find motifs
 				
+				// What is this ?
 				// Keep list of peaks that can be used for BM updates later
 				if (!groupFoundMotif){
 					if (peaks.size() < config.getMinComponentsForBMUpdate())
@@ -268,96 +350,46 @@ public class MotifPlatform {
 				setCounter++; // Next set of sequences
 			} // End of iteration grouped sequence from a condition
 			
-			// Calculate scores for all motifs
-			int motifSize = selecFreqMatrix.size();
-			if (motifSize > 1){ // access motif similarities if more than one motif passes ROC test	
-				double[][] freqMatrixScores = new double[motifSize][motifSize];
-				for (int i=0; i < motifSize; i++)
-					for (int j=i+1; j < motifSize; j++)
-						freqMatrixScores[i][j]=0;
-				for (int i=0; i < motifSize; i++){
-					for (int j=i+1; j < motifSize; j++){
-						Pair<Integer,Double> forAlignment = aligner.align(selecFreqMatrix.get(i),selecFreqMatrix.get(j));
-						Pair<Integer,Double> revAlignment = aligner.align(selecFreqMatrix.get(i),WeightMatrix.reverseComplement(selecFreqMatrix.get(j)));
-						double maxscore = 0;
-						if (forAlignment.cdr() > maxscore) { maxscore=forAlignment.cdr();}
-						if (revAlignment.cdr() > maxscore) { maxscore=revAlignment.cdr();}
-						System.out.println("max score is "+maxscore/config.getMinMotifLength());
-						freqMatrixScores[i][j]=maxscore/config.getMinMotifLength();	
-					}
-				}
-				// Identify motifs with similar frequency matrix
-				List<Integer> motif2remove = new ArrayList<Integer>();		
-				boolean assessSimilarity=true;
-				do{			
-					double maxscore=0;
-					int indexA=0; int indexB=0;
-					for (int i=0; i < motifSize; i++){
-						for (int j=i+1; j < motifSize; j++){
-							if (!motif2remove.contains(i) && !motif2remove.contains(j)){
-								if (freqMatrixScores[i][j] > Math.max(maxscore,config.MOTIF_PCC_THRES)){
-									maxscore =freqMatrixScores[i][j];
-									indexA=i; indexB=j;								
-							}}}}	
-					if (maxscore > 0){
-						/**
-						double sumScoreA=0; double sumScoreB=0;
-						for (int i=0; i < motifSize; i++){
-							for (int j=i+1; j < motifSize; j++){
-								if (!motif2remove.contains(i) && !motif2remove.contains(j)){
-									if (i==indexA || j==indexA){ sumScoreA+=freqMatrixScores[i][j];}
-									if (i==indexB || j==indexB){ sumScoreB+=freqMatrixScores[i][j];}
-								}}}		
-						if (sumScoreA > sumScoreB)//remove index A
-							motif2remove.add(indexA);
-						else //remove index B
-							motif2remove.add(indexB);
-						**/
-						double KLLogScore = DistributionSimilarityScore(cond, motifRefs.get(indexA),motifRefs.get(indexB));
-						if (KLLogScore < config.KL_DIVERGENCE_BM_THRES){
-							// models are similar
-							// Instead of picking the motif that maximizes sum of dissimilarity score, pick the motif that is associated with more reference
-							if (motifRefs.get(indexA).size() < motifRefs.get(indexB).size())
-								motif2remove.add(indexA);
-							else
-								motif2remove.add(indexB);
-						}else{
-							freqMatrixScores[indexA][indexB]=0;
-						}
-					}else{
-						assessSimilarity=false;
-					}
-				}while(assessSimilarity); // End of while loop			
-				
-				System.out.println("motifs to be removed "+motif2remove.toString());
-				System.out.println("number of motifs before removing "+selecMotifs.size());
-				removeWeightMatrix(selecMotifs, motif2remove);
-				removeWeightMatrix(selecFreqMatrix, motif2remove);
-				removeMotifReferences(motifRefs,motif2remove);
-				System.out.println("number of motifs after removing "+selecMotifs.size());				
-			}			
-
-			if (selecMotifs.size()==0){
-				System.err.println("\tNo motif passes minimum ROC score threshold.");
-				bindingManager.setMotif(cond, null);
-				bindingManager.setFreqMatrix(cond, null);
-				bindingManager.setMotifReferece(cond, null);
-				bindingManager.setFreqMatrix(cond, null);
-			}else{
-				//Set the condition's motif if the ROC is above threshold
-				ArrayList<Integer> zeros = new ArrayList<Integer>();
-				for (WeightMatrix m : selecMotifs){
-					System.err.println(WeightMatrix.getConsensus(m) + " chosen as motif above threshould.");
-					zeros.add(0);
-				}
-				bindingManager.setMotif(cond, selecMotifs);
-				bindingManager.setMotifOffset(cond, zeros);
-				bindingManager.setMotifReferece(cond,motifRefs);
-				bindingManager.setFreqMatrix(cond, selecFreqMatrix);
+			// Make binding subtypes from motif references
+			List<BindingSubtype> subtypes = new ArrayList<BindingSubtype>();
+			for (int m=0; m< selecMotifs.size(); m++){
+				BindingSubtype subtype = new BindingSubtype(cond, new ArrayList<StrandedPoint>(motifRefs.get(m)), config.MAX_BINDINGMODEL_WIDTH);
+				subtype.setMotif(selecMotifs.get(m), selecFreqMatrix.get(m));
+				subtypes.add(subtype);
 			}
-			bindingManager.setComponentsForBMUpdates(cond,groupComps);
 			
-		} //End of Motif finding for condition
+			// Make binding subtypes from binding events
+			for (List<BindingSubComponents> comps : groupComps ){
+				List<StrandedPoint> points = new ArrayList<StrandedPoint>();
+				for (BindingSubComponents bc : comps){
+					StrandedPoint p=null;
+					if (bc.isSubtype())
+						p = new StrandedPoint(bc.getCoord().getGenome(),bc.getCoord().getChrom(),bc.getPosition(),bc.getMaxTypeStrand());
+					else
+						p = new StrandedPoint(bc.getCoord().getGenome(),bc.getCoord().getChrom(),bc.getPosition(),'+');
+					points.add(p);
+				}	
+				subtypes.add(new BindingSubtype(cond,points, config.MAX_BINDINGMODEL_WIDTH));
+			}
+			
+			// Print bindingModel
+			int subtypeC=0;
+			for (BindingSubtype subtype : subtypes){
+				String distribFile = config.getOutputIntermediateDir()+File.separator+config.getOutBase()+"_t"+trainingRound+"_ReadDistrib_"+cond.getName()+"_"+subtypeC+".txt";
+				subtype.getBindingModel(0).printDensityToFile(distribFile);
+				subtypeC++;
+			}
+			
+			if (subtypes.size() > 0){
+				bindingManager.setBindingSubtypes(cond, subtypes);					
+			}else{
+				// set Default binding subtype model
+				
+			}
+			
+			bindingManager.updateMaxInfluenceRange(cond,false);	
+			
+		}//End of condition
 	}
 	
 	/**
@@ -449,121 +481,67 @@ public class MotifPlatform {
 		}
 		return groupPeaks;		
 	}
-	
-	public double DistributionSimilarityScore(ExperimentCondition cond, Set<StrandedPoint> refA, Set<StrandedPoint> refB){
-		List<StrandedPoint> compositePointsA = new ArrayList<StrandedPoint>();
-		List<StrandedPoint> compositePointsB = new ArrayList<StrandedPoint>();
-        compositePointsA.addAll(refA);
-        compositePointsB.addAll(refB);
-		CompositeTagDistribution signalCompositeA = new CompositeTagDistribution(compositePointsA, cond, config.MAX_BINDINGMODEL_WIDTH,true);
-		CompositeTagDistribution signalCompositeB = new CompositeTagDistribution(compositePointsB, cond, config.MAX_BINDINGMODEL_WIDTH,true);
-		// Calculate KL divergence score in sliding window and take the lowest
-		double[] watsonA = signalCompositeA.getCompositeWatson();
-		double[] crickA = signalCompositeA.getCompositeCrick();
-		double[] watsonB = signalCompositeB.getCompositeWatson();
-		double[] crickB = signalCompositeB.getCompositeCrick();
-		double[] rwatsonB = new double[signalCompositeB.getWinSize()];
-		double[] rcrickB = new double[signalCompositeB.getWinSize()];
-		for (int i=0; i < signalCompositeB.getWinSize(); i++){
-			rwatsonB[i] = crickB[signalCompositeB.getWinSize()-i-1];
-			rcrickB[i] = watsonB[signalCompositeB.getWinSize()-i-1];	
-		}
 		
-		double minLogKL = Double.MAX_VALUE;
-		for (int offset=-config.SLIDING_WINDOW/2; offset<=config.SLIDING_WINDOW/2; offset++){
-            double currLogKL=0;
-            //copy current window
-            double[] currW = new double[config.MAX_BINDINGMODEL_WIDTH];
-            double[] currC = new double[config.MAX_BINDINGMODEL_WIDTH];
-            for (int w=0; w< config.MAX_BINDINGMODEL_WIDTH; w++){
-            	currW[w]=0; currC[w]=0;
-            }
-            for (int w=0; w< config.MAX_BINDINGMODEL_WIDTH; w++){
-            	if ((offset+w) >=0 && (offset+w) < config.MAX_BINDINGMODEL_WIDTH){
-            		currW[w]=watsonB[offset+w];
-            		currC[w]=crickB[offset+w];
-            	}
-            }
-            //Calc KL                                       
-            currLogKL += StatUtil.log_KL_Divergence(watsonA, currW) + StatUtil.log_KL_Divergence(currW, watsonA);
-            currLogKL += StatUtil.log_KL_Divergence(crickA, currC) + StatUtil.log_KL_Divergence(currC, crickA); 
-   
-            if (currLogKL < minLogKL) { minLogKL=currLogKL;}
-                    
-            // calculate divergence in reversed tags
-            currLogKL = 0;      
-            //copy current window
-            double[] rcurrW = new double[config.MAX_BINDINGMODEL_WIDTH];
-            double[] rcurrC = new double[config.MAX_BINDINGMODEL_WIDTH];
-            for (int w=0; w< config.MAX_BINDINGMODEL_WIDTH; w++){
-            	rcurrW[w]=currC[config.MAX_BINDINGMODEL_WIDTH-w-1];
-                rcurrC[w]=currW[config.MAX_BINDINGMODEL_WIDTH-w-1];
-            }                                                           
-            //Calc KL                                       
-            currLogKL += StatUtil.log_KL_Divergence(watsonA, rcurrW) + StatUtil.log_KL_Divergence(rcurrW, watsonA);
-            currLogKL += StatUtil.log_KL_Divergence(crickA, rcurrC) + StatUtil.log_KL_Divergence(rcurrC, crickA);  
-            
-            if (currLogKL < minLogKL) { minLogKL=currLogKL;}
-        }
-		return minLogKL;
-	}
-	
-	
-	
 	/**
 	 * Align motifs to get relative offsets
 	 */
 	public void alignMotifs(){		
 		// Index 0 motif in the condition is the reference
-		WeightMatrix refMotif=null;
 		for (ExperimentCondition cond : manager.getConditions()){
-			List<WeightMatrix> fm = bindingManager.getFreqMatrices(cond);
-			if (fm!=null){
-				refMotif = fm.get(0);
-				if (refMotif!=null){
-					List<WeightMatrix> alignMotifs = new ArrayList<WeightMatrix>();
-					List<WeightMatrix> alignFreqMatrix = new ArrayList<WeightMatrix>();
-					List<Integer> offsets = new ArrayList<Integer>();
-					List<Boolean> reverseStrands = new ArrayList<Boolean>();
-					//Reference offset is the center of the motif
-					offsets.add(0);
-					reverseStrands.add(false);
-					alignMotifs.add(bindingManager.getMotifs(cond).get(0));
-					alignFreqMatrix.add(fm.get(0));
-					for (int index=1; index<fm.size(); index++){
-						Pair<Integer,Double> forAlignment = aligner.align(refMotif, fm.get(index));
-						Pair<Integer,Double> revAlignment = aligner.align(refMotif, WeightMatrix.reverseComplement(fm.get(index)));
-						int refOffset=(int)((refMotif.length()-fm.get(index).length())/2);
-//						if(revAlignment.cdr()>forAlignment.cdr() &&fm.get(index).length()%2 ==0)
-//								refOffset = (int)((refMotif.length()-fm.get(index).length())/2-1);
-						
-						if(revAlignment.cdr()>forAlignment.cdr() && refMotif.length()%2 ==0 && fm.get(index).length()%2 ==0)
-							refOffset = (int)((refMotif.length()-fm.get(index).length())/2-1);
-//						if(revAlignment.cdr()>forAlignment.cdr() && (refMotif.length()-fm.get(index).length())%2 !=0 && fm.get(index).length()%2 ==0)
-//							refOffset = (int)((refMotif.length()-fm.get(index).length())/2-1);
-						System.out.println("fscore "+forAlignment.cdr()+" alignment offset "+forAlignment.car()+" total offset "+(refOffset+forAlignment.car()));
-						System.out.println("rscore "+revAlignment.cdr()+" alignment offset "+revAlignment.car()+" total offset "+(refOffset+revAlignment.car()));
-						if(revAlignment.cdr()>forAlignment.cdr()){
-							alignFreqMatrix.add(WeightMatrix.reverseComplement(fm.get(index)));
-							alignMotifs.add(WeightMatrix.reverseComplement(bindingManager.getMotifs(cond).get(index)));
-							offsets.add(refOffset+revAlignment.car());	// is this correct ?
-							reverseStrands.add(true);
-						}else{
-							alignFreqMatrix.add(fm.get(index));
-							alignMotifs.add(bindingManager.getMotifs(cond).get(index));
-							offsets.add(refOffset+forAlignment.car());
-							reverseStrands.add(false);
-						}
-					}
-					bindingManager.setMotif(cond, alignMotifs);
-					bindingManager.setFreqMatrix(cond, alignFreqMatrix);
-					bindingManager.setMotifOffset(cond, offsets);
-					bindingManager.setReverseStrand(cond, reverseStrands);
-					System.out.println("offset "+offsets.toString()+" reverse "+reverseStrands.toString());
-					
+			List<WeightMatrix> condMotifs = new ArrayList<WeightMatrix>();
+			List<WeightMatrix> condFreqMatrix = new ArrayList<WeightMatrix>();
+			List<Integer> subIndexes = new ArrayList<Integer>();
+			List<BindingSubtype> condSubtypes = new ArrayList<BindingSubtype>();
+			for (int i=0; i < bindingManager.getNumBindingType(cond); i++){
+				BindingSubtype subtype = bindingManager.getBindingSubtype(cond).get(i);
+				condSubtypes.add(subtype);
+				if (subtype.hasMotif()){
+					condMotifs.add(subtype.getMotif());
+					condFreqMatrix.add(subtype.getFreqMatrix());
+					subIndexes.add(i);					
 				}
 			}
+			if (condFreqMatrix.size()>1){
+				WeightMatrix refMotif = condFreqMatrix.get(0);
+				BindingSubtype refSubtype = condSubtypes.get(subIndexes.get(0));
+				refSubtype.setMotifOffset(0);
+				refSubtype.setReverseMotif(false);
+				for (int index=1; index<condFreqMatrix.size(); index++){
+					BindingSubtype currSubtype = condSubtypes.get(subIndexes.get(index));
+					Pair<Integer,Double> forAlignment = aligner.align(refMotif, condFreqMatrix.get(index));
+					Pair<Integer,Double> revAlignment = aligner.align(refMotif, WeightMatrix.reverseComplement(condFreqMatrix.get(index)));
+					int refOffset=(int)((refMotif.length()-condFreqMatrix.get(index).length())/2);
+//					if(revAlignment.cdr()>forAlignment.cdr() &&fm.get(index).length()%2 ==0)
+//							refOffset = (int)((refMotif.length()-fm.get(index).length())/2-1);
+					
+					if(revAlignment.cdr()>forAlignment.cdr() && refMotif.length()%2 ==0 && condFreqMatrix.get(index).length()%2 ==0)
+						refOffset = (int)((refMotif.length()-condFreqMatrix.get(index).length())/2-1);
+//					if(revAlignment.cdr()>forAlignment.cdr() && (refMotif.length()-fm.get(index).length())%2 !=0 && fm.get(index).length()%2 ==0)
+//						refOffset = (int)((refMotif.length()-fm.get(index).length())/2-1);
+					System.out.println("fscore "+forAlignment.cdr()+" alignment offset "+forAlignment.car()+" total offset "+(refOffset+forAlignment.car()));
+					System.out.println("rscore "+revAlignment.cdr()+" alignment offset "+revAlignment.car()+" total offset "+(refOffset+revAlignment.car()));
+					if(revAlignment.cdr()>forAlignment.cdr()){
+						currSubtype.setMotif(WeightMatrix.reverseComplement(condMotifs.get(index)), WeightMatrix.reverseComplement(condFreqMatrix.get(index)));
+						currSubtype.setMotifOffset(refOffset+revAlignment.car()); // is this correct ?
+						currSubtype.setReverseMotif(true);
+					}else{
+						currSubtype.setMotif(condMotifs.get(index), condFreqMatrix.get(index));
+						currSubtype.setMotifOffset(refOffset+forAlignment.car()); // is this correct ?
+						currSubtype.setReverseMotif(false);
+					}
+				}
+				bindingManager.setBindingSubtypes(cond, condSubtypes);
+			}
 		}
+	}
+	
+	public double motifAlignMaxScore(WeightMatrix wma, WeightMatrix wmb){
+		Pair<Integer,Double> forAlignment = aligner.align(wma,wmb);
+		Pair<Integer,Double> revAlignment = aligner.align(wma,WeightMatrix.reverseComplement(wmb));
+		double maxscore = 0;
+		if (forAlignment.cdr() > maxscore) { maxscore=forAlignment.cdr();}
+		if (revAlignment.cdr() > maxscore) { maxscore=revAlignment.cdr();}
+		return maxscore;
 	}
 
 	
@@ -917,50 +895,25 @@ public class MotifPlatform {
 		return auc;
 	}
 	
-	protected void removeWeightMatrix(List<WeightMatrix> wm, List<Integer> indexes){
-		// Iterate and remove similar motifs
-		int counter=0;
-		for (Iterator<WeightMatrix> iter = wm.listIterator(); iter.hasNext(); ) {
-			WeightMatrix motif = iter.next();
-		    if (indexes.contains(counter)) { iter.remove();}
-		    counter++;
-		}
-	}
-	
-	protected void removeMotifReferences(List<Set<StrandedPoint>> mrefs, List<Integer> indexes){
-		// Iterate and remove similar motifs
-		int counter=0;
-		for (Iterator<Set<StrandedPoint>> iter = mrefs.listIterator(); iter.hasNext(); ) {
-			Set<StrandedPoint> refs = iter.next();
-		    if (indexes.contains(counter)) { iter.remove();}
-		    counter++;
-		}
-	}
-	
-	protected Pair<List<Region>, Set<StrandedPoint>> getRegionWithMotifs(WeightMatrix motif, double markov_thres, List<Region> regs){
-		List<Region> regWithMotif=new ArrayList<Region>();
-		Set<StrandedPoint> motifPos = new HashSet<StrandedPoint>();
-		MarkovMotifThresholdFinder finder = new MarkovMotifThresholdFinder(motif, backMod, config.MARKOV_NUM_TEST);
-		finder.setRandomSeq(MarkovRandSeq);
-		double motifThres = finder.execute(markov_thres);       				        				
+	// Return motif hit position
+	protected StrandedPoint getMotifPosition(WeightMatrix motif, double motifThres, Region reg){		
+		StrandedPoint p = null;
 		WeightMatrixScorer scorer = new WeightMatrixScorer(motif, seqgen);       						
-		for (Region reg : regs){
-			WeightMatrixScoreProfile profiler = scorer.execute(reg);
-			boolean goodMotif=false;
-			for(int z=0; z<reg.getWidth(); z++){
-				double currScore= profiler.getMaxScore(z);
-				if(currScore>=motifThres)
-					goodMotif=true;	
-			}
-			if(goodMotif){
-				regWithMotif.add(reg);
-				int halfMotifWidth = (motif.length() % 2 == 0 && profiler.getMaxStrand() == '+') ? motif.length()/2-1 : motif.length()/2;
-				int maxCoord = profiler.getMaxIndex()+reg.getStart()+halfMotifWidth;
-				motifPos.add(new StrandedPoint(genome, reg.getChrom(), maxCoord, profiler.getMaxStrand()));
-			}
+		WeightMatrixScoreProfile profiler = scorer.execute(reg);
+		boolean goodMotif=false;
+		for(int z=0; z<reg.getWidth(); z++){
+			double currScore= profiler.getMaxScore(z);
+			if(currScore>=motifThres)
+				goodMotif=true;	
 		}
-		return new Pair<List<Region>, Set<StrandedPoint>>(regWithMotif,motifPos);
+		if(goodMotif){
+			int halfMotifWidth = (motif.length() % 2 == 0 && profiler.getMaxStrand() == '+') ? motif.length()/2-1 : motif.length()/2;
+			int maxCoord = profiler.getMaxIndex()+reg.getStart()+halfMotifWidth;
+			p= new StrandedPoint(genome, reg.getChrom(), maxCoord, profiler.getMaxStrand());
+		}
+		return p;
 	}
+	
 	
 	/**
 	 * Simple class for ROC analysis

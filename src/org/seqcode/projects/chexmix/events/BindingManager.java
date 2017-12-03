@@ -17,7 +17,6 @@ import org.seqcode.deepseq.experiments.ExperimentManager;
 import org.seqcode.genome.location.Region;
 import org.seqcode.genome.location.StrandedPoint;
 import org.seqcode.gseutils.Pair;
-import org.seqcode.projects.chexmix.composite.ProteinDNAInteractionModel;
 import org.seqcode.projects.chexmix.composite.TagProbabilityDensity;
 import org.seqcode.projects.chexmix.mixturemodel.BindingSubComponents;
 
@@ -37,18 +36,12 @@ public class BindingManager {
 	protected ExperimentManager manager;
 	protected List<BindingEvent> events;
 	protected Map<ExperimentCondition, List <BindingEvent>> conditionEvents;
-	protected Map<ExperimentCondition, List<WeightMatrix>> motifs;
-	protected Map<ExperimentCondition, List<Integer>> motifIndexes;
-	protected Map<ExperimentCondition, List<WeightMatrix>> freqMatrices;
-	protected Map<ExperimentCondition, List<Integer>> motifOffsets;
-	protected Map<ExperimentCondition, List<Set<StrandedPoint>>> motifReferencePoints;
+	protected Map<ExperimentCondition, List<BindingSubtype>> bindingSubtypes;
 	protected Map<ExperimentCondition, List<Boolean>> motifReverseStrands;
 	protected Map<ExperimentCondition, Integer> numBindingType;
-	protected Map<ControlledExperiment, List<TagProbabilityDensity>> models;
 	protected Map<ControlledExperiment, BindingModel> unstrandedModel;
 	protected Map<ExperimentCondition, Integer> maxInfluenceRange;
 	protected Map<ExperimentCondition, Double> alpha;
-	protected Map<ExperimentCondition, List<List<BindingSubComponents>>> ComponentsForBMUpdates;
 	protected Map<ExperimentCondition, List<List<StrandedPoint>>> alignedEventPoints;
 	
 	public BindingManager(EventsConfig con, ExperimentManager exptman){
@@ -56,76 +49,55 @@ public class BindingManager {
 		manager = exptman;
 		events  = new ArrayList<BindingEvent>();
 		conditionEvents = new HashMap<ExperimentCondition, List <BindingEvent>>();
-		motifs = new HashMap<ExperimentCondition, List<WeightMatrix>>();
-		motifIndexes = new HashMap<ExperimentCondition, List<Integer>>();
-		freqMatrices = new HashMap<ExperimentCondition, List<WeightMatrix>>();
-		motifOffsets = new HashMap<ExperimentCondition, List<Integer>>();
+		bindingSubtypes = new HashMap<ExperimentCondition, List<BindingSubtype>>();
 		motifReverseStrands = new HashMap<ExperimentCondition, List<Boolean>>();
 		maxInfluenceRange = new HashMap<ExperimentCondition, Integer>();
 		alpha = new HashMap<ExperimentCondition, Double>();
-		motifReferencePoints = new HashMap<ExperimentCondition,List<Set<StrandedPoint>>>();
 		numBindingType = new HashMap<ExperimentCondition, Integer>();
-		models = new HashMap<ControlledExperiment, List<TagProbabilityDensity>>();
 		unstrandedModel = new HashMap<ControlledExperiment, BindingModel>();
-		ComponentsForBMUpdates = new HashMap<ExperimentCondition, List<List<BindingSubComponents>>>();
 		alignedEventPoints = new HashMap<ExperimentCondition, List<List<StrandedPoint>>>();
 		for(ExperimentCondition cond : manager.getConditions()){
 			conditionEvents.put(cond, new ArrayList<BindingEvent>());
-			motifOffsets.put(cond,new ArrayList<Integer>());
-			motifIndexes.put(cond, new ArrayList<Integer>());
+			bindingSubtypes.put(cond, new ArrayList<BindingSubtype>());
 			numBindingType.put(cond, 1);
 			maxInfluenceRange.put(cond,0);
 			alpha.put(cond, 0.0);
-			motifReferencePoints.put(cond, new ArrayList<Set<StrandedPoint>>());	
-			ComponentsForBMUpdates.put(cond, new ArrayList<List<BindingSubComponents>>());
 			alignedEventPoints.put(cond, new ArrayList<List<StrandedPoint>>());
 		}
 	}
 	
 	public List<BindingEvent> getBindingEvents(){return events;}
 	public List<BindingEvent> getConditionBindingEvents(ExperimentCondition ec){return conditionEvents.get(ec);}
-	public List<WeightMatrix> getMotifs(ExperimentCondition ec){return motifs.get(ec);}
-	public List<Integer> getMotifIndexes(ExperimentCondition ec){return motifIndexes.get(ec);}
-	public List<WeightMatrix> getFreqMatrices(ExperimentCondition ec){return freqMatrices.get(ec);}
-	public List<Integer> getMotifOffsets(ExperimentCondition ec){return motifOffsets.get(ec);}
-	public List<Set<StrandedPoint>> getMotifReferences(ExperimentCondition ec){return motifReferencePoints.get(ec);}
+	public List<BindingSubtype> getBindingSubtype(ExperimentCondition ec){return bindingSubtypes.get(ec);}
 	public List<Boolean> getReverseMotifs(ExperimentCondition ec){return motifReverseStrands.get(ec);}
 	public Integer getNumBindingType(ExperimentCondition ec){return numBindingType.get(ec);}
-	public List<TagProbabilityDensity> getBindingModel(ControlledExperiment ce){return models.get(ce);}
 	public BindingModel getUnstrandedBindingModel(ControlledExperiment ce){return unstrandedModel.get(ce);}
 	public Integer getMaxInfluenceRange(ExperimentCondition ec){return maxInfluenceRange.get(ec);}
 	public Double getAlpha(ExperimentCondition ec){return alpha.get(ec);}
-	public List<List<BindingSubComponents>> getComponentsForBMUpdates(ExperimentCondition ec){return ComponentsForBMUpdates.get(ec);}
 	public List<List<StrandedPoint>> getAlignedEventPoints(ExperimentCondition ec){return alignedEventPoints.get(ec);}
 
 	public void setBindingEvents(List<BindingEvent> e){events =e;}
 	public void setConditionBindingEvents(ExperimentCondition ec, List<BindingEvent> e){conditionEvents.put(ec, e);}
-	public void setMotif(ExperimentCondition ec, List<WeightMatrix> m){motifs.put(ec, m);}
-	public void setFreqMatrix(ExperimentCondition ec, List<WeightMatrix> m){freqMatrices.put(ec, m);}
-	public void setMotifOffset(ExperimentCondition ec, List<Integer> offsets){motifOffsets.put(ec, offsets);}
+	public void setBindingSubtypes(ExperimentCondition ec, List<BindingSubtype> sub){bindingSubtypes.put(ec, sub); numBindingType.put(ec, sub.size());}
 	public void setReverseStrand(ExperimentCondition ec, List<Boolean> reverse){motifReverseStrands.put(ec, reverse);}
-	public void setMotifReferece(ExperimentCondition ec, List<Set<StrandedPoint>> motifRefs){motifReferencePoints.put(ec,motifRefs);}
-	public void setMotifIndexes(ExperimentCondition ec, List<Integer> index){motifIndexes.put(ec, index);}
 	public void setAlpha(ExperimentCondition ec, Double a){alpha.put(ec,a);}
-	public void setBindingModel(ControlledExperiment ce, List<TagProbabilityDensity> mod){models.put(ce, mod); numBindingType.put(ce.getCondition(), mod.size());}
 	public void setUnstrandedBindingModel(ControlledExperiment ce, BindingModel mod){unstrandedModel.put(ce, mod);}
-	public void setComponentsForBMUpdates(ExperimentCondition ec, List<List<BindingSubComponents>> comps){ ComponentsForBMUpdates.put(ec, comps);}
 	public void setAlignedEventPoints(ExperimentCondition ec, List<List<StrandedPoint>> points){alignedEventPoints.put(ec, points);}
 
 	public void updateMaxInfluenceRange(ExperimentCondition ec, boolean firstround){
 		int max=0; 
-		for(ControlledExperiment rep : ec.getReplicates()){
-			if (firstround && config.getDefaultBindingModel()==null){
+		if (firstround && config.getDefaultBindingModel()==null){		
+			for(ControlledExperiment rep : ec.getReplicates())
 				if (getUnstrandedBindingModel(rep).getInfluenceRange()>max)
 					max=getUnstrandedBindingModel(rep).getInfluenceRange();
-			}else{
-				int min=Integer.MAX_VALUE;
-				for (TagProbabilityDensity density : getBindingModel(rep)){
-					if (density.getInfluenceRange()< min)
-						min=density.getInfluenceRange(); 
-				}
-				max=min;
+		}else{
+			int min=Integer.MAX_VALUE;
+			for ( BindingSubtype subtype : getBindingSubtype(ec)){
+				TagProbabilityDensity density =subtype.getBindingModel(0);
+				if (density.getInfluenceRange()< min)
+					min=density.getInfluenceRange();		
 			}
+			max=min;
 		}maxInfluenceRange.put(ec, max);
 	}
 	
@@ -272,7 +244,7 @@ public class BindingManager {
 					}	
 					fout.close();
 					
-					if (getMotifs(cond)!=null){
+					if (getNumBindingType(cond)>1){
 						//Print aligned points
 						List<List<StrandedPoint>> subtypePoints = new ArrayList<List<StrandedPoint>>();
 						List<List<Region>> potReg = new ArrayList<List<Region>>();
@@ -402,12 +374,10 @@ public class BindingManager {
 		try {
     		//Full dataset table
 	    	FileWriter fout = new FileWriter(filename);
-	    	for(ExperimentCondition cond : manager.getConditions()){
-	    		if(getFreqMatrices(cond)!=null){
-	    			for (WeightMatrix m : getFreqMatrices(cond))
-	    				fout.write(WeightMatrix.printTransfacMatrix(m, cond.getName()));
-	    		}
-	    	}
+	    	for(ExperimentCondition cond : manager.getConditions())
+	    		for (BindingSubtype sub : getBindingSubtype(cond))
+	    			if (sub.hasMotif())
+	    				fout.write(WeightMatrix.printTransfacMatrix(sub.getFreqMatrix(), cond.getName()));
 			fout.close();
 		} catch (IOException e) {
 			e.printStackTrace();
