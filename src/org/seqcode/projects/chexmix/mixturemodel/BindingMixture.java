@@ -921,8 +921,8 @@ public class BindingMixture {
 		            	String[][] seqs = new String[numBindingType][2];
 		            	for(BindingEvent b: currEvents){
 		            		if (b.isFoundInCondition(cond)){
-		            			for (int bt=0; bt < numBindingType; bt++){
-		            				if (bindingManager.getBindingSubtype(cond).get(bt)!=null){
+		            			if (bindingManager.getBindingSubtype(cond)!=null){
+		            				for (int bt=0; bt < numBindingType; bt++){
 		            					BindingSubtype subtype = bindingManager.getBindingSubtype(cond).get(bt);
 		            					scores[bt][0]=0; seqs[bt][0] = ""; scores[bt][1]=0; seqs[bt][1]="";
 		            					if (subtype.hasMotif() && b.getTypePoints(cond)!=null){
