@@ -129,7 +129,7 @@ public class MotifPlatform {
 					Region peakReg = new Region(p.getGenome(), p.getChrom(), p.getLocation()-config.MOTIF_FINDING_SEQWINDOW, p.getLocation()+config.MOTIF_FINDING_SEQWINDOW); 
 					boolean containing=false;	// Filter out regions that are edge of cached sequences
 					for (Region reg : cachedRegions){
-						if (reg.contains(peakReg)){
+						if (reg.contains(peakReg.expand(config.MOTIF_FINDING_LOCAL_SEQWINDOW/2, config.MOTIF_FINDING_LOCAL_SEQWINDOW/2))){
 							containing=true; break;
 						}
 					} 
@@ -166,7 +166,7 @@ public class MotifPlatform {
 					if(wm.size()>0){
 						//Evaluate the significance of the discovered motifs
 						int bestMotif=0;
-						double rocScores[] = motifROCScores(wm, seqs, randomSequences);
+						double rocScores[] = motifROCScores(wm, localSeqs, randomSequences);
 						double maxRoc=0;
 						for(int i=0; i<rocScores.length; i++)
 							if(rocScores[i]>maxRoc){
@@ -189,6 +189,8 @@ public class MotifPlatform {
 							double motifThres = finder.execute(config.MARKOV_BACK_MODEL_THRES);
 							for (StrandedPoint p : clusterPoints){
 								int center = p.getLocation()-config.MOTIF_FINDING_SEQWINDOW+maxPos;
+								System.out.println("orig clust points "+p.toString());
+								System.out.println("optimal points "+center);
 								Region peakReg = new Region(p.getGenome(), p.getChrom(), center-config.MOTIF_FINDING_LOCAL_SEQWINDOW/2, center+config.MOTIF_FINDING_LOCAL_SEQWINDOW/2);
 								StrandedPoint mPoint = getMotifPosition(currMotif, motifThres, peakReg);
 								if (mPoint!=null)
