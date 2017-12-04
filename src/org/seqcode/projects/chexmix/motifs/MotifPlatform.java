@@ -126,7 +126,9 @@ public class MotifPlatform {
 				List<String> seqs = new ArrayList<String>();
 				boolean motifFound =false;
 				for (StrandedPoint p : clusterPoints){
-					Region peakReg = new Region(p.getGenome(), p.getChrom(), p.getLocation()-config.MOTIF_FINDING_SEQWINDOW, p.getLocation()+config.MOTIF_FINDING_SEQWINDOW); 
+					int start = Math.max(1, p.getLocation()-config.MOTIF_FINDING_SEQWINDOW);
+					int end = Math.min(p.getGenome().getChromLength(p.getChrom()), p.getLocation()+config.MOTIF_FINDING_SEQWINDOW);
+					Region peakReg = new Region(p.getGenome(), p.getChrom(), start, end); 
 					boolean containing=false;	// Filter out regions that are edge of cached sequences
 					System.out.println("width before expansion "+peakReg.getWidth());
 					System.out.println("after expansion "+peakReg.expand(config.MOTIF_FINDING_LOCAL_SEQWINDOW/2, config.MOTIF_FINDING_LOCAL_SEQWINDOW/2).getWidth());
