@@ -179,8 +179,9 @@ public class MotifPlatform {
 								int center = p.getLocation()-config.MOTIF_FINDING_SEQWINDOW+maxPos;
 								Region peakReg = new Region(p.getGenome(), p.getChrom(), center-config.MOTIF_FINDING_LOCAL_SEQWINDOW/2, center+config.MOTIF_FINDING_LOCAL_SEQWINDOW/2);
 								StrandedPoint mPoint = getMotifPosition(currMotif, motifThres, peakReg);
-								if (Math.abs(center - mPoint.getLocation())<=5)
-									newCenterPos.add(mPoint);
+								if (mPoint!=null)
+									if (Math.abs(center - mPoint.getLocation())<=5)
+										newCenterPos.add(mPoint);
 							}}}}			
 				modelRefs.add(newCenterPos);
 				if(motifFound)
@@ -314,7 +315,8 @@ public class MotifPlatform {
 							double motifThres = finder.execute(config.MARKOV_BACK_MODEL_THRES); 
 							double seqRmThres = finder.execute(config.MARKOV_BACK_SEQ_RM_THRES); 
 							for (Region reg : sortedRegions){
-								refs.add(getMotifPosition(currMotif, motifThres, reg));
+								if (getMotifPosition(currMotif, motifThres, reg)!=null)
+									refs.add(getMotifPosition(currMotif, motifThres, reg));
 								if (getMotifPosition(currMotif, seqRmThres, reg)!=null)
 									found.add(reg);
 							}
