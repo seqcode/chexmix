@@ -69,12 +69,10 @@ public class BindingSubtype {
 	public void setReverseMotif(boolean reverse){reverseMotif=reverse;}
 
 	public void makeTagDistribution(int modelWidth) throws Exception{
-		//Load appropriate options
-		List<StrandedPoint> compositePoints = new ArrayList<StrandedPoint>();
-		compositePoints.addAll(modelReferences);
-
 		//Build the composite distribution(s)
-		CompositeTagDistribution signalComposite = new CompositeTagDistribution(compositePoints, condition, modelWidth,true);							
+		System.out.println("size of opints "+modelReferences.size()+" condition "+condition.getName()+" m width "+modelWidth);
+		System.out.println(modelReferences.get(0).toString());
+		CompositeTagDistribution signalComposite = new CompositeTagDistribution(modelReferences, condition, modelWidth,true);							
 		TagProbabilityDensity model = new TagProbabilityDensity(signalComposite.getWinSize()-1);
 		model.loadData(signalComposite.getCompositeWatson(), signalComposite.getCompositeCrick());
 		setBindingModel(model);

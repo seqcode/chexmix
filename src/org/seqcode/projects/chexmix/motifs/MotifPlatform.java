@@ -353,6 +353,7 @@ public class MotifPlatform {
 			// Make binding subtypes from motif references
 			List<BindingSubtype> subtypes = new ArrayList<BindingSubtype>();
 			for (int m=0; m< selecMotifs.size(); m++){
+				System.out.println("motif platform "+motifRefs.get(m).toString());
 				BindingSubtype subtype = new BindingSubtype(cond, new ArrayList<StrandedPoint>(motifRefs.get(m)), config.MAX_BINDINGMODEL_WIDTH);
 				subtype.setMotif(selecMotifs.get(m), selecFreqMatrix.get(m));
 				subtypes.add(subtype);
