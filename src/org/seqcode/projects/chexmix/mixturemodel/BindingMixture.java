@@ -412,13 +412,14 @@ public class BindingMixture {
 		for (ExperimentCondition cond : manager.getConditions()){	
 			List<BindingSubtype> currSubtypes = bindingManager.getBindingSubtype(cond);
 			int numTypes = bindingManager.getNumBindingType(cond);
+			System.out.println("number of binding types "+numTypes);
 			if (numTypes > 1){
 				double[][] klScores = new double[numTypes][numTypes];
 				for (int i=0; i < numTypes ; i++)
 					for (int j=0; j < numTypes; j++)
 						klScores[i][j]=0;
 				for (int a=0; a < numTypes; a++)
-					for (int b=0; b < numTypes; b++)
+					for (int b=1; b < numTypes; b++)
 						klScores[a][b]=getMinKLDivergenceScore(currSubtypes.get(a).getBindingModel(0),currSubtypes.get(b).getBindingModel(0));
 				// Identify similar binding model one by one
 				List<Integer> model2remove = new ArrayList<Integer>();
