@@ -152,8 +152,8 @@ public class MotifPlatform {
 				// Get sequences for local MEME search at maximum information content
 				List<String> localSeqs = new ArrayList<String>();
 				for (String currSeq : seqs){
-					currSeq.substring(Math.max(0, maxPos-config.MOTIF_FINDING_LOCAL_SEQWINDOW/2), Math.min(currSeq.length()-1, maxPos+config.MOTIF_FINDING_LOCAL_SEQWINDOW/2));
-					if(lowercaseFraction(currSeq)<=config.MOTIF_FINDING_ALLOWED_REPETITIVE){localSeqs.add(currSeq);}	
+					String seq = currSeq.substring(Math.max(0, maxPos-config.MOTIF_FINDING_LOCAL_SEQWINDOW/2), Math.min(currSeq.length()-1, maxPos+config.MOTIF_FINDING_LOCAL_SEQWINDOW/2));
+					if(lowercaseFraction(currSeq)<=config.MOTIF_FINDING_ALLOWED_REPETITIVE){localSeqs.add(seq);}	
 				}
 					
 				if (seqs.size() < config.getMinRefsForBMUpdate()){
