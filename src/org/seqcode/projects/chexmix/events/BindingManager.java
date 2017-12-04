@@ -243,70 +243,66 @@ public class BindingManager {
 					}	
 					fout.close();
 					
-					if (getNumBindingType(cond)>1){
-						//Print aligned points
-						List<List<StrandedPoint>> subtypePoints = new ArrayList<List<StrandedPoint>>();
-						List<List<Region>> potReg = new ArrayList<List<Region>>();
-						List<List<StrandedPoint>> alignedPoints = new ArrayList<List<StrandedPoint>>();
-						for (int bt=0; bt < getNumBindingType(cond); bt++){
-							subtypePoints.add(new ArrayList<StrandedPoint>());
-							potReg.add(new ArrayList<Region>());
-							alignedPoints.add(new ArrayList<StrandedPoint>());
-						}
-						for(BindingEvent e : events){
-							double Q = e.getCondSigVCtrlP(cond);
-							//Because of the ML step and component sharing, I think that an event could be assigned a significant number of reads without being "present" in the condition's EM model.
-							if(e.isFoundInCondition(cond) && Q <=qMinThres){
-								Pair<Integer, StrandedPoint>p=e.getMaxSubtypePoint(cond);
-								subtypePoints.get(p.car()).add(p.cdr());
-								potReg.get(p.car()).add(e.getContainingRegion());
-							}
-						}	
-						
-						// Align points
-						for (int bt=0;bt< getNumBindingType(cond); bt++){
-							List<StrandedPoint> points = subtypePoints.get(bt);
-							BindingSubtype currSubtype = bindingSubtypes.get(cond).get(bt);
-							if (currSubtype.hasMotif()){
-		    					int offset = currSubtype.getMotifOffset();
-		    					if (currSubtype.reverseMotif()){ //reverse complement
-		    						int c=0;
-		    						for (StrandedPoint p : points){
-		    							int location = p.getStrand()=='+' ? p.getLocation()-offset : p.getLocation()+offset;
-		    							// Filter out sequences that are on the edge of cashed sequences
-										if((location-potReg.get(bt).get(c).getStart()>config.SEQPLOTWIN) && (potReg.get(bt).get(c).getEnd()-location>config.SEQPLOTWIN))
-											alignedPoints.get(bt).add(new StrandedPoint(p.getGenome(),p.getChrom(),location,p.getStrand() =='+' ? '-' : '+'));
-										c++;
-		    						}	    						
-		    					}else{
-		    						int c=0;
-		    						for (StrandedPoint p : points){
-		    							int location = p.getStrand()=='+' ? p.getLocation()+offset : p.getLocation()-offset;
-		    							if((location-potReg.get(bt).get(c).getStart()>config.SEQPLOTWIN) && (potReg.get(bt).get(c).getEnd()-location>config.SEQPLOTWIN))
-		    								alignedPoints.get(bt).add(new StrandedPoint(p.getGenome(),p.getChrom(),location,p.getStrand()));
-		    							c++;
-		    						}	    						
-		    					}	    					
-							}else{ // no motif found
-								int c=0;
-								for (StrandedPoint p : points){
-									if((p.getLocation()-potReg.get(bt).get(c).getStart()>config.SEQPLOTWIN) && (potReg.get(bt).get(c).getEnd()-p.getLocation()>config.SEQPLOTWIN))
-										alignedPoints.get(bt).add(p);
-									c++;
-								}
-							}
-						}
-						filename = filePrefix+"_"+condName+".subtype.aligned.events";
-						fout = new FileWriter(filename);
-						int subtypeC=0;
-						for (List<StrandedPoint> points : alignedPoints){
-							for (StrandedPoint p : points)
-								fout.write(p.toString()+"\tSubtype"+subtypeC+'\n');
-							subtypeC++;
-						}
-						fout.close();
-						setAlignedEventPoints(cond,alignedPoints);
+					//Print aligned points
+					List<List<StrandedPoint>> subtypePoints = new ArrayList<List<StrandedPoint>>();
+					List<List<Region>> potReg = new ArrayList<List<Region>>();
+					List<List<StrandedPoint>> alignedPoints = new ArrayList<List<StrandedPoint>>();
+					for (int bt=0; bt < getNumBindingType(cond); bt++){
+						subtypePoints.add(new ArrayList<StrandedPoint>());
+						potReg.add(new ArrayList<Region>());
+						alignedPoints.add(new ArrayList<StrandedPoint>());
 					}
+					for(BindingEvent e : events){
+						double Q = e.getCondSigVCtrlP(cond);
+						//Because of the ML step and component sharing, I think that an event could be assigned a significant number of reads without being "present" in the condition's EM model.
+						if(e.isFoundInCondition(cond) && Q <=qMinThres){
+							Pair<Integer, StrandedPoint>p=e.getMaxSubtypePoint(cond);
+							subtypePoints.get(p.car()).add(p.cdr());
+							potReg.get(p.car()).add(e.getContainingRegion());
+						}
+					}	
+						
+					// Align points
+					for (int bt=0;bt< getNumBindingType(cond); bt++){
+						List<StrandedPoint> points = subtypePoints.get(bt);
+						BindingSubtype currSubtype = bindingSubtypes.get(cond).get(bt);
+						int c=0;
+						if (currSubtype.hasMotif()){
+		    				int offset = currSubtype.getMotifOffset();
+		    				if (currSubtype.reverseMotif()){ //reverse complement
+		    					for (StrandedPoint p : points){
+		    						int location = p.getStrand()=='+' ? p.getLocation()-offset : p.getLocation()+offset;
+		    						// Filter out sequences that are on the edge of cashed sequences
+									if((location-potReg.get(bt).get(c).getStart()>config.SEQPLOTWIN) && (potReg.get(bt).get(c).getEnd()-location>config.SEQPLOTWIN))
+										alignedPoints.get(bt).add(new StrandedPoint(p.getGenome(),p.getChrom(),location,p.getStrand() =='+' ? '-' : '+'));
+									c++;
+		    					}	    						
+		    				}else{
+		    					for (StrandedPoint p : points){
+		    						int location = p.getStrand()=='+' ? p.getLocation()+offset : p.getLocation()-offset;
+		    						if((location-potReg.get(bt).get(c).getStart()>config.SEQPLOTWIN) && (potReg.get(bt).get(c).getEnd()-location>config.SEQPLOTWIN))
+		    							alignedPoints.get(bt).add(new StrandedPoint(p.getGenome(),p.getChrom(),location,p.getStrand()));
+		    						c++;
+		    					}	    						
+		    				}	    					
+						}else{ // no motif found
+							for (StrandedPoint p : points){
+								if((p.getLocation()-potReg.get(bt).get(c).getStart()>config.SEQPLOTWIN) && (potReg.get(bt).get(c).getEnd()-p.getLocation()>config.SEQPLOTWIN))
+									alignedPoints.get(bt).add(p);
+								c++;
+							}
+						}
+					}
+					filename = filePrefix+"_"+condName+".subtype.aligned.events";
+					fout = new FileWriter(filename);
+					int subtypeC=0;
+					for (List<StrandedPoint> points : alignedPoints){
+						for (StrandedPoint p : points)
+							fout.write(p.toString()+"\tSubtype"+subtypeC+'\n');
+						subtypeC++;
+					}
+					fout.close();
+					setAlignedEventPoints(cond,alignedPoints);
 	    		}
 	    		
 	    		//Differential event files
