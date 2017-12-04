@@ -333,7 +333,6 @@ public class BindingMixture {
     		currComps.removeAll(comps2remove);
     		
     		// Update read profile using assigned reads to a binding component per subtype group
-    		int currentType=0;
     		List<double[][]> newModelList = new ArrayList<double[][]>();
     		List<Integer> eventCounter = new ArrayList<Integer>();
     		for (List<BindingSubComponents> compGroups : currComps){	//Iterate each subtype group
@@ -370,7 +369,6 @@ public class BindingMixture {
     				currModel[0]=newModel_plus; currModel[1]=newModel_minus;
     				newModelList.add(currModel);
     			}
-    			currentType++;
     		} // end of iterating each subtype group
     		
     		List<BindingSubtype> subtypes = new ArrayList<BindingSubtype>();
@@ -921,20 +919,19 @@ public class BindingMixture {
 		            	String[][] seqs = new String[numBindingType][2];
 		            	for(BindingEvent b: currEvents){
 		            		if (b.isFoundInCondition(cond)){
-		            			if (bindingManager.getBindingSubtype(cond)!=null){
-		            				for (int bt=0; bt < numBindingType; bt++){
-		            					BindingSubtype subtype = bindingManager.getBindingSubtype(cond).get(bt);
-		            					scores[bt][0]=0; seqs[bt][0] = ""; scores[bt][1]=0; seqs[bt][1]="";
-		            					if (subtype.hasMotif() && b.getTypePoints(cond)!=null){
-		            						if (b.getTypePoints(cond)[bt][0].getLocation()-w.getStart()>0){
-		            							scores[bt][0] = motifForScores.car()[cond.getIndex()][bt][b.getTypePoints(cond)[bt][0].getLocation()-w.getStart()];
-		            							seqs[bt][0] = motifForScores.cdr()[cond.getIndex()][bt][b.getTypePoints(cond)[bt][0].getLocation()-w.getStart()];
-		            						}
-		            						if (b.getTypePoints(cond)[bt][1].getLocation()-w.getStart()>0){
-		            							scores[bt][1] = motifRevScores.car()[cond.getIndex()][bt][b.getTypePoints(cond)[bt][1].getLocation()-w.getStart()];
-		            							seqs[bt][1] = motifRevScores.cdr()[cond.getIndex()][bt][b.getTypePoints(cond)[bt][1].getLocation()-w.getStart()];
-		            						}
-		            				}}}}		
+		            			for (int bt=0; bt < numBindingType; bt++){
+		            				BindingSubtype subtype = bindingManager.getBindingSubtype(cond).get(bt);
+		            				scores[bt][0]=0; seqs[bt][0] = ""; scores[bt][1]=0; seqs[bt][1]="";
+		            				if (subtype.hasMotif() && b.getTypePoints(cond)!=null){
+		            					if (b.getTypePoints(cond)[bt][0].getLocation()-w.getStart()>0){
+		            						scores[bt][0] = motifForScores.car()[cond.getIndex()][bt][b.getTypePoints(cond)[bt][0].getLocation()-w.getStart()];
+		            						seqs[bt][0] = motifForScores.cdr()[cond.getIndex()][bt][b.getTypePoints(cond)[bt][0].getLocation()-w.getStart()];
+		            					}
+		            					if (b.getTypePoints(cond)[bt][1].getLocation()-w.getStart()>0){
+		            						scores[bt][1] = motifRevScores.car()[cond.getIndex()][bt][b.getTypePoints(cond)[bt][1].getLocation()-w.getStart()];
+		            						seqs[bt][1] = motifRevScores.cdr()[cond.getIndex()][bt][b.getTypePoints(cond)[bt][1].getLocation()-w.getStart()];
+		            					}
+		            			}}}		
 		            		b.setMotifScore(cond,scores);
 		            		b.setSequence(cond, seqs);	          			
 		            	}}}}
