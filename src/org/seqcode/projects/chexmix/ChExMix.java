@@ -107,8 +107,8 @@ public class ChExMix {
 			tagProbDensities.add(density);
 		}
 		// Set tag probability density models to binding manager
-		List<BindingSubtype> initSubtypes = new ArrayList<BindingSubtype>();
 		for(ExperimentCondition cond : manager.getConditions()){
+			List<BindingSubtype> initSubtypes = new ArrayList<BindingSubtype>();
 			for (TagProbabilityDensity currDensity : tagProbDensities)
 				initSubtypes.add(new BindingSubtype(cond, currDensity, 0));
 			bindingManager.setBindingSubtypes(cond, initSubtypes);
