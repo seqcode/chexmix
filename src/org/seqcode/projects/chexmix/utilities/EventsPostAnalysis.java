@@ -105,10 +105,12 @@ public class EventsPostAnalysis {
 									int index = loc - ev.getContainingRegion().getStart();
 									int closestMatch = Integer.MAX_VALUE;
 									for (int m=0; m < subtypes.size(); m++){
-										double currThreshold = subtypes.get(m).getMotif().getMaxScore() * motifThres;
-										for(int x=0; x<scores[m].length; x++)
-											if(scores[m][x]>=currThreshold && Math.abs(x-index)<closestMatch)
-												closestMatch = Math.abs(x-index);
+										if (subtypes.get(m).hasMotif()){
+											double currThreshold = subtypes.get(m).getMotif().getMaxScore() * motifThres;
+											for(int x=0; x<scores[m].length; x++)
+												if(scores[m][x]>=currThreshold && Math.abs(x-index)<closestMatch)
+													closestMatch = Math.abs(x-index);
+										}
 									}
 									peakMotifHisto.addValue(closestMatch);										
 								}

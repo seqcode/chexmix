@@ -70,8 +70,6 @@ public class BindingSubtype {
 
 	public void makeTagDistribution(int modelWidth) throws Exception{
 		//Build the composite distribution(s)
-		System.out.println("size of opints "+modelReferences.size()+" condition "+condition.getName()+" m width "+modelWidth);
-		System.out.println(modelReferences.get(0).toString());
 		CompositeTagDistribution signalComposite = new CompositeTagDistribution(modelReferences, condition, modelWidth,true);							
 		TagProbabilityDensity model = new TagProbabilityDensity(signalComposite.getWinSize()-1);
 		model.loadData(signalComposite.getCompositeWatson(), signalComposite.getCompositeCrick());
