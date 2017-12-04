@@ -15,12 +15,14 @@ import java.util.Random;
 import java.util.Set;
 
 import org.seqcode.data.io.BackgroundModelIO;
+import org.seqcode.data.io.RegionFileUtilities;
 import org.seqcode.data.motifdb.CountsBackgroundModel;
 import org.seqcode.data.motifdb.MarkovBackgroundModel;
 import org.seqcode.data.motifdb.WeightMatrix;
 import org.seqcode.data.motifdb.WeightMatrixImport;
 import org.seqcode.deepseq.experiments.ExperimentCondition;
 import org.seqcode.deepseq.experiments.ExperimentManager;
+import org.seqcode.deepseq.experiments.ExptConfig;
 import org.seqcode.genome.Genome;
 import org.seqcode.genome.GenomeConfig;
 import org.seqcode.genome.location.NamedRegion;
@@ -35,10 +37,14 @@ import org.seqcode.gsebricks.verbs.motifs.WeightMatrixScorer;
 import org.seqcode.gseutils.NotFoundException;
 import org.seqcode.gseutils.Pair;
 import org.seqcode.math.stats.StatUtil;
+import org.seqcode.motifs.DrawMotifs;
 import org.seqcode.motifs.MarkovMotifThresholdFinder;
+import org.seqcode.projects.chexmix.ChExMix;
 import org.seqcode.projects.chexmix.composite.CompositeTagDistribution;
+import org.seqcode.projects.chexmix.composite.XLAnalysisConfig;
 import org.seqcode.projects.chexmix.events.BindingManager;
 import org.seqcode.projects.chexmix.events.BindingSubtype;
+import org.seqcode.projects.chexmix.events.EventsConfig;
 import org.seqcode.projects.chexmix.framework.ChExMixConfig;
 import org.seqcode.projects.chexmix.mixturemodel.BindingSubComponents;
 import org.seqcode.projects.chexmix.stats.InformationContent;
@@ -57,6 +63,7 @@ public class MotifPlatform {
 	protected MEMERunner meme;
 	protected MarkovBackgroundModel backMod;
 	protected SimpleMotifAligner aligner;
+	protected List<Region> cachedRegions;
 		
 	/**
 	 * Constructor for motif platform
@@ -78,6 +85,7 @@ public class MotifPlatform {
 			randomSequences = seqgen.setupRegionCache(regionsOfInterest, randomRegions);
 			System.err.println("Caching completed");
 		}
+		cachedRegions = regionsOfInterest;
 		meme = new MEMERunner(config, man);
 		
 		//Load the background model or make background model
@@ -109,10 +117,7 @@ public class MotifPlatform {
 	 */
 	public List<List<List<StrandedPoint>>> findClusterMotifs(List<List<List<StrandedPoint>>> points, int trainingRound) throws ParseException{
 		
-		List<List<List<StrandedPoint>>> adjPoints=new ArrayList<List<List<StrandedPoint>>>();
-		
-		// Filter out points that are outside of cashed sequence  
-				
+		List<List<List<StrandedPoint>>> adjPoints=new ArrayList<List<List<StrandedPoint>>>();				
 		for (ExperimentCondition cond : manager.getConditions()){	
 			List<List<StrandedPoint>> modelRefs = new ArrayList<List<StrandedPoint>>();
 			int counter=0;
@@ -122,7 +127,14 @@ public class MotifPlatform {
 				boolean motifFound =false;
 				for (StrandedPoint p : clusterPoints){
 					Region peakReg = new Region(p.getGenome(), p.getChrom(), p.getLocation()-config.MOTIF_FINDING_SEQWINDOW, p.getLocation()+config.MOTIF_FINDING_SEQWINDOW); 
-					seqs.add(seqgen.execute(peakReg));				
+					boolean containing=false;	// Filter out regions that are edge of cached sequences
+					for (Region reg : cachedRegions){
+						if (reg.contains(peakReg)){
+							containing=true; break;
+						}
+					} 
+					if (containing)
+						seqs.add(seqgen.execute(peakReg));
 				}
 				
 				WeightMatrix m = WeightMatrixImport.buildAlignedSequenceMatrix(seqs);	
@@ -187,7 +199,28 @@ public class MotifPlatform {
 				if(motifFound)
 					modelRefs.add(newCenterPos);
 				else
-					modelRefs.add(clusterPoints);				
+					modelRefs.add(clusterPoints);		
+				
+				// Testing
+				String motifLabel = WeightMatrix.getConsensus(m)+", MEME";
+				DrawMotifs.printMotifLogo(m, new File("before_alignment_motif.png"), 75, motifLabel); 
+				
+				List<String> newSeqs=new ArrayList<String>();
+				for (StrandedPoint p : newCenterPos){
+					Region peakReg = new Region(p.getGenome(), p.getChrom(), p.getLocation()-config.MOTIF_FINDING_SEQWINDOW, p.getLocation()+config.MOTIF_FINDING_SEQWINDOW); 
+					boolean containing=false;	// Filter out regions that are edge of cached sequences
+					for (Region reg : cachedRegions){
+						if (reg.contains(peakReg)){
+							containing=true; break;
+						}
+					} 
+					if (containing)
+						newSeqs.add(seqgen.execute(peakReg));
+				}
+				WeightMatrix wm = WeightMatrixImport.buildAlignedSequenceMatrix(newSeqs);
+				motifLabel = WeightMatrix.getConsensus(wm)+", MEME";
+				DrawMotifs.printMotifLogo(wm, new File("after_alignment_motif.png"), 75, motifLabel); 
+				// End of testing
 			}	
 			adjPoints.add(modelRefs);			
 			counter++;
@@ -546,43 +579,6 @@ public class MotifPlatform {
 		return maxscore;
 	}
 
-	
-	/**
-	 * Scan the region with the motifs from each condition. Suitable for making a motif prior.  
-	 * @param reg
-	 * @return array of array of motif scores. Indexed by condition. 
-	 */
-	public double[][][] scanRegionWithMotifs(Region reg, String regSeq){			
-		double[][][] scanScores = new double[manager.getNumConditions()][][];	
-		
-		for(ExperimentCondition cond : manager.getConditions()){
-			List<BindingSubtype> subtypes = bindingManager.getBindingSubtype(cond);
-			int e = cond.getIndex();
-			scanScores[e] = new double[subtypes.size()][reg.getWidth()];
-			for (int i=0; i<subtypes.size(); i++)
-				for(int z=0; z<reg.getWidth(); z++)
-					scanScores[e][i][z]=0;			
-			int i=0;	//Subtype counter
-			for (BindingSubtype sub : subtypes){
-				if (sub.hasMotif()){
-					int motifOffset = sub.getMotifOffset();
-					WeightMatrixScorer scorer = new WeightMatrixScorer(sub.getMotif());
-					WeightMatrixScoreProfile profiler = scorer.execute(regSeq);
-					Integer halfMotifWidth = sub.getMotif().length()/2;
-					for(int z=0; z<reg.getWidth()-sub.getMotif().length()+1; z++){
-						double currScore= profiler.getMaxScore(z);
-						int zOff = z+motifOffset+halfMotifWidth;
-						if(currScore>0)
-							if(zOff > 0 && zOff < reg.getWidth())
-								scanScores[e][i][zOff] = currScore;
-					}					
-				}		
-			i++;	
-			}
-		}
-		return scanScores;
-	}
-	
 	/**
 	 * Scan the region with the motifs from each condition. Suitable for making a motif prior.  Returns score for either strand.
 	 * @param reg
@@ -931,4 +927,55 @@ public class MotifPlatform {
 			else{return 0;}
 		}
 	}
+	
+	/**
+	 * Main to test local sequence alignment
+	 * @param args
+	 * @throws Exception 
+	 */
+	public static void main(String[] args) throws Exception{
+		System.setProperty("java.awt.headless", "true");
+		System.err.println("ChExMix version "+ChExMixConfig.version+"\n\n");
+		GenomeConfig gcon = new GenomeConfig(args);
+		EventsConfig evconfig = new EventsConfig(gcon, args);
+		ChExMixConfig config = new ChExMixConfig(gcon, args);
+		XLAnalysisConfig xlconfig = new XLAnalysisConfig(gcon, args);
+		
+		ExptConfig econ = new ExptConfig(gcon.getGenome(), args);
+		if (!config.useReadFilter())
+			econ.setPerBaseReadFiltering(false);	
+		econ.setLoadRead2(false);
+		
+		if(config.helpWanted()){
+			System.err.println(config.getArgsList());
+		}else{
+			
+			ExperimentManager manager = new ExperimentManager(econ);
+			
+			//Just a test to see if we've loaded all conditions
+			if(manager.getConditions().size()==0){
+				System.err.println("No experiments specified. Use --expt or --design options."); System.exit(1);
+			}
+			
+			ChExMix gps = new ChExMix(gcon, econ, evconfig, config, xlconfig, manager);
+			
+			MotifPlatform motifFinder = new MotifPlatform(gcon, config, manager, gps.getBindingManager(), gps.getPotentialFilter().getPotentialRegions());
+			
+			List<List<StrandedPoint>> initClustPoints = config.getInitialClustPoints();			
+			
+			// Test on clustered points
+			List<List<List<StrandedPoint>>> clustPoints = new ArrayList<List<List<StrandedPoint>>>();
+			for (ExperimentCondition cond : manager.getConditions())
+				clustPoints.add(initClustPoints);
+			
+			List<List<List<StrandedPoint>>> adjustedPoints = motifFinder.findClusterMotifs(clustPoints,0);
+			
+			List<StrandedPoint> p= adjustedPoints.get(0).get(0);
+			for (StrandedPoint point : p)
+				System.out.println(point.toString());
+			
+			manager.close();
+		}
+	}
+	
 }

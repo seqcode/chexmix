@@ -261,7 +261,12 @@ public class BindingMixture {
 	public void doReadDistributionClustering() throws Exception{
 		// Execute affinity propagation clustering
 		if (config.getClusteringReads()){
-			List<List<List<StrandedPoint>>> clustPoints = null;	
+			List<List<StrandedPoint>> initClustPoints = config.getInitialClustPoints();			
+			
+			// Test on clustered points
+			List<List<List<StrandedPoint>>> clustPoints = new ArrayList<List<List<StrandedPoint>>>();
+			for (ExperimentCondition cond : manager.getConditions())
+				clustPoints.add(initClustPoints);
 		
 			// Find motif within clusters
 			if (config.getFindingMotifs()){
