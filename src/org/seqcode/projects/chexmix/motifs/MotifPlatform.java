@@ -157,10 +157,10 @@ public class MotifPlatform {
 				}
 					
 				if (seqs.size() < config.getMinRefsForBMUpdate()){
-					System.err.println("cannot do motif finding due to too few regions ("+seqs.size()+"<"+config.getMinRefsForBMUpdate()+").");
+					System.err.println("cannot do motif finding due to too few regions ("+localSeqs.size()+"<"+config.getMinRefsForBMUpdate()+").");
 				}else{						
 					//Execute MEME
-					Pair<List<WeightMatrix>,List<WeightMatrix>> matrices = meme.execute(seqs, new String("motif_"+cond.getName()+"_t"+trainingRound+"_c"+counter), false);
+					Pair<List<WeightMatrix>,List<WeightMatrix>> matrices = meme.execute(localSeqs, new String("motif_"+cond.getName()+"_t"+trainingRound+"_c"+counter), false);
 					List<WeightMatrix> wm = matrices.car();
 					List<WeightMatrix> fm = matrices.cdr();
 					if(wm.size()>0){
