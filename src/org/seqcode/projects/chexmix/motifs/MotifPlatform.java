@@ -41,6 +41,7 @@ import org.seqcode.motifs.DrawMotifs;
 import org.seqcode.motifs.MarkovMotifThresholdFinder;
 import org.seqcode.projects.chexmix.ChExMix;
 import org.seqcode.projects.chexmix.composite.CompositeTagDistribution;
+import org.seqcode.projects.chexmix.composite.TagProbabilityDensity;
 import org.seqcode.projects.chexmix.composite.XLAnalysisConfig;
 import org.seqcode.projects.chexmix.events.BindingManager;
 import org.seqcode.projects.chexmix.events.BindingSubtype;
@@ -113,9 +114,9 @@ public class MotifPlatform {
 	 * @param cond
 	 * @param activeComponents
 	 * @param trainingRound
-	 * @throws ParseException 
+	 * @throws Exception 
 	 */
-	public List<List<List<StrandedPoint>>> findClusterMotifs(List<List<List<StrandedPoint>>> points, int trainingRound) throws ParseException{
+	public List<List<List<StrandedPoint>>> findClusterMotifs(List<List<List<StrandedPoint>>> points, int trainingRound) throws Exception{
 		
 		List<List<List<StrandedPoint>>> adjPoints=new ArrayList<List<List<StrandedPoint>>>();				
 		for (ExperimentCondition cond : manager.getConditions()){	
@@ -131,8 +132,6 @@ public class MotifPlatform {
 					if (start >=1 && end <= p.getGenome().getChromLength(p.getChrom())){
 						Region peakReg = new Region(p.getGenome(), p.getChrom(), start, end); 
 						boolean containing=false;	// Filter out regions that are edge of cached sequences
-						System.out.println("width before expansion "+peakReg.getWidth());
-						System.out.println("after expansion "+peakReg.expand(config.MOTIF_FINDING_LOCAL_SEQWINDOW/2, config.MOTIF_FINDING_LOCAL_SEQWINDOW/2).getWidth());
 						for (Region reg : cachedRegions){
 							if (reg.contains(peakReg.expand(config.MOTIF_FINDING_LOCAL_SEQWINDOW/2, config.MOTIF_FINDING_LOCAL_SEQWINDOW/2))){
 								containing=true; break;
@@ -209,26 +208,8 @@ public class MotifPlatform {
 				else
 					modelRefs.add(clusterPoints);		
 				
-				// Testing
-				String motifLabel = WeightMatrix.getConsensus(m)+", MEME";
-				DrawMotifs.printMotifLogo(m, new File("before_alignment_motif.png"), 75, motifLabel); 
-				
-				List<String> newSeqs=new ArrayList<String>();
-				for (StrandedPoint p : newCenterPos){
-					Region peakReg = new Region(p.getGenome(), p.getChrom(), p.getLocation()-config.MOTIF_FINDING_SEQWINDOW, p.getLocation()+config.MOTIF_FINDING_SEQWINDOW); 
-					boolean containing=false;	// Filter out regions that are edge of cached sequences
-					for (Region reg : cachedRegions){
-						if (reg.contains(peakReg)){
-							containing=true; break;
-						}
-					} 
-					if (containing)
-						newSeqs.add(seqgen.execute(peakReg));
-				}
-				WeightMatrix wm = WeightMatrixImport.buildAlignedSequenceMatrix(newSeqs);
-				motifLabel = WeightMatrix.getConsensus(wm)+", MEME";
-				DrawMotifs.printMotifLogo(wm, new File("after_alignment_motif.png"), 75, motifLabel); 
-				// End of testing
+				//testing only
+				printMotifsTest(cond, m, clusterPoints, newCenterPos, counter);
 			}	
 			adjPoints.add(modelRefs);			
 			counter++;
@@ -237,6 +218,36 @@ public class MotifPlatform {
 		return adjPoints;
 	}
 	
+	public void printMotifsTest(ExperimentCondition cond, WeightMatrix m, List<StrandedPoint> clusterPoints, List<StrandedPoint> newCenterPos, int counter) throws Exception{
+		String motifLabel = WeightMatrix.getConsensus(m)+"_"+counter+", MEME";
+		DrawMotifs.printMotifLogo(m, new File("before_alignment_motif_"+counter+".png"), 75, motifLabel); 
+		
+		CompositeTagDistribution signalComposite = new CompositeTagDistribution(clusterPoints, cond, config.MAX_BINDINGMODEL_WIDTH,true);							
+		TagProbabilityDensity model = new TagProbabilityDensity(signalComposite.getWinSize()-1);
+		model.loadData(signalComposite.getCompositeWatson(), signalComposite.getCompositeCrick());
+		model.printDensityToFile("before_alignment_motif_"+cond.getName()+"_"+counter);
+		
+		List<String> newSeqs=new ArrayList<String>();
+		for (StrandedPoint p : newCenterPos){
+			Region peakReg = new Region(p.getGenome(), p.getChrom(), p.getLocation()-config.MOTIF_FINDING_SEQWINDOW, p.getLocation()+config.MOTIF_FINDING_SEQWINDOW); 
+			boolean containing=false;	// Filter out regions that are edge of cached sequences
+			for (Region reg : cachedRegions){
+				if (reg.contains(peakReg)){
+					containing=true; break;
+				}
+			} 
+			if (containing)
+				newSeqs.add(seqgen.execute(peakReg));
+		}
+		WeightMatrix wm = WeightMatrixImport.buildAlignedSequenceMatrix(newSeqs);
+		motifLabel = WeightMatrix.getConsensus(wm)+"_"+counter+", MEME";
+		DrawMotifs.printMotifLogo(wm, new File("after_alignment_motif_"+counter+".png"), 75, motifLabel); 
+		
+		signalComposite = new CompositeTagDistribution(newCenterPos, cond, config.MAX_BINDINGMODEL_WIDTH,true);							
+		model = new TagProbabilityDensity(signalComposite.getWinSize()-1);
+		model.loadData(signalComposite.getCompositeWatson(), signalComposite.getCompositeCrick());
+		model.printDensityToFile("after_alignment_motif_"+cond.getName()+"_"+counter);
+	}	
 	
 	/**
 	 * Extract sequences around top BindingComponents and call the MEME runner 
