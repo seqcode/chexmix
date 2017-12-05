@@ -206,13 +206,14 @@ public class MotifPlatform {
 				if(motifFound)
 					modelRefs.add(newCenterPos);
 				else
-					modelRefs.add(clusterPoints);		
+					modelRefs.add(clusterPoints);	
+				
+				counter++;
 				
 				//testing only
 				printMotifsTest(cond, m, clusterPoints, newCenterPos, counter);
 			}	
 			adjPoints.add(modelRefs);			
-			counter++;
 		}	
 		
 		return adjPoints;
