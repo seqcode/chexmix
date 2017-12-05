@@ -194,8 +194,6 @@ public class MotifPlatform {
 							double motifThres = finder.execute(config.MARKOV_BACK_MODEL_THRES);
 							for (StrandedPoint p : clusterPoints){
 								int center = p.getLocation()-config.MOTIF_FINDING_SEQWINDOW+maxPos;
-								System.out.println("orig clust points "+p.toString());
-								System.out.println("optimal points "+center);
 								Region peakReg = new Region(p.getGenome(), p.getChrom(), center-config.MOTIF_FINDING_LOCAL_SEQWINDOW/2, center+config.MOTIF_FINDING_LOCAL_SEQWINDOW/2);
 								StrandedPoint mPoint = getMotifPosition(currMotif, motifThres, peakReg);
 								if (mPoint!=null)
@@ -211,7 +209,8 @@ public class MotifPlatform {
 				counter++;
 				
 				//testing only
-				printMotifsTest(cond, m, clusterPoints, newCenterPos, counter);
+				if(motifFound)
+					printMotifsTest(cond, m, clusterPoints, newCenterPos, counter);				
 			}	
 			adjPoints.add(modelRefs);			
 		}	
@@ -220,8 +219,8 @@ public class MotifPlatform {
 	}
 	
 	public void printMotifsTest(ExperimentCondition cond, WeightMatrix m, List<StrandedPoint> clusterPoints, List<StrandedPoint> newCenterPos, int counter) throws Exception{
-		String motifLabel = WeightMatrix.getConsensus(m)+"_"+counter+", MEME";
-		DrawMotifs.printMotifLogo(m, new File("before_alignment_motif_"+counter+".png"), 75, motifLabel); 
+//		String motifLabel = WeightMatrix.getConsensus(m)+"_"+counter+", MEME";
+		DrawMotifs.printMotifLogo(m, new File("before_alignment_motif_"+counter+".png"), 75, counter+", MEME"); 
 		
 		CompositeTagDistribution signalComposite = new CompositeTagDistribution(clusterPoints, cond, config.MAX_BINDINGMODEL_WIDTH,true);							
 		TagProbabilityDensity model = new TagProbabilityDensity(signalComposite.getWinSize()-1);
@@ -241,8 +240,8 @@ public class MotifPlatform {
 				newSeqs.add(seqgen.execute(peakReg));
 		}
 		WeightMatrix wm = WeightMatrixImport.buildAlignedSequenceMatrix(newSeqs);
-		motifLabel = WeightMatrix.getConsensus(wm)+"_"+counter+", MEME";
-		DrawMotifs.printMotifLogo(wm, new File("after_alignment_motif_"+counter+".png"), 75, motifLabel); 
+//		motifLabel = WeightMatrix.getConsensus(wm)+"_"+counter+", MEME";
+		DrawMotifs.printMotifLogo(wm, new File("after_alignment_motif_"+counter+".png"), 75, counter+", MEME"); 
 		
 		signalComposite = new CompositeTagDistribution(newCenterPos, cond, config.MAX_BINDINGMODEL_WIDTH,true);							
 		model = new TagProbabilityDensity(signalComposite.getWinSize()-1);
