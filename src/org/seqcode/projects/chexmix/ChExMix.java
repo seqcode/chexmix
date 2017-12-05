@@ -2,6 +2,7 @@ package org.seqcode.projects.chexmix;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,8 +23,6 @@ import org.seqcode.projects.chexmix.framework.OutputFormatter;
 import org.seqcode.projects.chexmix.framework.PotentialRegionFilter;
 import org.seqcode.projects.chexmix.mixturemodel.BindingMixture;
 import org.seqcode.projects.chexmix.utilities.EventsPostAnalysis;
-import org.seqcode.viz.metaprofile.MetaConfig;
-import org.seqcode.viz.metaprofile.MetaMaker;
 import org.seqcode.deepseq.experiments.ControlledExperiment;
 import org.seqcode.deepseq.experiments.ExperimentCondition;
 import org.seqcode.deepseq.experiments.ExperimentManager;
@@ -68,7 +67,6 @@ public class ChExMix {
 			repBindingModels.put(rep,  new ArrayList<TagProbabilityDensity>());
 		
 		List<TagProbabilityDensity> tagProbDensities = new ArrayList<TagProbabilityDensity>();	
-		boolean strandedModelSet =false;
 		if (!gpsconfig.getInitialClustPoints().isEmpty()){
 			List<List<StrandedPoint>> initialClustPoints = gpsconfig.getInitialClustPoints();
 			for (List<StrandedPoint> points : initialClustPoints){
@@ -86,43 +84,49 @@ public class ChExMix {
 				}
 				tagProbDensities.add(currDensity);
 			}	
-			strandedModelSet=true;
 		}else if (xlconfig.getModelFilename()!= null){
 			ProteinDNAInteractionModel model = ProteinDNAInteractionModel.loadFromFile(xlconfig, new File(xlconfig.getModelFilename()));
-			List<ProteinDNAInteractionModel> models = new ArrayList<ProteinDNAInteractionModel>();
-			models.add(model);
 			TagProbabilityDensity density = model.makeTagProbabilityDensityFromAllComponents();
 			tagProbDensities.add(density);
-			strandedModelSet=true;
-		}		
-		// Set tag probability density models to binding manager
-		if (strandedModelSet){
-			List<BindingSubtype> initSubtypes = new ArrayList<BindingSubtype>();
-			for(ExperimentCondition cond : manager.getConditions()){
-				for (TagProbabilityDensity currDensity : tagProbDensities)
-					initSubtypes.add(new BindingSubtype(cond, currDensity, 0));
-				bindingManager.setBindingSubtypes(cond, initSubtypes);
+		}else{	//make default model using default unstranded model
+			List<Pair<Integer,Double>> watsonModel= BindingModel.defaultChipExoEmpiricalDistribution;
+			List<Pair<Integer,Double>> crickModel = new ArrayList<Pair<Integer,Double>>();
+			List<Integer> pos = new ArrayList<Integer>();
+			List<Double> prob = new ArrayList<Double>();
+			for (Pair<Integer,Double> data : watsonModel){
+				pos.add(data.car());
+				prob.add(data.cdr());
 			}
+			List<Double> revProb = new ArrayList<Double>(prob);
+			Collections.reverse(revProb);
+			for (int i=0; i < revProb.size(); i++)
+				crickModel.add(new Pair<Integer,Double>(pos.get(i), revProb.get(i)));
+			TagProbabilityDensity density= new TagProbabilityDensity(watsonModel, crickModel);	
+			tagProbDensities.add(density);
+		}	
+		// Set tag probability density models to binding manager
+		for(ExperimentCondition cond : manager.getConditions()){
+			List<BindingSubtype> initSubtypes = new ArrayList<BindingSubtype>();
+			for (TagProbabilityDensity currDensity : tagProbDensities)
+				initSubtypes.add(new BindingSubtype(cond, currDensity, 0));
+			bindingManager.setBindingSubtypes(cond, initSubtypes);
 		}
 		
 		// Set unstranded binding models
 		for(ControlledExperiment rep : manager.getReplicates()){		
-			if(evconfig.getDefaultBindingModel()!=null){
+			if(evconfig.getDefaultBindingModel()!=null)
 				bindingManager.setUnstrandedBindingModel(rep, evconfig.getDefaultBindingModel());
-				repUnstrandedBindingModels.put(rep, new ArrayList<BindingModel>());
-				repUnstrandedBindingModels.get(rep).add(bindingManager.getUnstrandedBindingModel(rep));
-			}else{
+			else
 				bindingManager.setUnstrandedBindingModel(rep, new BindingModel(BindingModel.defaultChipExoEmpiricalDistribution));
-				repUnstrandedBindingModels.put(rep, new ArrayList<BindingModel>());
-				repUnstrandedBindingModels.get(rep).add(bindingManager.getUnstrandedBindingModel(rep));
-			}
+			repUnstrandedBindingModels.put(rep, new ArrayList<BindingModel>());
+			repUnstrandedBindingModels.get(rep).add(bindingManager.getUnstrandedBindingModel(rep));
 		}	
 		
 		// Testing only
-		if (strandedModelSet){printInitialDistribution();}
-		for(ExperimentCondition cond : manager.getConditions()){
+		printInitialDistribution();
+				
+		for(ExperimentCondition cond : manager.getConditions())
 			bindingManager.updateMaxInfluenceRange(cond, true);
-		}
 		
 		//Find potential binding regions
 		System.err.println("Finding potential binding regions.");
@@ -147,11 +151,11 @@ public class ChExMix {
 	 */
 	public void printInitialDistribution(){
 		// write tag probability density of initial distribution
-		String distribFilename = gpsconfig.getOutputIntermediateDir()+File.separator+gpsconfig.getOutBase()+"_t"+0+"_ReadDistrib_CompositeComponents";
+		String distribFilename = gpsconfig.getOutputIntermediateDir()+File.separator+gpsconfig.getOutBase()+"_t"+0+"_initReadDistrib";
 		for (ExperimentCondition cond : manager.getConditions()){
 			int i=0;
 			for (BindingSubtype sub : bindingManager.getBindingSubtype(cond)){
-				sub.getBindingModel(0).printDensityToFile(distribFilename+"_"+i);
+				sub.getBindingModel(0).printDensityToFile(distribFilename+"_"+i+".txt");
 				i++;
 			}
 		}
@@ -215,6 +219,13 @@ public class ChExMix {
                 	mixtureModel.doReadDistributionClustering();
             }else{
             	mixtureModel.updateBindingModelUsingReadDistributions(distribFilename);
+            }
+            
+            //Add new binding models to the record
+            for(ControlledExperiment rep : manager.getReplicates()){
+            	List<BindingSubtype> subtypes = bindingManager.getBindingSubtype(rep.getCondition());
+            	for (BindingSubtype sub : subtypes)
+            		repBindingModels.get(rep).add(sub.getBindingModel(0));
             }
              
             // Merge similar binding models

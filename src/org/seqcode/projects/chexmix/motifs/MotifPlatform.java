@@ -200,7 +200,6 @@ public class MotifPlatform {
 									if (Math.abs(center - mPoint.getLocation())<=5)
 										newCenterPos.add(mPoint);
 							}}}}			
-				modelRefs.add(newCenterPos);
 				if(motifFound)
 					modelRefs.add(newCenterPos);
 				else
@@ -988,10 +987,6 @@ public class MotifPlatform {
 				clustPoints.add(initClustPoints);
 			
 			List<List<List<StrandedPoint>>> adjustedPoints = motifFinder.findClusterMotifs(clustPoints,0);
-			
-			List<StrandedPoint> p= adjustedPoints.get(0).get(0);
-			for (StrandedPoint point : p)
-				System.out.println(point.toString());
 			
 			manager.close();
 		}
