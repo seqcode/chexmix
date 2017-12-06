@@ -42,6 +42,7 @@ public class BindingManager {
 	protected Map<ExperimentCondition, Integer> maxInfluenceRange;
 	protected Map<ExperimentCondition, Double> alpha;
 	protected Map<ExperimentCondition, List<List<StrandedPoint>>> alignedEventPoints;
+	protected Map<ExperimentCondition, List<BindingSubtype>> potentialBindingSubtypes;
 	
 	public BindingManager(EventsConfig con, ExperimentManager exptman){
 		config = con;
@@ -62,6 +63,7 @@ public class BindingManager {
 			maxInfluenceRange.put(cond,0);
 			alpha.put(cond, 0.0);
 			alignedEventPoints.put(cond, new ArrayList<List<StrandedPoint>>());
+			potentialBindingSubtypes.put(cond, new ArrayList<BindingSubtype>());
 		}
 	}
 	
@@ -74,6 +76,7 @@ public class BindingManager {
 	public Integer getMaxInfluenceRange(ExperimentCondition ec){return maxInfluenceRange.get(ec);}
 	public Double getAlpha(ExperimentCondition ec){return alpha.get(ec);}
 	public List<List<StrandedPoint>> getAlignedEventPoints(ExperimentCondition ec){return alignedEventPoints.get(ec);}
+	public List<BindingSubtype> getPotentialBindingSubtypes(ExperimentCondition ec){return potentialBindingSubtypes.get(ec);}
 
 	public void setBindingEvents(List<BindingEvent> e){events =e;}
 	public void setConditionBindingEvents(ExperimentCondition ec, List<BindingEvent> e){conditionEvents.put(ec, e);}
@@ -82,6 +85,8 @@ public class BindingManager {
 	public void setAlpha(ExperimentCondition ec, Double a){alpha.put(ec,a);}
 	public void setUnstrandedBindingModel(ControlledExperiment ce, BindingModel mod){unstrandedModel.put(ce, mod);}
 	public void setAlignedEventPoints(ExperimentCondition ec, List<List<StrandedPoint>> points){alignedEventPoints.put(ec, points);}
+	public void addPotentialBindingSubtypes(ExperimentCondition ec, List<BindingSubtype> subtypes){potentialBindingSubtypes.get(ec).addAll(subtypes);}
+	public void clearPotentialBindingSubtypes(ExperimentCondition ec){ potentialBindingSubtypes.put(ec, new ArrayList<BindingSubtype>());}
 
 	public void updateMaxInfluenceRange(ExperimentCondition ec, boolean firstround){
 		int max=0; 

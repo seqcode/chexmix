@@ -286,8 +286,7 @@ public class BindingMixture {
 					currType.setClusteredProfile(true);
 					subtypes.add(currType);
 				}
-				bindingManager.setBindingSubtypes(cond, subtypes);					
-				bindingManager.updateMaxInfluenceRange(cond, false);
+				bindingManager.addPotentialBindingSubtypes(cond, subtypes);
 			}
 		}
 	}
@@ -401,10 +400,9 @@ public class BindingMixture {
 	    		subtypes.add(new BindingSubtype(cond, model,eventCounter.get(index)));	    			
 
 	    		System.err.println("Updated read distribution from " + eventCounter.get(index) +" binding events.");
-	    	}
-    		
-    		bindingManager.setBindingSubtypes(cond, subtypes);
-	    	bindingManager.updateMaxInfluenceRange(cond, false);
+	    	}  		
+    		bindingManager.addPotentialBindingSubtypes(cond, subtypes);
+  
     	} // end of condition loop
     	
 		}else{
@@ -415,67 +413,71 @@ public class BindingMixture {
 	public void consolidateBindingModels(){
 		// Merge similar binding models
 		for (ExperimentCondition cond : manager.getConditions()){	
-			List<BindingSubtype> currSubtypes = bindingManager.getBindingSubtype(cond);
-			int numTypes = bindingManager.getNumBindingType(cond);
-			if (numTypes > 1){
-				double[][] klScores = new double[numTypes][numTypes];
-				for (int i=0; i < numTypes ; i++)
-					for (int j=0; j < numTypes; j++)
-						klScores[i][j]=0;
-				for (int a=0; a < numTypes; a++)
-					for (int b=1; b < numTypes; b++)
-						klScores[a][b]=getMinKLDivergenceScore(currSubtypes.get(a).getBindingModel(0),currSubtypes.get(b).getBindingModel(0));
-				// Identify similar binding model one by one
-				List<Integer> model2remove = new ArrayList<Integer>();
-				boolean checkSimilarity=true;
-				do{
-					double minScore=Double.MAX_VALUE;
-					int indexA=0; int indexB=0;
-					for (int i=0; i < numTypes; i++){
-						for (int j=i+1; j < numTypes; j++){
-							if (!model2remove.contains(i) && !model2remove.contains(j)){
-								if (klScores[i][j] < minScore ){
-									minScore =klScores[i][j];
-									indexA=i; indexB=j;								
-								}}}}
-					if (minScore <config.KL_DIVERGENCE_BM_THRES){
-						BindingSubtype subA = currSubtypes.get(indexA);
-						BindingSubtype subB = currSubtypes.get(indexB);
-						if (subA.hasMotif() && subB.hasMotif()){
-							double maxscore = motifFinder.motifAlignMaxScore(subA.getFreqMatrix(), subB.getFreqMatrix());
-							System.out.println("max score is "+maxscore/config.getMinMotifLength());
-							if (maxscore/config.getMinMotifLength() > config.MOTIF_PCC_THRES){
+			List<BindingSubtype> currSubtypes = bindingManager.getPotentialBindingSubtypes(cond);
+			if (!currSubtypes.isEmpty()){
+			int numTypes = currSubtypes.size();
+				if (numTypes > 1){
+					double[][] klScores = new double[numTypes][numTypes];
+					for (int i=0; i < numTypes ; i++)
+						for (int j=0; j < numTypes; j++)
+							klScores[i][j]=0;
+					for (int a=0; a < numTypes; a++)
+						for (int b=1; b < numTypes; b++)
+							klScores[a][b]=getMinKLDivergenceScore(currSubtypes.get(a).getBindingModel(0),currSubtypes.get(b).getBindingModel(0));
+					// Identify similar binding model one by one
+					List<Integer> model2remove = new ArrayList<Integer>();
+					boolean checkSimilarity=true;
+					do{
+						double minScore=Double.MAX_VALUE;
+						int indexA=0; int indexB=0;
+						for (int i=0; i < numTypes; i++){
+							for (int j=i+1; j < numTypes; j++){
+								if (!model2remove.contains(i) && !model2remove.contains(j)){
+									if (klScores[i][j] < minScore ){
+										minScore =klScores[i][j];
+										indexA=i; indexB=j;								
+									}}}}
+						if (minScore <config.KL_DIVERGENCE_BM_THRES){
+							BindingSubtype subA = currSubtypes.get(indexA);
+							BindingSubtype subB = currSubtypes.get(indexB);
+							if (subA.hasMotif() && subB.hasMotif()){
+								double maxscore = motifFinder.motifAlignMaxScore(subA.getFreqMatrix(), subB.getFreqMatrix());
+								System.out.println("max score is "+maxscore/config.getMinMotifLength());
+								if (maxscore/config.getMinMotifLength() > config.MOTIF_PCC_THRES){
+									if (subA.getNumEvents() < subB.getNumEvents())
+										model2remove.add(indexA);
+									else
+										model2remove.add(indexB);						
+								}else{
+									klScores[indexA][indexB]=Double.MAX_VALUE;
+								}
+							}else if (subA.hasMotif()){ // only subtype A has motif
+								model2remove.add(indexB);
+							}else if (subB.hasMotif()){ // only subtype B has motif
+								model2remove.add(indexA);
+							}else{						// subtype A and subtype B do not have motif
 								if (subA.getNumEvents() < subB.getNumEvents())
 									model2remove.add(indexA);
 								else
-									model2remove.add(indexB);						
-							}else{
-								klScores[indexA][indexB]=Double.MAX_VALUE;
+									model2remove.add(indexB);	
 							}
-						}else if (subA.hasMotif()){ // only subtype A has motif
-							model2remove.add(indexB);
-						}else if (subB.hasMotif()){ // only subtype B has motif
-							model2remove.add(indexA);
-						}else{						// subtype A and subtype B do not have motif
-							if (subA.getNumEvents() < subB.getNumEvents())
-								model2remove.add(indexA);
-							else
-								model2remove.add(indexB);	
-						}
-					}else{
-						checkSimilarity=false;
-					}							
-				}while (checkSimilarity); // End of while loop
+						}else{
+							checkSimilarity=false;
+						}							
+					}while (checkSimilarity); // End of while loop
 				
-				System.out.println("models to be removed "+model2remove.toString());
-				System.out.println("number of motifs before removing "+model2remove.size());
-				List<BindingSubtype> subs2remove = new ArrayList<BindingSubtype>();
-				for (Integer i : model2remove){
-					subs2remove.add(currSubtypes.get(i));
+					System.out.println("models to be removed "+model2remove.toString());
+					System.out.println("number of motifs before removing "+model2remove.size());
+					List<BindingSubtype> subs2remove = new ArrayList<BindingSubtype>();
+					for (Integer i : model2remove){
+						subs2remove.add(currSubtypes.get(i));
+					}
+					currSubtypes.removeAll(subs2remove);
+					System.out.println("number of motifs after removing "+currSubtypes.size());	
 				}
-				currSubtypes.removeAll(subs2remove);
-				System.out.println("number of motifs after removing "+currSubtypes.size());	
-				bindingManager.setBindingSubtypes(cond, currSubtypes);
+				bindingManager.setBindingSubtypes(cond, currSubtypes);	
+				bindingManager.updateMaxInfluenceRange(cond,false);	
+				bindingManager.clearPotentialBindingSubtypes(cond);
 			}
 		}
 	}

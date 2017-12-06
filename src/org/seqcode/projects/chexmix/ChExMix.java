@@ -47,6 +47,7 @@ public class ChExMix {
 	protected Normalization normalizer;
 	protected Map<ControlledExperiment, List<TagProbabilityDensity>> repBindingModels;
 	protected Map<ControlledExperiment, List<BindingModel>> repUnstrandedBindingModels;
+	protected Map<ExperimentCondition, List<BindingSubtype>> prevModels;
 	
 	public ChExMix(GenomeConfig gcon, ExptConfig econ, EventsConfig evcon, ChExMixConfig c, XLAnalysisConfig xc, ExperimentManager eMan){
 		gconfig = gcon;
@@ -62,9 +63,10 @@ public class ChExMix {
 		
 		//Initialize binding models & binding model record
 		repBindingModels = new HashMap<ControlledExperiment, List<TagProbabilityDensity>>();
-		repUnstrandedBindingModels = new HashMap<ControlledExperiment, List<BindingModel>>();
+		repUnstrandedBindingModels = new HashMap<ControlledExperiment, List<BindingModel>>();		
 		for(ControlledExperiment rep : manager.getReplicates())
 			repBindingModels.put(rep,  new ArrayList<TagProbabilityDensity>());
+		prevModels = new HashMap<ExperimentCondition, List<BindingSubtype>>();
 		
 		List<TagProbabilityDensity> tagProbDensities = new ArrayList<TagProbabilityDensity>();	
 		if (!gpsconfig.getInitialClustPoints().isEmpty()){
@@ -220,16 +222,14 @@ public class ChExMix {
             }else{
             	mixtureModel.updateBindingModelUsingReadDistributions(distribFilename);
             }
-            
-            //Add new binding models to the record
-            for(ControlledExperiment rep : manager.getReplicates()){
-            	List<BindingSubtype> subtypes = bindingManager.getBindingSubtype(rep.getCondition());
-            	for (BindingSubtype sub : subtypes)
-            		repBindingModels.get(rep).add(sub.getBindingModel(0));
-            }
              
             // Merge similar binding models
             mixtureModel.consolidateBindingModels();
+            
+            //Add new binding models to the record
+            for(ControlledExperiment rep : manager.getReplicates())
+            	for (BindingSubtype sub : bindingManager.getBindingSubtype(rep.getCondition()))
+            		repBindingModels.get(rep).add(sub.getBindingModel(0));   
             
             // Update alpha
             mixtureModel.updateAlphas();	
@@ -251,12 +251,7 @@ public class ChExMix {
             if(round>gpsconfig.getMaxModelUpdateRounds())
             	converged=true;
 
-        }
-        
-        //Add new binding models to the record
-        for(ControlledExperiment rep : manager.getReplicates())
-        	for (BindingSubtype sub : bindingManager.getBindingSubtype(rep.getCondition()))
-        		repBindingModels.get(rep).add(sub.getBindingModel(0));    
+        }  
        
         outFormatter.plotAllReadDistributions(repBindingModels);
         

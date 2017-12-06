@@ -433,15 +433,8 @@ public class MotifPlatform {
 				subtypeC++;
 			}
 			
-			if (subtypes.size() > 0){
-				bindingManager.setBindingSubtypes(cond, subtypes);					
-			}else{
-				// set Default binding subtype model
-				
-			}
-			
-			bindingManager.updateMaxInfluenceRange(cond,false);	
-			
+			if (subtypes.size() > 0)
+				bindingManager.addPotentialBindingSubtypes(cond, subtypes);
 		}//End of condition
 	}
 	
