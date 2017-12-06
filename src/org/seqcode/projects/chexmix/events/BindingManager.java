@@ -56,6 +56,7 @@ public class BindingManager {
 		numBindingType = new HashMap<ExperimentCondition, Integer>();
 		unstrandedModel = new HashMap<ControlledExperiment, BindingModel>();
 		alignedEventPoints = new HashMap<ExperimentCondition, List<List<StrandedPoint>>>();
+		potentialBindingSubtypes = new HashMap<ExperimentCondition, List<BindingSubtype>>();
 		for(ExperimentCondition cond : manager.getConditions()){
 			conditionEvents.put(cond, new ArrayList<BindingEvent>());
 			bindingSubtypes.put(cond, new ArrayList<BindingSubtype>());
