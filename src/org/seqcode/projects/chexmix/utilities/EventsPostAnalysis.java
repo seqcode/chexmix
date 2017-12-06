@@ -452,7 +452,7 @@ public class EventsPostAnalysis {
 			
 			// Combine plots
 			for (ExperimentCondition pcond : manager.getConditions()){				
-				String pngPath=config.getOutputImagesDir()+File.separator+config.getOutBase()+"_"+pcond.getName()+".events"+cond.getName()+"_";
+				String pngPath=config.getOutputImagesDir()+File.separator+config.getOutBase()+"_"+pcond.getName()+".events_"+cond.getName()+"_";
 				try {
 					Process proc = Runtime.getRuntime().exec("composite -dissolve 60,100 -transparent-color white "+pngPath+"+_lines.png "+pngPath+"-_lines.png "+pngPath+"heatmap.png");
 				} catch (IOException e) {

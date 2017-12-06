@@ -416,6 +416,7 @@ public class BindingMixture {
 			List<BindingSubtype> currSubtypes = bindingManager.getPotentialBindingSubtypes(cond);
 			if (!currSubtypes.isEmpty()){
 			int numTypes = currSubtypes.size();
+			System.out.println("number of binding subtype is "+numTypes);
 				if (numTypes > 1){
 					double[][] klScores = new double[numTypes][numTypes];
 					for (int i=0; i < numTypes ; i++)
@@ -467,13 +468,12 @@ public class BindingMixture {
 					}while (checkSimilarity); // End of while loop
 				
 					System.out.println("models to be removed "+model2remove.toString());
-					System.out.println("number of motifs before removing "+model2remove.size());
 					List<BindingSubtype> subs2remove = new ArrayList<BindingSubtype>();
 					for (Integer i : model2remove){
 						subs2remove.add(currSubtypes.get(i));
 					}
 					currSubtypes.removeAll(subs2remove);
-					System.out.println("number of motifs after removing "+currSubtypes.size());	
+					System.out.println("Models are consolidated from "+numTypes+" to "+currSubtypes.size());
 				}
 				bindingManager.setBindingSubtypes(cond, currSubtypes);	
 				bindingManager.updateMaxInfluenceRange(cond,false);	
@@ -530,7 +530,7 @@ public class BindingMixture {
     			for (BindingSubtype sub : bindingManager.getBindingSubtype(cond)){
     				if (sub.hasMotif()){
     					System.err.println(cond.getName()+"\t"+WeightMatrix.getConsensus(sub.getFreqMatrix())+"\toffset:"+sub.getMotifOffset());
-    					noMotif=false;
+    					noMotif=false; break;
     				}
     			}
     			if (noMotif) {System.err.println(cond.getName()+"\tNOMOTIF");}
