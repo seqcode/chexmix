@@ -410,35 +410,37 @@ public class EventsPostAnalysis {
 			e.printStackTrace();
 		}
 		
-		// Print aligned sequences and 4 color sequence plot        
-		for(ExperimentCondition cond : manager.getConditions()){		
-			try {
-				String outFile = config.getOutputImagesDir()+File.separator+config.getOutBase()+"_"+cond.getName()+"_seq.png";
-				String seqOutFile = config.getOutputIntermediateDir()+File.separator+config.getOutBase()+"."+cond.getName()+".seq";
-				SequenceGenerator seqgen = gconfig.getSequenceGenerator();
+		// Print aligned sequences and 4 color sequence plot  
+		if (gconfig.getSequenceGenerator().usingLocalFiles()){
+			for(ExperimentCondition cond : manager.getConditions()){		
+				try {
+					String outFile = config.getOutputImagesDir()+File.separator+config.getOutBase()+"_"+cond.getName()+"_seq.png";
+					String seqOutFile = config.getOutputIntermediateDir()+File.separator+config.getOutBase()+"."+cond.getName()+".seq";
+					SequenceGenerator seqgen = gconfig.getSequenceGenerator();
     	
-				List<StrandedRegion> regions = new ArrayList<StrandedRegion>();
-                for (List<StrandedPoint> pl : bindingManager.getAlignedEventPoints(cond))            
-                	for (StrandedPoint p : pl)
-                		regions.add(p.expand(evconfig.SEQPLOTWIN, evconfig.SEQPLOTWIN));
+					List<StrandedRegion> regions = new ArrayList<StrandedRegion>();
+					for (List<StrandedPoint> pl : bindingManager.getAlignedEventPoints(cond))            
+						for (StrandedPoint p : pl)
+							regions.add(p.expand(evconfig.SEQPLOTWIN, evconfig.SEQPLOTWIN));
                 
-                List<String> seqs = RegionFileUtilities.getSequencesForStrandedRegions(regions, seqgen);
+					List<String> seqs = RegionFileUtilities.getSequencesForStrandedRegions(regions, seqgen);
         	
-        		if(seqs !=null){
-        			SequenceAlignmentFigure fig = new SequenceAlignmentFigure();
-        			fig.setColors(Color.RED, Color.BLUE, Color.ORANGE, Color.GREEN);
-        			fig.visualizeSequences(seqs, 3, 1, new File(outFile));
+					if(seqs !=null){
+						SequenceAlignmentFigure fig = new SequenceAlignmentFigure();
+						fig.setColors(Color.RED, Color.BLUE, Color.ORANGE, Color.GREEN);
+						fig.visualizeSequences(seqs, 3, 1, new File(outFile));
 		    	
-        			if(seqOutFile != null){
-        				FileWriter fout = new FileWriter(seqOutFile);
-        				for(String s: seqs){
-        					fout.write(String.format("%s\n", s));
-        				}
-        				fout.close();
-        			}
-        		}
-			}catch (IOException e) {
-				e.printStackTrace();
+						if(seqOutFile != null){
+							FileWriter fout = new FileWriter(seqOutFile);
+							for(String s: seqs){
+								fout.write(String.format("%s\n", s));
+							}
+							fout.close();
+						}
+					}
+				}catch (IOException e) {
+					e.printStackTrace();
+				}
 			}
 		}
 		
