@@ -36,7 +36,7 @@ public class EventsConfig {
 	protected int maxAnnotDistance=50000;
 	protected boolean annotOverlapOnly=false;
 	protected boolean calcEventBaseCompositions=false; //Calculate base compositions around events and tags belonging to events. Useful for analyzing permanganate ChIP-seq
-	protected double qMinThres=0.005;		//Minimum  Q-value for reported binding events
+	protected double qMinThres=0.01;		//Minimum  Q-value for reported binding events
 	protected double minEventFoldChange=1.5;
 	protected double multiGPSqMinThres=0.05;	// Enrichment test after multiGPS style peak calling to remove non-significant binding events
 	protected double multiGPSMinEventFoldChange= 1.2;
