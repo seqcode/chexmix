@@ -17,6 +17,7 @@ import org.seqcode.deepseq.experiments.ExptConfig;
 import org.seqcode.genome.GenomeConfig;
 import org.seqcode.genome.location.StrandedPoint;
 import org.seqcode.genome.location.StrandedRegion;
+import org.seqcode.gseutils.ArgParser;
 import org.seqcode.ml.clustering.Clusterable;
 import org.seqcode.ml.clustering.affinitypropagation.APCluster;
 import org.seqcode.ml.clustering.affinitypropagation.MatrixSimilarityMeasure;
@@ -36,6 +37,10 @@ public class ShapeClusterTesting {
 		this.gconf = gconf;
 		this.manager = manager;
 		
+	}
+	
+	public void setPreferenceValue(double p){
+		preferenceValue=p;
 	}
 	
 	public void execute(){
@@ -137,6 +142,12 @@ public class ShapeClusterTesting {
 
 		
 		ShapeClusterTesting cluster = new ShapeClusterTesting(shapeAlignConf, gconf, manager);
+		double preferenceValue = -0.5;
+		ArgParser ap = new ArgParser(args);
+		if(ap.hasKey("preferenceValue")){
+			preferenceValue = new Double(ap.getKeyValue("preferenceValue"));
+			cluster.setPreferenceValue(preferenceValue);
+		}
 		cluster.execute();
 		
 		manager.close();		
