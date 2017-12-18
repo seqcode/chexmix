@@ -144,8 +144,8 @@ public class ShapeClusterTesting {
 		ShapeClusterTesting cluster = new ShapeClusterTesting(shapeAlignConf, gconf, manager);
 		double preferenceValue = -0.5;
 		ArgParser ap = new ArgParser(args);
-		if(ap.hasKey("preferenceValue")){
-			preferenceValue = new Double(ap.getKeyValue("preferenceValue"));
+		if(ap.hasKey("pref")){ // preferenceValue
+			preferenceValue = new Double(ap.getKeyValue("pref"));
 			cluster.setPreferenceValue(preferenceValue);
 		}
 		cluster.execute();
