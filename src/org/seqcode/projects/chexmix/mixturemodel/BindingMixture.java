@@ -318,31 +318,24 @@ public class BindingMixture {
     		//Choose which components to include
     		for(Region r : activeComponents.keySet()){
     			for(BindingSubComponents bc : activeComponents.get(r).get(cond.getIndex())){
-    				numPeaks++;
     				//1) Component must not be at the edge of the region 
     				if((bc.getPosition()-r.getStart()>bindingManager.getMaxInfluenceRange(cond)/2) && (r.getEnd()-bc.getPosition()>bindingManager.getMaxInfluenceRange(cond)/2)){
     					//2) Arbitrary minimum read support for BM components
-    					if(bc.getSumResponsibility()>(config.getMinComponentReadFactorForBM()*currAlpha))
+    					if(bc.getSumResponsibility()>(config.getMinComponentReadFactorForBM()*currAlpha)){
     						currComps.get(bc.getMaxType()).add(bc);
+    						numPeaks++;
+    					}
     				}
     			}
     		}
-    		List<List<BindingSubComponents>> comps2remove = new ArrayList<List<BindingSubComponents>>();
-    		for (List<BindingSubComponents> btypeComps : currComps){
-    			if (btypeComps.size() < Math.max(config.getMinSubtypeFraction()*numPeaks, config.getMinComponentsForBMUpdate())){
-    				comps2remove.add(btypeComps);
-    				System.out.println("removing components with size "+btypeComps.size()+" < "+Math.max(config.getMinSubtypeFraction()*numPeaks, config.getMinComponentsForBMUpdate()));
-    			}
-    		}
-    		currComps.removeAll(comps2remove);
     		
     		// Update read profile using assigned reads to a binding component per subtype group
     		List<double[][]> newModelList = new ArrayList<double[][]>();
     		List<Integer> eventCounter = new ArrayList<Integer>();
     		for (List<BindingSubComponents> compGroups : currComps){	//Iterate each subtype group
-    			// Check to see if there are enough components
+    			// Check to see if there are enough components to be used for BM updates
     			if (compGroups.size() < Math.max(config.getMinSubtypeFraction()*numPeaks, config.getMinComponentsForBMUpdate())){
-    				System.out.println("removing components with size "+compGroups.size()+" < "+Math.max(config.getMinSubtypeFraction()*numPeaks, config.getMinComponentsForBMUpdate()));
+    				System.out.println("Number of binding components is too few for distribution update ( "+compGroups.size()+" < "+Math.max((int) config.getMinSubtypeFraction()*numPeaks, config.getMinComponentsForBMUpdate())+" )");
     			}else{
     				eventCounter.add(compGroups.size());
     				double[] newModel_plus=new double[width];

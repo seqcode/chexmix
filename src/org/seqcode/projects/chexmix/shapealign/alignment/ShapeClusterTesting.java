@@ -26,7 +26,7 @@ import org.seqcode.ml.clustering.affinitypropagation.SimilarityMeasure.APExempla
 
 public class ShapeClusterTesting {
 
-	protected double preferenceValue = -0.5;
+	protected double preferenceValue = -0.1;
 	
 	ShapeAlignConfig shapeAlignConf;
 	GenomeConfig gconf;
@@ -63,7 +63,7 @@ public class ShapeClusterTesting {
 		MatrixSimilarityMeasure<Clusterable> msm = new MatrixSimilarityMeasure<Clusterable>(regNames, 
 				alignmentScores, preferenceValue);
 //		double netsim = APCluster.cluster(msm.objects(), msm, 0.5, 50, 500);
-		double netsim = APCluster.cluster(msm.objects(), msm, 0.9, 200, 2000); //try higher damping factor to encourage convergence
+		double netsim = APCluster.cluster(msm.objects(), msm, 0.9, 200, 2000); //higher damping factor leads to slower convergence
 		List<SimilarityMeasure<Clusterable>.APExemplar> exemplars = msm.getExemplars();
 		List<SimilarityMeasure<Clusterable>.APAssignment> assignments = msm.getAssignments();
 		
