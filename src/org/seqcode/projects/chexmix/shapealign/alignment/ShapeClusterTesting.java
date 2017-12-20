@@ -62,7 +62,8 @@ public class ShapeClusterTesting {
 		//Run AffinityPropagation
 		MatrixSimilarityMeasure<Clusterable> msm = new MatrixSimilarityMeasure<Clusterable>(regNames, 
 				alignmentScores, preferenceValue);
-		double netsim = APCluster.cluster(msm.objects(), msm, 0.5, 50, 500);
+//		double netsim = APCluster.cluster(msm.objects(), msm, 0.5, 50, 500);
+		double netsim = APCluster.cluster(msm.objects(), msm, 0.9, 200, 2000); //try higher damping factor to encourage convergence
 		List<SimilarityMeasure<Clusterable>.APExemplar> exemplars = msm.getExemplars();
 		List<SimilarityMeasure<Clusterable>.APAssignment> assignments = msm.getAssignments();
 		
