@@ -79,6 +79,7 @@ public class ChExMixConfig {
 	protected boolean verbose = false; //Print extra output
 	protected List<List<StrandedPoint>> initialClustPoints = new ArrayList<List<StrandedPoint>>(); // Initial cluster points
 	protected String MetaMakerArgs="--win 250 --bins 250 --batch --nocolorbar --linemax 1 --linethick 1 --transparent";
+	protected int initComponentSpacing=30;	//Initial component spacing
 	
     
 	//Constants
@@ -90,7 +91,7 @@ public class ChExMixConfig {
 	public final double MIN_ALPHA = 0.01; //Minimum alpha 
 	public final boolean FIXED_XL_OFFSET=true; //Estimate the XL component offset (mean)?
 	public final boolean XL_DISTRIB_SYMMETRIC=true; //Is the sigma associated with XL components symmetric?
-    public final int INIT_COMPONENT_SPACING=30;  //Initial component spacing
+//    public final int INIT_COMPONENT_SPACING=30;  //Initial component spacing
 	public final int MAX_EM_ITER=2000;
     public final int EM_ML_ITER=50;     				//Run EM up until <tt>ML_ITER</tt> without using sparse prior	**Changed from 100 to 50
     public final int ML_ML_ITER=50;     				//Run ML up until <tt>ML_ITER</tt> without using sparse prior	**Changed from 100 to 50
@@ -209,6 +210,9 @@ public class ChExMixConfig {
 				motifMinROC = Args.parseDouble(args, "minroc", motifMinROC);
 				//Number of base pair to extend around gff
 				extendWindow = Args.parseDouble(args, "extwin", extendWindow);
+				//Initial component spacing
+				initComponentSpacing = Args.parseInteger(args,"compspacing",initComponentSpacing);
+				
 				if(ap.hasKey("plotregions"))
 					regionsToPlot = RegionFileUtilities.loadRegionsFromFile(Args.parseString(args, "plotregions", null), gen, -1);
 				//Regions to ignore during EM training
@@ -338,6 +342,7 @@ public class ChExMixConfig {
 	public int getMinMotifLength(){return MEMEminw;}
 	public boolean isVerbose(){return verbose;}
 	public List<List<StrandedPoint>> getInitialClustPoints(){return initialClustPoints;}
+	public int getInitialCompSpacing(){return initComponentSpacing;}
 	
 	
 	/**

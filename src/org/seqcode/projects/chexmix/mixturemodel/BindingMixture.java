@@ -1005,7 +1005,7 @@ public class BindingMixture {
 				components.add(new ArrayList<BindingSubComponents>());
 			
             //Place components along region
-			int componentSpacing =  config.INIT_COMPONENT_SPACING;
+			int componentSpacing =  config.getInitialCompSpacing();
 			if(componentSpacing >= currReg.getWidth())
 				System.err.println("Error:  region width less than component spacing in "+currReg.getLocationString());
 
