@@ -62,7 +62,8 @@ public class ChExMixConfig {
 	protected boolean updateBM=true; //Set to false to turn off binding model update
     protected double gauss_smooth = 1; //Variance for Gaussian smoothing 
     protected int addFlankingComponentSpacing=20; //In non-first rounds of EM, the components are initialized using the positions from the last round with additional flanking components added at this spacing
-	protected List<Region> regionsToPlot = new ArrayList<Region>(); //List of regions that will be printed during EM training (for debugging/demonstration)
+	protected boolean addFlankingComponent=true;
+    protected List<Region> regionsToPlot = new ArrayList<Region>(); //List of regions that will be printed during EM training (for debugging/demonstration)
 	protected List<Region> regionsToIgnore = new ArrayList<Region>(); //List of regions that will be ignored during EM training (i.e. known towers, etc)
 	protected List<Point> initialPos=null;	//List of points loaded from GeneTrack file and used to place binding components.
 	protected List<StrandedRegion> motifRegions = new ArrayList<StrandedRegion>(); //List of regions to construct cross-linking point histograms (for testing)
@@ -238,6 +239,9 @@ public class ChExMixConfig {
 				//Turn off read distribution clustering
 				clusterReadDistributions = Args.parseFlags(args).contains("noclustering") ? false : true; 
 				
+				//Turn off adding franking components
+				addFlankingComponent = Args.parseFlags(args).contains("noflanking") ? false : true; 
+				
 				// Positional prior weights
 				posPriorScaling = Args.parseInteger(args,"pospriorscale",posPriorScaling);
 				// Turn on per base read filtering
@@ -316,6 +320,7 @@ public class ChExMixConfig {
 	public double getMotifMinROC(){return motifMinROC;}
 	public int getBMAnalysisWindowMax(){return bmAnalysisWindowMax;}
 	public int getAddFlankingComponentSpacing(){return addFlankingComponentSpacing;}
+	public boolean getAddFlankingComponents(){return addFlankingComponent;}
 	public List<Region> getRegionsToPlot(){return regionsToPlot;}
 	public List<Region> getRegionsToIgnore(){return regionsToIgnore;}
 	public List<Point> getInitialPos(){return initialPos;}

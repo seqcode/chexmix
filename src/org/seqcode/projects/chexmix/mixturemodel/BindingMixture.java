@@ -814,7 +814,7 @@ public class BindingMixture {
             if(uniformBindingComponents)
             	bindingComponents = initializeBindingComponentsUniformly(w, noiseComponents);
             else
-            	bindingComponents = initializeBindingComponentsFromAllConditionActive(w, noiseComponents, true);
+            	bindingComponents = initializeBindingComponentsFromAllConditionActive(w, noiseComponents, config.getAddFlankingComponents());
             
             //Motif prior
             String seq = config.getFindingMotifs() ? motifFinder.getSeq(w):null;
