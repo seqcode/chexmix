@@ -96,7 +96,7 @@ public class BindingManager {
 				if (getUnstrandedBindingModel(rep).getInfluenceRange()>max)
 					max=getUnstrandedBindingModel(rep).getInfluenceRange();
 		}else{
-			int min=Integer.MAX_VALUE;
+			int min=250;	//force the influence range to be smaller than 250 bp
 			for ( BindingSubtype subtype : getBindingSubtype(ec)){
 				TagProbabilityDensity density =subtype.getBindingModel(0);
 				if (density.getInfluenceRange()< min)
