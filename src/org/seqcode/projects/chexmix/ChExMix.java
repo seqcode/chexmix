@@ -88,8 +88,23 @@ public class ChExMix {
 			}	
 		}else if (xlconfig.getModelFilename()!= null){
 			ProteinDNAInteractionModel model = ProteinDNAInteractionModel.loadFromFile(xlconfig, new File(xlconfig.getModelFilename()));
-			TagProbabilityDensity density = model.makeTagProbabilityDensityFromAllComponents();
-			tagProbDensities.add(density);
+			tagProbDensities.add(model.makeTagProbabilityDensityFromAllComponents());
+		}else if (gpsconfig.getDistribA()!=null){
+			File pFile = new File(gpsconfig.getDistribA());
+			if(!pFile.isFile()){
+				System.err.println("\nCannot find read distribution file: "+gpsconfig.getDistribA());
+				System.exit(1);
+			}
+			tagProbDensities.add(new TagProbabilityDensity(pFile,true));
+			
+			if (gpsconfig.getDistribB()!=null){
+				File pbFile = new File(gpsconfig.getDistribB());
+				if(!pFile.isFile()){
+					System.err.println("\nCannot find read distribution file: "+gpsconfig.getDistribB());
+					System.exit(1);
+				}
+				tagProbDensities.add(new TagProbabilityDensity(pbFile,true));				
+			}		
 		}else{	//make default model using default unstranded model
 			List<Pair<Integer,Double>> watsonModel= BindingModel.defaultChipExoEmpiricalDistribution;
 			List<Pair<Integer,Double>> crickModel = new ArrayList<Pair<Integer,Double>>();
@@ -103,8 +118,7 @@ public class ChExMix {
 			Collections.reverse(revProb);
 			for (int i=0; i < revProb.size(); i++)
 				crickModel.add(new Pair<Integer,Double>(pos.get(i), revProb.get(i)));
-			TagProbabilityDensity density= new TagProbabilityDensity(watsonModel, crickModel);	
-			tagProbDensities.add(density);
+			tagProbDensities.add(new TagProbabilityDensity(watsonModel, crickModel));
 		}	
 		// Set tag probability density models to binding manager
 		for(ExperimentCondition cond : manager.getConditions()){

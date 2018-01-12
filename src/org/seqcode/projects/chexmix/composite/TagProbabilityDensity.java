@@ -98,6 +98,52 @@ public class TagProbabilityDensity {
 		}
 	}
 	
+	public TagProbabilityDensity(File distFile, boolean stranded){
+		index=count; count++;
+		int min=Integer.MAX_VALUE, max=Integer.MIN_VALUE;
+		try {
+			List<Pair<Integer,Double>> empiricalWatson = new LinkedList<Pair<Integer,Double>>(); 
+			List<Pair<Integer,Double>> empiricalCrick = new LinkedList<Pair<Integer,Double>>(); 
+			BufferedReader reader = new BufferedReader(new FileReader(distFile));
+	        String line;
+	        while ((line = reader.readLine()) != null) {
+	            line = line.trim();
+	            String[] words = line.split("\\s+");
+	            if(words.length>=3){
+		              Integer dist = new Integer(words[0]);
+		              
+		              if(dist.intValue() < min) 
+		            	  min = dist.intValue();
+		              if(dist.intValue() >max)
+		            	  max = dist.intValue();
+		                
+		              Pair<Integer,Double> wp = new Pair<Integer,Double>(dist, new Double(words[1]));
+		              Pair<Integer,Double> cp = new Pair<Integer,Double>(dist, new Double(words[2]));
+		              if (wp.cdr().doubleValue()>=0 && cp.cdr().doubleValue()>=0){	// should be non-negative value
+		            	  empiricalWatson.add(wp);
+		            	  empiricalCrick.add(cp);
+		              }else {
+		            	  System.err.println("\nTag distribution file contains negative probability(count) values!"); 
+		            	  System.exit(1);
+		              }
+	            }
+	        }
+	        winSize = max-min+1;
+	        init(min, max);
+	        
+	        loadData(empiricalWatson, empiricalCrick);
+			makeProbabilities();
+			
+			reader.close();
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public TagProbabilityDensity(List<Pair<Integer,Double>> empiricalWatson, List<Pair<Integer,Double>> empiricalCrick){
 		index=count; count++;
 		int min=Integer.MAX_VALUE, max=Integer.MIN_VALUE;

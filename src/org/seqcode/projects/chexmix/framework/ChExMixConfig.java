@@ -81,6 +81,8 @@ public class ChExMixConfig {
 	protected List<List<StrandedPoint>> initialClustPoints = new ArrayList<List<StrandedPoint>>(); // Initial cluster points
 	protected String MetaMakerArgs="--win 250 --bins 250 --batch --nocolorbar --linemax 1 --linethick 1 --transparent";
 	protected int initComponentSpacing=30;	//Initial component spacing
+	protected String distribA=null;	//Stranded distribution A
+	protected String distribB=null;	//Stranded distribution B
 	
     
 	//Constants
@@ -269,7 +271,7 @@ public class ChExMixConfig {
 				//MLSharedComponentConfiguration = Args.parseFlags(args).contains("mlsharedconfig") ? true : false;
 				MLSharedComponentConfiguration = Args.parseFlags(args).contains("mlconfignotshared") ? false : true;
 								
-				//Read distribution file
+				//Initial clustering points
 				String fname=null;
 				if (ap.hasKey("plist"))
 					fname=Args.parseString(args, "plist", null);
@@ -278,6 +280,12 @@ public class ChExMixConfig {
 					for (int i=0; i <lines.length; i++)
 						initialClustPoints.add(RegionFileUtilities.loadStrandedPointsFromFile(gen, lines[i]));
 				}
+				
+				// Stranded read distribution file
+				if (ap.hasKey("distrA"))
+					distribA=Args.parseString(args, "distrA", null);
+				if (ap.hasKey("distrB"))
+					distribB=Args.parseString(args, "distrB", null);				
 
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
@@ -348,6 +356,8 @@ public class ChExMixConfig {
 	public boolean isVerbose(){return verbose;}
 	public List<List<StrandedPoint>> getInitialClustPoints(){return initialClustPoints;}
 	public int getInitialCompSpacing(){return initComponentSpacing;}
+	public String getDistribA(){return distribA;}
+	public String getDistribB(){return distribB;}
 	
 	
 	/**
