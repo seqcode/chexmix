@@ -95,7 +95,7 @@ public class ChExMix {
 				System.err.println("\nCannot find read distribution file: "+gpsconfig.getDistribA());
 				System.exit(1);
 			}
-			tagProbDensities.add(new TagProbabilityDensity(pFile,true));
+			tagProbDensities.add(new TagProbabilityDensity(pFile));
 			
 			if (gpsconfig.getDistribB()!=null){
 				File pbFile = new File(gpsconfig.getDistribB());
@@ -103,7 +103,7 @@ public class ChExMix {
 					System.err.println("\nCannot find read distribution file: "+gpsconfig.getDistribB());
 					System.exit(1);
 				}
-				tagProbDensities.add(new TagProbabilityDensity(pbFile,true));				
+				tagProbDensities.add(new TagProbabilityDensity(pbFile));				
 			}		
 		}else{	//make default model using default unstranded model
 			List<Pair<Integer,Double>> watsonModel= BindingModel.defaultChipExoEmpiricalDistribution;
