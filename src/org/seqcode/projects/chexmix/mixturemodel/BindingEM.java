@@ -861,8 +861,8 @@ public class BindingEM {
         		Region top1Abf1 = new Region(bindComponents.get(c).get(j).getCoord().getGenome(), "7", 596312, 596372);
         		Region top2Abf1 = new Region(bindComponents.get(c).get(j).getCoord().getGenome(), "12", 332253, 332313); 
         		Region top3Abf1 = new Region(bindComponents.get(c).get(j).getCoord().getGenome(), "6", 5235, 5295); 
-//        		if (top1Abf1.contains(bindComponents.get(c).get(j).getCoord()) || top2Abf1.contains(bindComponents.get(c).get(j).getCoord()) || top3Abf1.contains(bindComponents.get(c).get(j).getCoord()))
-//        			printRegion = true;	 
+        		if (top1Abf1.contains(bindComponents.get(c).get(j).getCoord()) || top2Abf1.contains(bindComponents.get(c).get(j).getCoord()) || top3Abf1.contains(bindComponents.get(c).get(j).getCoord()))
+        			printRegion = true;	 
 				
 				BindingSubComponents comp = bindComponents.get(c).get(j);
 				int jr = comp.getIndex();		
