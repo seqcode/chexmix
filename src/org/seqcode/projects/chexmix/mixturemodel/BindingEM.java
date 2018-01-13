@@ -149,7 +149,6 @@ public class BindingEM {
         		for (int bt=0; bt< numBindingType[c]; bt++){
         			BindingSubtype subtype = bindingManager.getBindingSubtype(rep.getCondition()).get(bt);
         			TagProbabilityDensities[rep.getIndex()][bt] = subtype.getBindingModel(0);
-        			subtype.getBindingModel(0).printDensityToFile("t_"+trainingRound+"_"+w+".prob");
         		}
         	}
         	
