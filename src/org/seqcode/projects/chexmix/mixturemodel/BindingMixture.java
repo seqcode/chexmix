@@ -303,6 +303,7 @@ public class BindingMixture {
 	public void updateBindingModelUsingReadDistributions(String distribFilename) throws IOException{
     	
     	int width = config.MAX_BINDINGMODEL_WIDTH;
+    	int left = config.MAX_BINDINGMODEL_WIDTH/2;
 		
 		if(config.doBMUpdate()&& config.getClusteringReads()){
 		
@@ -381,8 +382,8 @@ public class BindingMixture {
 	    			double data_crick = newModel_minus[i];
 	    			data_watson = data_watson >=0? data_watson:2.0E-300;
 	    			data_crick = data_crick >=0? data_crick:2.0E-300; 
-	    			Pair<Integer, Double> p_watson = new Pair<Integer, Double>(i, data_watson);
-	    			Pair<Integer, Double> p_crick = new Pair<Integer, Double>(i, data_crick);
+	    			Pair<Integer, Double> p_watson = new Pair<Integer, Double>(i-left, data_watson);
+	    			Pair<Integer, Double> p_crick = new Pair<Integer, Double>(i-left, data_crick);
 	    			empiricalWatson.add(p_watson);
 	    			empiricalCrick.add(p_crick);
 	    		}

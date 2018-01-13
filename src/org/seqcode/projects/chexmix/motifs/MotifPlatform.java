@@ -423,7 +423,7 @@ public class MotifPlatform {
 					points.add(p);
 				}	
 				subtypes.add(new BindingSubtype(cond,points, config.MAX_BINDINGMODEL_WIDTH));
-				System.err.println("Made new read distribution from " + points.size() +" motif references.");
+				System.err.println("Made new read distribution from " + points.size() +" binding events.");
 			}
 			
 			// Print bindingModel
