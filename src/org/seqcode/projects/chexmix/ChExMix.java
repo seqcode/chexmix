@@ -228,7 +228,7 @@ public class ChExMix {
             
             //Update binding models
             String distribFilename = gpsconfig.getOutputIntermediateDir()+File.separator+gpsconfig.getOutBase()+"_t"+round;
-            if (round <= 1 && !gpsconfig.getInitialClustPoints().isEmpty()){
+            if (round <= 1){
 //            	if (!gpsconfig.getInitialClustPoints().isEmpty())
 //                	System.out.println("round "+round + "use provided read density from clusters");
 //                else
