@@ -154,7 +154,7 @@ public class ChIPOverlapReadSimulator {
 				curroff =diffOffset;
 				diffOffset+=eventSpacing;
 			}else{				
-				if (overlapEvent>0 && (eventC%2)==1){
+				if (overlapEvent>0 && eventC < overlapEvent && (eventC%2)==1){
 					curroff = sharedOffset+jointDice.nextInt(jointEventSpacing-1)+1;					
 				}else{				
 					curroff =sharedOffset;
