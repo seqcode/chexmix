@@ -72,12 +72,13 @@ public class ChIPOverlapReadSimulator {
 	private boolean paired=false;
 	private int overlapEvent=1000;
 	
-	public ChIPOverlapReadSimulator(BindingModel m, Genome g, List<SimCounts> counts, int numCond, int numRep, double noiseProb, double jointRate, int jointSpacing, int overlapEvent, String outPath){
+	public ChIPOverlapReadSimulator(BindingModel m, Genome g, List<SimCounts> counts, int numCond, int numRep, double noiseProb, double jointRate, int jointSpacing, int eventSpacing, int overlapEvent, String outPath){
 		model=m;
 		numConditions = numCond;
 		numReplicates = numRep;
 		jointEventRate = jointRate;
 		jointEventSpacing = jointSpacing;
+		this.eventSpacing = eventSpacing;
 		this.outPath = outPath;
 		fakeGen = g;
 		genomeLength = (long)fakeGen.getGenomeLength();
@@ -477,7 +478,7 @@ public class ChIPOverlapReadSimulator {
 	public static void main(String[] args) {
 		String empFile, outFile="out";
 		int c=2, r=2, numdata, jointSpacing=200, rlen=32;
-		int overlapEvent=1000;
+		int overlapEvent=1000; int eventSpacing=2000;
 		double frags=1000000, reads=1000000, a, up, down, diff, jointRate=0.0;
 		String bmfile;
 		boolean printEvents=true, subsampleControl=false, isPaired=false;
@@ -568,6 +569,8 @@ public class ChIPOverlapReadSimulator {
 				isPaired=true;
 			}if(ap.hasKey("overlap")){
 				overlapEvent = new Integer(ap.getKeyValue("overlap"));
+			}if(ap.hasKey("eventspacing")){
+				eventSpacing = new Integer(ap.getKeyValue("eventspacing"));
 			}
 			
 			
@@ -595,7 +598,7 @@ public class ChIPOverlapReadSimulator {
 			// Simulate reads according to counts and binding model
 			BindingModel bm = new BindingModel(mFile);
 	        //Initialize the MultiConditionReadSimulator
-			ChIPOverlapReadSimulator sim = new ChIPOverlapReadSimulator(bm, gcon.getGenome(), counts, c, r, noiseProb, jointRate, jointSpacing, overlapEvent, outFile);
+			ChIPOverlapReadSimulator sim = new ChIPOverlapReadSimulator(bm, gcon.getGenome(), counts, c, r, noiseProb, jointRate, jointSpacing,eventSpacing, overlapEvent, outFile);
 	        if(noiseProb==1.0)
 	        	sim.setTotalFrags((int) frags);
 
