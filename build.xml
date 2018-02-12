@@ -127,7 +127,7 @@
 	<!-- ======================================================================= -->
   <target name="makechexmixjar" depends="build, unjarall, setpwfilespath">
     <delete dir="${build.unjar.dir}/META-INF"/>
-    <jar destfile="${build.dist.dir}/multigps.${pwset}.jar" manifest="manifests/chexmix_manifest.txt">	    
+    <jar destfile="${build.dist.dir}/chexmix.${pwset}.jar" manifest="manifests/chexmix_manifest.txt">	    
       <fileset dir="${build.classes.dir}" includes="**/*.class"/>
       <fileset dir="${build.classes.dir}" includes="**/*.properties"/>
       <fileset dir="${build.classes.dir}" includes="**/*.png"/>
