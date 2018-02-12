@@ -393,6 +393,41 @@ public class BindingEvent implements Comparable<BindingEvent>{
 	}
 	
 	/**
+	 * Returns a string suitable for use as the header of a table whose rows are 
+	 * the output of BindingEvent.getConditionString().
+	 * (i.e. single condition files)
+	 */
+	public static String conditionSubtypeHeadString(ExperimentCondition c){
+		String head="### ChExMix output\n";
+		
+		head = head + "#Condition\tName\tIndex\tTotalSigCount\tSignalFraction\n";
+		head = head + "#Condition\t"+c.getName()+"\t"+c.getIndex()+"\t"+c.getTotalSignalCount()+"\t"+String.format("%.3f",c.getTotalSignalVsNoiseFrac())+"\n";
+		
+		head = head + "#Replicate\tParentCond\tName\tIndex\tSigCount\tCtrlCount\tCtrlScaling\tSignalFraction\n";
+		for(ControlledExperiment r : c.getReplicates()){
+			if(r.getControl()==null)
+				head = head + "#Replicate\t"+c.getName()+"\t"+r.getName()+"\t"+r.getIndex()+"\t"+r.getSignal().getHitCount()+"\t0\t1\t"+String.format("%.3f",r.getSignalVsNoiseFraction())+"\n";
+			else
+				head = head + "#Replicate\t"+c.getName()+"\t"+r.getName()+"\t"+r.getIndex()+"\t"+r.getSignal().getHitCount()+"\t"+r.getControl().getHitCount()+"\t"+String.format("%.3f",r.getControlScaling())+"\t"+String.format("%.3f",r.getSignalVsNoiseFraction())+"\n";
+		}
+		
+		head = head + "#\n#Point";
+		head = head +"\t"+c.getName()+"_Sig"+"\t"+c.getName()+"_Ctrl"+"\t"+c.getName()+"_log2Fold"+"\t"+c.getName()+"_log2P";
+		
+		for(ExperimentCondition c2 : experiments.getConditions()){
+			if(c!=c2){
+				head = head +"\t"+c.getName()+"_vs_"+c2.getName()+"_log2CPM"+"\t"+c.getName()+"_vs_"+c2.getName()+"_log2Fold"+"\t"+c.getName()+"_vs_"+c2.getName()+"_log2P";
+			}
+		}
+		
+		head = head+"\tSubtypePoint\tTau\tSubtypeName";
+
+		if(config.isAddingAnnotations())
+			head = head +"\tnearestGene\tdistToGene";
+		return head;
+	}
+	
+	/**
 	 * Returns a string suitable for use as the header of a BED file whose rows are 
 	 * the output of BindingEvent.getConditionBED().
 	 * (i.e. single condition BED files)

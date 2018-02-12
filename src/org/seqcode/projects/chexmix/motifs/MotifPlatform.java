@@ -48,6 +48,7 @@ import org.seqcode.projects.chexmix.events.BindingSubtype;
 import org.seqcode.projects.chexmix.events.EventsConfig;
 import org.seqcode.projects.chexmix.framework.ChExMixConfig;
 import org.seqcode.projects.chexmix.mixturemodel.BindingSubComponents;
+import org.seqcode.projects.chexmix.shapealign.alignment.ShapeAlignConfig;
 import org.seqcode.projects.chexmix.stats.InformationContent;
 
 
@@ -952,6 +953,7 @@ public class MotifPlatform {
 		EventsConfig evconfig = new EventsConfig(gcon, args);
 		ChExMixConfig config = new ChExMixConfig(gcon, args);
 		XLAnalysisConfig xlconfig = new XLAnalysisConfig(gcon, args);
+		ShapeAlignConfig sc = new ShapeAlignConfig(args);
 		
 		ExptConfig econ = new ExptConfig(gcon.getGenome(), args);
 		if (!config.useReadFilter())
@@ -969,7 +971,7 @@ public class MotifPlatform {
 				System.err.println("No experiments specified. Use --expt or --design options."); System.exit(1);
 			}
 			
-			ChExMix gps = new ChExMix(gcon, econ, evconfig, config, xlconfig, manager);
+			ChExMix gps = new ChExMix(gcon, econ, evconfig, config, xlconfig, sc, manager);
 			
 			MotifPlatform motifFinder = new MotifPlatform(gcon, config, manager, gps.getBindingManager(), gps.getPotentialFilter().getPotentialRegions());
 			

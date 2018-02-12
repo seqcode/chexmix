@@ -241,6 +241,7 @@ public class BindingManager {
 					//Print ML subtype events
 					filename = filePrefix+"_"+condName+".subtype.events";
 					fout = new FileWriter(filename);
+					fout.write(BindingEvent.conditionSubtypeHeadString(cond)+"\n");
 					for(BindingEvent e : events){
 						double Q = e.getCondSigVCtrlP(cond);
 						//Because of the ML step and component sharing, I think that an event could be assigned a significant number of reads without being "present" in the condition's EM model.
@@ -309,39 +310,6 @@ public class BindingManager {
 					}
 					fout.close();
 					setAlignedEventPoints(cond,alignedPoints);
-	    		}
-	    		
-	    		//Differential event files
-	    		if(manager.getNumConditions()>1 && runDiffTests){
-	    			for(ExperimentCondition cond : manager.getConditions()){
-		    			//Sort on the current condition
-		    			BindingEvent.setSortingCond(cond);
-		    			Collections.sort(events, new Comparator<BindingEvent>(){
-		    	            public int compare(BindingEvent o1, BindingEvent o2) {return o1.compareBySigCtrlPvalue(o2);}
-		    	        });
-		    			
-		    			for(ExperimentCondition othercond : manager.getConditions()){
-		    				if(!cond.equals(othercond)){
-				    			//Print diff events
-				    			String condName = cond.getName(); 
-				    			String othercondName = othercond.getName(); 
-				    			condName = condName.replaceAll("/", "-");
-				    			filename = filePrefix+"_"+condName+"_gt_"+othercondName+".diff.events";
-								fout = new FileWriter(filename);
-								fout.write(BindingEvent.conditionShortHeadString(cond)+"\n");
-						    	for(BindingEvent e : events){
-						    		double Q = e.getCondSigVCtrlP(cond);
-						    		//Because of the ML step and component sharing, I think that an event could be assigned a significant number of reads without being "present" in the condition's EM model.
-						    		if(e.isFoundInCondition(cond) && Q <=qMinThres){
-						    			if(e.getInterCondP(cond, othercond)<=diffPMinThres && e.getInterCondFold(cond, othercond)>0){
-						    				fout.write(e.getConditionString(cond)+"\n");
-						    			}
-						    		}
-						    	}
-								fout.close();
-		    				}
-		    			}
-		    		}
 	    		}
 			} catch (IOException e) {
 				e.printStackTrace();

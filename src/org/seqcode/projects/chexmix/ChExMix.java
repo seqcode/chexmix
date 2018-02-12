@@ -22,6 +22,7 @@ import org.seqcode.projects.chexmix.framework.ChExMixConfig;
 import org.seqcode.projects.chexmix.framework.OutputFormatter;
 import org.seqcode.projects.chexmix.framework.PotentialRegionFilter;
 import org.seqcode.projects.chexmix.mixturemodel.BindingMixture;
+import org.seqcode.projects.chexmix.shapealign.alignment.ShapeAlignConfig;
 import org.seqcode.projects.chexmix.utilities.EventsPostAnalysis;
 import org.seqcode.deepseq.experiments.ControlledExperiment;
 import org.seqcode.deepseq.experiments.ExperimentCondition;
@@ -40,6 +41,7 @@ public class ChExMix {
 	protected EventsConfig evconfig;
 	protected ChExMixConfig gpsconfig;
 	protected XLAnalysisConfig xlconfig;
+	protected ShapeAlignConfig shapeconfig;
 	protected BindingManager bindingManager;
 	protected BindingMixture mixtureModel;
 	protected PotentialRegionFilter potentialFilter;
@@ -49,7 +51,7 @@ public class ChExMix {
 	protected Map<ControlledExperiment, List<BindingModel>> repUnstrandedBindingModels;
 	protected Map<ExperimentCondition, List<BindingSubtype>> prevModels;
 	
-	public ChExMix(GenomeConfig gcon, ExptConfig econ, EventsConfig evcon, ChExMixConfig c, XLAnalysisConfig xc, ExperimentManager eMan){
+	public ChExMix(GenomeConfig gcon, ExptConfig econ, EventsConfig evcon, ChExMixConfig c, XLAnalysisConfig xc, ShapeAlignConfig sc, ExperimentManager eMan){
 		gconfig = gcon;
 		econfig = econ;
 		evconfig = evcon;
@@ -57,6 +59,7 @@ public class ChExMix {
 		gpsconfig = c;
 		xlconfig = xc;
 		xlconfig.makeXLAnalysisOutputDirs(true);
+		shapeconfig = sc;
 		gpsconfig.makeChExMixOutputDirs(true);
 		outFormatter = new OutputFormatter(gpsconfig);
 		bindingManager = new BindingManager(evconfig, manager);
@@ -192,7 +195,7 @@ public class ChExMix {
 	public void runMixtureModel() throws Exception {
 		
 		System.err.println("Initialzing mixture model");
-		mixtureModel = new BindingMixture(gconfig, econfig, evconfig, gpsconfig,xlconfig, manager, bindingManager, potentialFilter);
+		mixtureModel = new BindingMixture(gconfig, econfig, evconfig, gpsconfig,xlconfig,shapeconfig, manager, bindingManager, potentialFilter);
 		
 		int round = 0;
 		boolean converged = false;
@@ -238,12 +241,7 @@ public class ChExMix {
             }
              
             // Merge similar binding models
-            mixtureModel.consolidateBindingModels();
-            
-            //Add new binding models to the record
-            for(ControlledExperiment rep : manager.getReplicates())
-            	for (BindingSubtype sub : bindingManager.getBindingSubtype(rep.getCondition()))
-            		repBindingModels.get(rep).add(sub.getBindingModel(0));   
+            mixtureModel.consolidateBindingModels(); 
             
             // Update alpha
             mixtureModel.updateAlphas();	
@@ -266,6 +264,11 @@ public class ChExMix {
             	converged=true;
 
         }  
+        
+        //Add binding models to the record
+        for(ControlledExperiment rep : manager.getReplicates())
+        	for (BindingSubtype sub : bindingManager.getBindingSubtype(rep.getCondition()))
+        		repBindingModels.get(rep).add(sub.getBindingModel(0));
        
         outFormatter.plotAllReadDistributions(repBindingModels);
         
@@ -316,6 +319,7 @@ public class ChExMix {
 		EventsConfig evconfig = new EventsConfig(gcon, args);
 		ChExMixConfig config = new ChExMixConfig(gcon, args);
 		XLAnalysisConfig xlconfig = new XLAnalysisConfig(gcon, args);
+		ShapeAlignConfig sc = new ShapeAlignConfig(args);
 		
 		ExptConfig econ = new ExptConfig(gcon.getGenome(), args);
 		if (!config.useReadFilter())
@@ -333,7 +337,7 @@ public class ChExMix {
 				System.err.println("No experiments specified. Use --expt or --design options."); System.exit(1);
 			}
 			
-			ChExMix gps = new ChExMix(gcon, econ, evconfig, config, xlconfig, manager);
+			ChExMix gps = new ChExMix(gcon, econ, evconfig, config, xlconfig,sc, manager);
 			gps.runMixtureModel();
 			
 			manager.close();
@@ -346,7 +350,7 @@ public class ChExMix {
 	 */
 	public static String getxogpsArgsList(){
 		return(new String("" +
-				"Copyright (C) Shaun Mahony 2017\n" +
+				"Copyright (C) Naomi Yamada 2018\n" +
 				"<http://mahonylab.org/software/chexmix>\n" +
 				"\n" +
 				"ChExMix comes with ABSOLUTELY NO WARRANTY.  This is free software, and you\n"+
@@ -377,39 +381,35 @@ public class ChExMix {
 				"\t--fixedscaling <multiply control counts by total tag count ratio and then by this factor (default: NCIS)>\n" +
 				"\t--scalewin <window size for scaling procedure (default=10000)>\n" +
 				"\t--plotscaling [flag to plot diagnostic information for the chosen scaling method]\n" +
-				" Running MultiGPS:\n" +
+				" Running ChExMix:\n" +
 				"\t--d <binding event read distribution file>\n" +
-				"\t--r <max. model update rounds, default=3>\n" +
+				"\t--round <max. model update rounds, default=3>\n" +
 				"\t--nomodelupdate [flag to turn off binding model updates]\n" +
-				"\t--minmodelupdateevents <minimum number of events to support an update (default=500)>\n" +
-				"\t--nomodelsmoothing [flag to turn off binding model smoothing]\n" +
-				"\t--splinesmoothparam <spline smoothing parameter (default=30)>\n" +
-				"\t--gaussmodelsmoothing [flag to turn on Gaussian model smoothing (default = cubic spline)]\n" +
-				"\t--gausssmoothparam <Gaussian smoothing std dev (default=3)>\n" +
-				"\t--jointinmodel [flag to allow joint events in model updates (default=do not)]\n" +
-				"\t--fixedmodelrange [flag to keep binding model range fixed to inital size (default: vary automatically)]\n" +
+				"\t--minmodelupdateevents <minimum number of events to support an update (default=100)>\n" +
 				"\t--prlogconf <Poisson log threshold for potential region scanning(default=-6)>\n" +
 				"\t--alphascale <alpha scaling factor(default=1.0>\n" +
+				"\t--betascale <beta scaling factor(default=0.05>\n" +
+				"\t--epsilonscale <epsilon scaling factor(default=0.2>\n" +
 				"\t--fixedalpha <impose this alpha (default: set automatically)>\n" +
 				"\t--mlconfignotshared [flag to not share component configs in the ML step]\n" +
 				"\t--exclude <file of regions to ignore>\n" +
-				" MultiGPS priors:\n"+
-				"\t--noposprior [flag to turn off inter-experiment positional prior (default=on)]\n" +
-				"\t--probshared <probability that events are shared across conditions (default=0.9)>\n" +
+				"\t--peaks <file of peaks to initialize components>\n" +
+				" ChExMix subtype discovery via motif:\n"+
 				"\t--nomotifs [flag to turn off motif-finding & motif priors]\n" +
+				"\t--noposprior [flag to turn off inter-experiment positional prior (default=on)]\n" +
 				"\t--nomotifprior [flag to turn off motif priors only]\n" +
 				"\t--memepath <path to the meme bin dir (default: meme is in $PATH)>\n" +
 				"\t--memenmotifs <number of motifs MEME should find for each condition (default=3)>\n" +
 				"\t--mememinw <minw arg for MEME (default=6)>\n"+
 				"\t--mememaxw <maxw arg for MEME (default=18)>\n"+
 				"\t--memeargs <additional args for MEME (default=  -dna -mod zoops -revcomp -nostatus)>\n"+
+				"\t--minroc <minimum motif ROC value (default=0.7)>\n"+
+				" ChExMix subtype discovery via read distribution clustering:\n"+
+				"\t--noclustering [flag to turn off read distribution clustering]\n" +
+				"\t--pref <preference value for AP clustering (default=-0.1)>\n"+
 				" Reporting binding events:\n" +
-				"\t--q <Q-value minimum (default=0.001)>\n" +
+				"\t--q <Q-value minimum (default=0.01)>\n" +
 				"\t--minfold <minimum event fold-change vs scaled control (default=1.5)>\n" +
-				"\t--nodifftests [flag to turn off differential enrichment tests]\n" +
-				"\t--rpath <path to the R bin dir (default: R is in $PATH). Note that you need to install edgeR separately>\n" +
-				"\t--edgerod <EdgeR overdispersion parameter (default=0.15)>\n" +
-				"\t--diffp <minimum p-value for reporting differential enrichment (default=0.01)>\n" +
 				""));
 	}
 

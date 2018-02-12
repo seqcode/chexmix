@@ -1,8 +1,10 @@
 package org.seqcode.projects.chexmix.mixturemodel;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -30,6 +32,10 @@ import org.seqcode.gsebricks.verbs.location.ChromosomeGenerator;
 import org.seqcode.gseutils.Pair;
 import org.seqcode.gseutils.RealValuedHistogram;
 import org.seqcode.math.stats.StatUtil;
+import org.seqcode.ml.clustering.Clusterable;
+import org.seqcode.ml.clustering.affinitypropagation.APCluster;
+import org.seqcode.ml.clustering.affinitypropagation.MatrixSimilarityMeasure;
+import org.seqcode.ml.clustering.affinitypropagation.SimilarityMeasure;
 import org.seqcode.projects.chexmix.composite.TagProbabilityDensity;
 import org.seqcode.projects.chexmix.composite.XLAnalysisConfig;
 import org.seqcode.projects.chexmix.events.BindingEvent;
@@ -39,6 +45,8 @@ import org.seqcode.projects.chexmix.events.EventsConfig;
 import org.seqcode.projects.chexmix.framework.ChExMixConfig;
 import org.seqcode.projects.chexmix.framework.PotentialRegionFilter;
 import org.seqcode.projects.chexmix.motifs.MotifPlatform;
+import org.seqcode.projects.chexmix.shapealign.alignment.ShapeAlignConfig;
+import org.seqcode.projects.chexmix.shapealign.alignment.ShapeAlignmentTesting;
 
 
 /**
@@ -54,6 +62,7 @@ public class BindingMixture {
 	protected EventsConfig evconfig;
 	protected ChExMixConfig config;
 	protected XLAnalysisConfig mixconfig;
+	protected ShapeAlignConfig shapeconfig;
 	protected ExperimentManager manager;
 	protected BindingManager bindingManager;
 	protected PotentialRegionFilter potRegFilter;
@@ -68,12 +77,13 @@ public class BindingMixture {
 	protected HashMap<Region, Double[]> noiseResp = new HashMap<Region, Double[]>(); //noise responsibilities after a round of execute(). Hashed by Region, indexed by condition
 	protected MotifPlatform motifFinder;
 	
-	public BindingMixture(GenomeConfig gcon, ExptConfig econ, EventsConfig evcon, ChExMixConfig c,XLAnalysisConfig mixcon, ExperimentManager eMan, BindingManager bMan, PotentialRegionFilter filter){
+	public BindingMixture(GenomeConfig gcon, ExptConfig econ, EventsConfig evcon, ChExMixConfig c,XLAnalysisConfig mixcon,ShapeAlignConfig sc, ExperimentManager eMan, BindingManager bMan, PotentialRegionFilter filter){
 		gconfig = gcon;
 		econfig = econ;
 		evconfig = evcon;
 		config = c;
 		mixconfig = mixcon;
+		shapeconfig = sc;
 		manager = eMan;
 		bindingManager = bMan;
 		potRegFilter=filter;
@@ -260,35 +270,126 @@ public class BindingMixture {
 	
 	public void doReadDistributionClustering() throws Exception{
 		// Execute affinity propagation clustering
-		if (config.getClusteringReads()){
-			List<List<StrandedPoint>> initClustPoints = config.getInitialClustPoints();			
-			
-			// Test on clustered points
-			List<List<List<StrandedPoint>>> clustPoints = new ArrayList<List<List<StrandedPoint>>>();
-			for (ExperimentCondition cond : manager.getConditions())
-				clustPoints.add(initClustPoints);
+		List<List<StrandedPoint>> initClustPoints = null;
 		
-			// Find motif within clusters
-			if (config.getFindingMotifs()){
-				try {
-					clustPoints=motifFinder.findClusterMotifs(clustPoints, trainingRound);
-				} catch (ParseException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+		if (config.getClusteringReads()){
+			initClustPoints = config.getInitialClustPoints();		
+		}else{
+			
+			initClustPoints = new ArrayList<List<StrandedPoint>>();
+			
+			//Run the aligner
+			ShapeAlignmentTesting profile = new ShapeAlignmentTesting(shapeconfig, gconfig, manager); 	
+			try {
+				profile.execute();
+			} catch (FileNotFoundException | UnsupportedEncodingException e) {
+				e.printStackTrace();
+			}
+
+			//Get the alignment matrix
+			double[][] alignmentScores = profile.getSimilarityMatrix();
+			List<StrandedRegion> regs = profile.getStrandedRegions();
+			List<String> regNames= new ArrayList<String>();
+			for(StrandedRegion sr : regs)
+				regNames.add(sr.getLocationString());
+			
+			//Run AffinityPropagation
+			MatrixSimilarityMeasure<Clusterable> msm = new MatrixSimilarityMeasure<Clusterable>(regNames, 
+					alignmentScores, config.getPreferenceValue());
+			double netsim = APCluster.cluster(msm.objects(), msm, 0.9, 200, 2000); //higher damping factor leads to slower convergence
+			List<SimilarityMeasure<Clusterable>.APExemplar> exemplars = msm.getExemplars();
+			List<SimilarityMeasure<Clusterable>.APAssignment> assignments = msm.getAssignments();
+			
+			int numExemplars = exemplars.size();
+			Map<Integer, List<Integer>> clusters = 
+					new HashMap<Integer, List<Integer>>();
+			for(SimilarityMeasure<Clusterable>.APExemplar e : exemplars){
+				clusters.put(e.index, new ArrayList<Integer>());
+				clusters.get(e.index).add(e.index);
+			}
+			
+			for(SimilarityMeasure<Clusterable>.APAssignment a : assignments){
+				//System.out.println(a.index+"\t"+a.name+"\t"+a.exemplar.index);
+				clusters.get(a.exemplar.index).add(a.index);
+			}
+			
+			System.out.println("Affinity Propagation exemplars:");
+			for(SimilarityMeasure<Clusterable>.APExemplar e : exemplars){
+				System.out.println(e.index+"\t"+e.name+"\t"+clusters.get(e.index).size()+" members");
+			}
+			
+			
+			//OUTPUT
+			
+			//Get composites for each cluster
+			int window = shapeconfig.getWindowSize();
+			for(Integer c : clusters.keySet()){
+				for (ExperimentCondition condition : manager.getConditions()){		
+					for (ControlledExperiment rep: condition.getReplicates()){	
+						double[][] composite = profile.getExemplarBasedAlignment(rep, c, clusters.get(c));
+						
+						try {
+							File compFlie = new File(config.getOutputIntermediateDir()+File.separator+"cluster"+c+".composite.txt");
+							FileWriter fout = new FileWriter(compFlie);
+							fout.write("#Cluster"+c+"\n");
+							for(int i=0; i<=window; i++){
+								fout.write(composite[i][0]+"\t"+composite[i][1]+"\n");
+							}
+							fout.close();
+						} catch (IOException e1) {
+							e1.printStackTrace();
+						}
+						
+					}
 				}
 			}
 			
-			// Make binding subtype
-			for (ExperimentCondition cond : manager.getConditions()){
-				List<BindingSubtype> subtypes = new ArrayList<BindingSubtype>();
-				for (List<StrandedPoint> modelRefs : clustPoints.get(cond.getIndex())){
-					BindingSubtype currType = new BindingSubtype(cond, modelRefs, config.MAX_BINDINGMODEL_WIDTH);
-					currType.setClusteredProfile(true);
-					subtypes.add(currType);
+			//Get aligned points for each cluster
+			for(Integer c : clusters.keySet()){
+				List<StrandedPoint> spts = profile.getExemplarBasedAlignedPoints(c, clusters.get(c));
+				
+				try {
+					File compFlie = new File(config.getOutputIntermediateDir()+File.separator+"cluster"+c+".points");
+					FileWriter fout = new FileWriter(compFlie);
+					fout.write("#Cluster"+c+"\n");
+					for(StrandedPoint s :spts)
+						fout.write(s.getLocationString()+"\n");
+					fout.close();
+				} catch (IOException e1) {
+					e1.printStackTrace();
 				}
-				bindingManager.addPotentialBindingSubtypes(cond, subtypes);
+				
+				initClustPoints.add(spts);
+			}			
+		}
+			
+			
+		// Test on clustered points
+		List<List<List<StrandedPoint>>> clustPoints = new ArrayList<List<List<StrandedPoint>>>();
+		for (ExperimentCondition cond : manager.getConditions())
+			clustPoints.add(initClustPoints);
+		
+		// Find motif within clusters
+		if (config.getFindingMotifs()){
+			try {
+				clustPoints=motifFinder.findClusterMotifs(clustPoints, trainingRound);
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}
+			
+		// Make binding subtype
+		for (ExperimentCondition cond : manager.getConditions()){
+			List<BindingSubtype> subtypes = new ArrayList<BindingSubtype>();
+			for (List<StrandedPoint> modelRefs : clustPoints.get(cond.getIndex())){
+				BindingSubtype currType = new BindingSubtype(cond, modelRefs, config.MAX_BINDINGMODEL_WIDTH);
+				currType.setClusteredProfile(true);
+				subtypes.add(currType);
+			}
+			bindingManager.addPotentialBindingSubtypes(cond, subtypes);
+		}
+		
 	}
 	
 	

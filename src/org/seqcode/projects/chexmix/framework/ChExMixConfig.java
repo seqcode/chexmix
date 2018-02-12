@@ -38,7 +38,7 @@ public class ChExMixConfig {
 	public boolean isGPS=true;
 	protected GenomeConfig gconfig;
 	protected Genome gen=null;
-	protected String outName="xogps", outBase="xogps";
+	protected String outName="chexmix", outBase="chexmix";
 	protected File outDir=null, interDir=null, imagesDir=null;
 	protected boolean printHelp=false;
 	protected double sigLogConf=-7; 
@@ -65,7 +65,7 @@ public class ChExMixConfig {
 	protected boolean addFlankingComponent=true;
     protected List<Region> regionsToPlot = new ArrayList<Region>(); //List of regions that will be printed during EM training (for debugging/demonstration)
 	protected List<Region> regionsToIgnore = new ArrayList<Region>(); //List of regions that will be ignored during EM training (i.e. known towers, etc)
-	protected List<Point> initialPos=null;	//List of points loaded from GeneTrack file and used to place binding components.
+	protected List<Point> initialPos=null;	//List of points loaded from peak file and used to place binding components.
 	protected List<StrandedRegion> motifRegions = new ArrayList<StrandedRegion>(); //List of regions to construct cross-linking point histograms (for testing)
 	protected boolean MLSharedComponentConfiguration = true; //For ML assignment: use a component configuration shared across all conditions or have condition-specific configs.
 	protected boolean findMotifs = true; //Run motif-finding for motif prior
@@ -83,6 +83,7 @@ public class ChExMixConfig {
 	protected int initComponentSpacing=30;	//Initial component spacing
 	protected String distribA=null;	//Stranded distribution A
 	protected String distribB=null;	//Stranded distribution B
+	protected double preferenceValue = -0.1; // Preference value for read distribution clustering
 	
     
 	//Constants
@@ -202,12 +203,12 @@ public class ChExMixConfig {
 				maxThreads = Args.parseInteger(args,"threads",maxThreads);
 				maxThreads = Math.min(maxThreads, java.lang.Runtime.getRuntime().availableProcessors());
 				//Alpha scaling factor
-				alphaScalingFactor = Args.parseDouble(args,"gpsalphascale",alphaScalingFactor);
+				alphaScalingFactor = Args.parseDouble(args,"alphascale",alphaScalingFactor);
 				//Fixed alpha value
-				fixedAlpha = Args.parseDouble(args,"gpsfixedalpha",fixedAlpha);
+				fixedAlpha = Args.parseDouble(args,"fixedalpha",fixedAlpha);
 				//Beta scaling factor
 				betaScalingFactor = Args.parseDouble(args,"betascale",betaScalingFactor);
-				//Alpha scaling factor
+				//Epsilon scaling factor
 				epsilonScalingFactor = Args.parseDouble(args,"epsilonscale",epsilonScalingFactor);
 				//Motif prior is used only if the ROC is greater than this .
 				motifMinROC = Args.parseDouble(args, "minroc", motifMinROC);
@@ -215,15 +216,17 @@ public class ChExMixConfig {
 				extendWindow = Args.parseDouble(args, "extwin", extendWindow);
 				//Initial component spacing
 				initComponentSpacing = Args.parseInteger(args,"compspacing",initComponentSpacing);
+				//Preference value for AP clustering
+				preferenceValue = Args.parseDouble(args, "pref", preferenceValue);
 				
 				if(ap.hasKey("plotregions"))
 					regionsToPlot = RegionFileUtilities.loadRegionsFromFile(Args.parseString(args, "plotregions", null), gen, -1);
 				//Regions to ignore during EM training
 				if(ap.hasKey("exclude"))
 					regionsToIgnore = RegionFileUtilities.loadRegionsFromFile(Args.parseString(args, "exclude", null), gen, -1);
-				//Initial position file
-				if (ap.hasKey("gff"))
-					initialPos = RegionFileUtilities.loadPointsFromGFFFile(Args.parseString(args, "gff", null), gen);
+				//Initial peak file
+				if (ap.hasKey("peaks"))
+					initialPos = RegionFileUtilities.loadPeaksFromPeakFile(gen, Args.parseString(args, "peaks", null));
 				//Motif for plotting components
 				if (ap.hasKey("motifregions"))
 					motifRegions = RegionFileUtilities.loadStrandedRegionsFromMotifFile(gen, Args.parseString(args, "motifregions", null), -1);
@@ -358,6 +361,7 @@ public class ChExMixConfig {
 	public int getInitialCompSpacing(){return initComponentSpacing;}
 	public String getDistribA(){return distribA;}
 	public String getDistribB(){return distribB;}
+	public double getPreferenceValue(){return preferenceValue;}
 	
 	
 	/**
@@ -417,7 +421,6 @@ public class ChExMixConfig {
 				"General:\n" +
 				"\t--r <max. model update rounds (default="+maxModelUpdateRounds+">\n" +
 				"\t--out <out name (default="+outBase+">\n" +
-				"\t--cpoints <composite plot stranded center points>\n" +
 				"\t--d <read distribution model file>\n" +
 				"\t--nonunique [flag to use non-unique reads]\n" +
 				"\t--threads <number of threads to use (default="+maxThreads+")>\n" +

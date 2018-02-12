@@ -193,9 +193,9 @@ public class XLAnalysisConfig {
 				//XL Component offset
 				XLDistribOffset = Args.parseInteger(args,"xloffset",XLDistribOffset);
 				//Alpha scaling factor
-				alphaScalingFactor = Args.parseDouble(args,"alphascale",alphaScalingFactor);
+				alphaScalingFactor = Args.parseDouble(args,"xlalphascale",alphaScalingFactor);
 				//Fixed alpha value
-				fixedAlpha = Args.parseDouble(args,"fixedalpha",fixedAlpha);
+				fixedAlpha = Args.parseDouble(args,"xlfixedalpha",fixedAlpha);
 				//Turn off XL components for testing
 				noXL =  Args.parseFlags(args).contains("noxl") ? true : false;
 				//Plot the EM process on the composite
