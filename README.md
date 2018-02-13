@@ -87,8 +87,8 @@ __Running ChExMix__:
 
 __ChExMix subtype discovery__:
 
- __Using Motif__
- 
+1. Using motif
+
   * --__memepath__  \<path\>: Path to the meme bin dir (default: meme is in $PATH). MEME path is required for motif finding.
   * --nomotifs \<value\>: Flag to turn off motif-finding & motif priors
   * --nomotifprior \<value\>: Flag to turn off motif priors only
@@ -98,7 +98,7 @@ __ChExMix subtype discovery__:
   * --memeargs \<args\>: Additional args for MEME (default:  -dna -mod zoops -revcomp -nostatus)
   * --minroc \<value\>: Minimum motif ROC value (default=0.7)
  
- __Read Distribution__
+ 2. Using read distribution
 
   * --noclustering: Flag to turn off read distribution clustering
   * --pref \<value\>: Preference value for read distribution clustering (default=-0.1)
