@@ -105,7 +105,8 @@ public class ShapeAlignConfig {
 		win = Args.parseInteger(args, "win", 200);
 		K = Args.parseInteger(args, "K", 5);
 		percentile = Args.parseInteger(args, "percentile", 10);
-		spoints = RegionFileUtilities.loadStrandedPointsFromMotifFile(gconf.getGenome(), ap.getKeyValue("peakf"), win);
+		if (ap.hasKey("peakf"))
+			spoints = RegionFileUtilities.loadStrandedPointsFromMotifFile(gconf.getGenome(), ap.getKeyValue("peakf"), win);
 		
 		// Get outdir and outbase and make them; delete dirs that exist with the same
 		outbase = Args.parseString(args, "out", "shapealign");
