@@ -38,12 +38,12 @@ In the above, the “-Xmx20G” argument tells java to use up to 20GB of memory.
 java -Xmx20G org.seqcode.projects.chexmix.ChExMix <options - see below>
 ```
 
-Options (Required/important options are in __bold__.)
+Options (Required/important options are in __bold__)
 
 __General__:
 
   * --__out__ \<prefix>: Output file prefix. All output will be put into a directory with the prefix name. 
-  * --threads \<n\>:  Use n threads during binding event detection (default=100)
+  * --threads \<n\>:  Use n threads during binding event detection (default=1)
   * --verbose: Flag to print intermediate files and extra output.
 
 __Specifying the Genome__:
