@@ -271,153 +271,152 @@ public class BindingMixture {
 	
 	public void doReadDistributionClustering() throws Exception{
 		// Execute affinity propagation clustering
-		List<List<StrandedPoint>> initClustPoints = null;
-		
 		if (config.getClusteringReads()){
-			initClustPoints = config.getInitialClustPoints();		
-		}else{
-			
-			initClustPoints = new ArrayList<List<StrandedPoint>>();
-			
-			// Choose which ones to include
-			//Sum read profiles if there are enough binding components
-			List<BindingSubComponents> currComps = new ArrayList<BindingSubComponents>();
-	    	for(ExperimentCondition cond : manager.getConditions()){
-	    		double currAlpha = (double)conditionBackgrounds.get(cond).getMaxThreshold('.');
-	    		//Choose which components to include
-	    		for(Region r : activeComponents.keySet()){
-	    			for(BindingSubComponents bc : activeComponents.get(r).get(cond.getIndex())){
-	    				//1) Component must not be at the edge of the region 
-	    				if((bc.getPosition()-r.getStart()>bindingManager.getMaxInfluenceRange(cond)/2) && (r.getEnd()-bc.getPosition()>bindingManager.getMaxInfluenceRange(cond)/2)){
-	    					//2) Arbitrary minimum read support for BM components
-	    					if(bc.getSumResponsibility()>(config.getMinComponentReadFactorForBM()*currAlpha))
-	    						currComps.add(bc);
+		
+			List<List<StrandedPoint>> initClustPoints = new ArrayList<List<StrandedPoint>>();		
+			if (config.getInitialClustPoints()!=null){		
+				initClustPoints = config.getInitialClustPoints();		
+			}else{			
+				// Choose which ones to include
+				//Sum read profiles if there are enough binding components
+				List<BindingSubComponents> currComps = new ArrayList<BindingSubComponents>();
+	    		for(ExperimentCondition cond : manager.getConditions()){
+	    			double currAlpha = (double)conditionBackgrounds.get(cond).getMaxThreshold('.');
+	    			//Choose which components to include
+	    			for(Region r : activeComponents.keySet()){
+	    				for(BindingSubComponents bc : activeComponents.get(r).get(cond.getIndex())){
+	    					//1) Component must not be at the edge of the region 
+	    					if((bc.getPosition()-r.getStart()>bindingManager.getMaxInfluenceRange(cond)/2) && (r.getEnd()-bc.getPosition()>bindingManager.getMaxInfluenceRange(cond)/2)){
+	    						//2) Arbitrary minimum read support for BM components
+	    						if(bc.getSumResponsibility()>(config.getMinComponentReadFactorForBM()*currAlpha))
+	    							currComps.add(bc);
+	    					}
 	    				}
-	    			}
-	    		}	
-	    	}
-            Collections.sort(currComps, new Comparator<BindingSubComponents>(){
-            	public int compare(BindingSubComponents o1, BindingSubComponents o2) {return o1.compareByResp(o2);}
-			});
-			Collections.reverse(currComps);		
+	    			}	
+	    		}
+            	Collections.sort(currComps, new Comparator<BindingSubComponents>(){
+            		public int compare(BindingSubComponents o1, BindingSubComponents o2) {return o1.compareByResp(o2);}
+				});
+				Collections.reverse(currComps);		
 							
-			List<StrandedPoint> topPos = new ArrayList<StrandedPoint>();
-			for (int i=0; i< Math.min(currComps.size(), config.NUM_COMP_CLUSTER);i++)
-				topPos.add(new StrandedPoint(currComps.get(i).getCoord(), '+'));
+				List<StrandedPoint> topPos = new ArrayList<StrandedPoint>();
+				for (int i=0; i< Math.min(currComps.size(), config.NUM_COMP_CLUSTER);i++)
+					topPos.add(new StrandedPoint(currComps.get(i).getCoord(), '+'));
 			
-			shapeconfig.setStrandedPoints(topPos);
+				shapeconfig.setStrandedPoints(topPos);
 			
-			//Run the aligner
-			ShapeAlignmentTesting profile = new ShapeAlignmentTesting(shapeconfig, gconfig, manager); 	
-			try {
-				profile.execute();
-			} catch (FileNotFoundException | UnsupportedEncodingException e) {
-				e.printStackTrace();
-			}
+				//Run the aligner
+				ShapeAlignmentTesting profile = new ShapeAlignmentTesting(shapeconfig, gconfig, manager); 	
+				try {
+					profile.execute();
+				} catch (FileNotFoundException | UnsupportedEncodingException e) {
+					e.printStackTrace();
+				}
 
-			//Get the alignment matrix
-			double[][] alignmentScores = profile.getSimilarityMatrix();
-			List<StrandedRegion> regs = profile.getStrandedRegions();
-			List<String> regNames= new ArrayList<String>();
-			for(StrandedRegion sr : regs)
-				regNames.add(sr.getLocationString());
+				//Get the alignment matrix
+				double[][] alignmentScores = profile.getSimilarityMatrix();
+				List<StrandedRegion> regs = profile.getStrandedRegions();
+				List<String> regNames= new ArrayList<String>();
+				for(StrandedRegion sr : regs)
+					regNames.add(sr.getLocationString());
 			
-			//Run AffinityPropagation
-			MatrixSimilarityMeasure<Clusterable> msm = new MatrixSimilarityMeasure<Clusterable>(regNames, 
-					alignmentScores, config.getPreferenceValue());
-			double netsim = APCluster.cluster(msm.objects(), msm, 0.9, 200, 2000); //higher damping factor leads to slower convergence
-			List<SimilarityMeasure<Clusterable>.APExemplar> exemplars = msm.getExemplars();
-			List<SimilarityMeasure<Clusterable>.APAssignment> assignments = msm.getAssignments();
+				//Run AffinityPropagation
+				MatrixSimilarityMeasure<Clusterable> msm = new MatrixSimilarityMeasure<Clusterable>(regNames, 
+						alignmentScores, config.getPreferenceValue());
+				double netsim = APCluster.cluster(msm.objects(), msm, 0.9, 200, 2000); //higher damping factor leads to slower convergence
+				List<SimilarityMeasure<Clusterable>.APExemplar> exemplars = msm.getExemplars();
+				List<SimilarityMeasure<Clusterable>.APAssignment> assignments = msm.getAssignments();
 			
-			int numExemplars = exemplars.size();
-			Map<Integer, List<Integer>> clusters = 
-					new HashMap<Integer, List<Integer>>();
-			for(SimilarityMeasure<Clusterable>.APExemplar e : exemplars){
-				clusters.put(e.index, new ArrayList<Integer>());
-				clusters.get(e.index).add(e.index);
-			}
+				int numExemplars = exemplars.size();
+				Map<Integer, List<Integer>> clusters = 
+						new HashMap<Integer, List<Integer>>();
+				for(SimilarityMeasure<Clusterable>.APExemplar e : exemplars){
+					clusters.put(e.index, new ArrayList<Integer>());
+					clusters.get(e.index).add(e.index);
+				}
 			
-			for(SimilarityMeasure<Clusterable>.APAssignment a : assignments){
-				//System.out.println(a.index+"\t"+a.name+"\t"+a.exemplar.index);
-				clusters.get(a.exemplar.index).add(a.index);
-			}
+				for(SimilarityMeasure<Clusterable>.APAssignment a : assignments){
+					//System.out.println(a.index+"\t"+a.name+"\t"+a.exemplar.index);
+					clusters.get(a.exemplar.index).add(a.index);
+				}
 			
-			System.out.println("Affinity Propagation exemplars:");
-			for(SimilarityMeasure<Clusterable>.APExemplar e : exemplars){
-				System.out.println(e.index+"\t"+e.name+"\t"+clusters.get(e.index).size()+" members");
-			}
+				System.out.println("Affinity Propagation exemplars:");
+				for(SimilarityMeasure<Clusterable>.APExemplar e : exemplars){
+					System.out.println(e.index+"\t"+e.name+"\t"+clusters.get(e.index).size()+" members");
+				}
 			
 			
-			//OUTPUT
+				//OUTPUT
 			
-			//Get composites for each cluster
-			int window = shapeconfig.getWindowSize();
-			for(Integer c : clusters.keySet()){
-				for (ExperimentCondition condition : manager.getConditions()){		
-					for (ControlledExperiment rep: condition.getReplicates()){	
-						double[][] composite = profile.getExemplarBasedAlignment(rep, c, clusters.get(c));
+				//Get composites for each cluster
+				int window = shapeconfig.getWindowSize();
+				for(Integer c : clusters.keySet()){
+					for (ExperimentCondition condition : manager.getConditions()){		
+						for (ControlledExperiment rep: condition.getReplicates()){	
+							double[][] composite = profile.getExemplarBasedAlignment(rep, c, clusters.get(c));
 						
-						try {
-							File compFlie = new File(config.getOutputIntermediateDir()+File.separator+"cluster"+c+".composite.txt");
-							FileWriter fout = new FileWriter(compFlie);
-							fout.write("#Cluster"+c+"\n");
-							for(int i=0; i<=window; i++){
-								fout.write(composite[i][0]+"\t"+composite[i][1]+"\n");
+							try {
+								File compFlie = new File(config.getOutputIntermediateDir()+File.separator+"cluster"+c+".composite.txt");
+								FileWriter fout = new FileWriter(compFlie);
+								fout.write("#Cluster"+c+"\n");
+								for(int i=0; i<=window; i++){
+									fout.write(composite[i][0]+"\t"+composite[i][1]+"\n");
+								}
+								fout.close();
+							} catch (IOException e1) {
+								e1.printStackTrace();
 							}
-							fout.close();
-						} catch (IOException e1) {
-							e1.printStackTrace();
-						}
 						
+						}
 					}
 				}
+			
+				//Get aligned points for each cluster
+				for(Integer c : clusters.keySet()){
+					List<StrandedPoint> spts = profile.getExemplarBasedAlignedPoints(c, clusters.get(c));
+				
+					try {
+						File compFlie = new File(config.getOutputIntermediateDir()+File.separator+"cluster"+c+".points");
+						FileWriter fout = new FileWriter(compFlie);
+						fout.write("#Cluster"+c+"\n");
+						for(StrandedPoint s :spts)
+							fout.write(s.getLocationString()+"\n");
+						fout.close();
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					}
+				
+					initClustPoints.add(spts);
+				}			
 			}
 			
-			//Get aligned points for each cluster
-			for(Integer c : clusters.keySet()){
-				List<StrandedPoint> spts = profile.getExemplarBasedAlignedPoints(c, clusters.get(c));
-				
-				try {
-					File compFlie = new File(config.getOutputIntermediateDir()+File.separator+"cluster"+c+".points");
-					FileWriter fout = new FileWriter(compFlie);
-					fout.write("#Cluster"+c+"\n");
-					for(StrandedPoint s :spts)
-						fout.write(s.getLocationString()+"\n");
-					fout.close();
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
-				
-				initClustPoints.add(spts);
-			}			
-		}
 			
-			
-		// Test on clustered points
-		List<List<List<StrandedPoint>>> clustPoints = new ArrayList<List<List<StrandedPoint>>>();
-		for (ExperimentCondition cond : manager.getConditions())
-			clustPoints.add(initClustPoints);
+			// Test on clustered points
+			List<List<List<StrandedPoint>>> clustPoints = new ArrayList<List<List<StrandedPoint>>>();
+			for (ExperimentCondition cond : manager.getConditions())
+				clustPoints.add(initClustPoints);
 		
-		// What is this step for ?
-		// Find motif within clusters
-		if (config.getFindingMotifs()){
-			try {
-				clustPoints=motifFinder.findClusterMotifs(clustPoints, trainingRound);
-			} catch (ParseException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			// What is this step for ?
+			// Find motif within clusters
+			if (config.getFindingMotifs()){
+				try {
+					clustPoints=motifFinder.findClusterMotifs(clustPoints, trainingRound);
+				} catch (ParseException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
-		}
 			
-		// Make binding subtype
-		for (ExperimentCondition cond : manager.getConditions()){
-			List<BindingSubtype> subtypes = new ArrayList<BindingSubtype>();
-			for (List<StrandedPoint> modelRefs : clustPoints.get(cond.getIndex())){
-				BindingSubtype currType = new BindingSubtype(cond, modelRefs, config.MAX_BINDINGMODEL_WIDTH);
-				currType.setClusteredProfile(true);
-				subtypes.add(currType);
+			// Make binding subtype
+			for (ExperimentCondition cond : manager.getConditions()){
+				List<BindingSubtype> subtypes = new ArrayList<BindingSubtype>();
+				for (List<StrandedPoint> modelRefs : clustPoints.get(cond.getIndex())){
+					BindingSubtype currType = new BindingSubtype(cond, modelRefs, config.MAX_BINDINGMODEL_WIDTH);
+					currType.setClusteredProfile(true);
+					subtypes.add(currType);
+				}
+				bindingManager.addPotentialBindingSubtypes(cond, subtypes);
 			}
-			bindingManager.addPotentialBindingSubtypes(cond, subtypes);
 		}
 		
 	}

@@ -78,7 +78,7 @@ public class ChExMixConfig {
 	public int MEMEmaxw=18;
 	protected String markovBackMode; // Markov background model file
 	protected boolean verbose = false; //Print extra output
-	protected List<List<StrandedPoint>> initialClustPoints = new ArrayList<List<StrandedPoint>>(); // Initial cluster points
+	protected List<List<StrandedPoint>> initialClustPoints = null; // Initial cluster points
 	protected String MetaMakerArgs="--win 250 --bins 250 --batch --nocolorbar --linemax 1 --linethick 1 --transparent";
 	protected int initComponentSpacing=30;	//Initial component spacing
 	protected String distribA=null;	//Stranded distribution A
@@ -279,6 +279,7 @@ public class ChExMixConfig {
 				//Initial clustering points
 				String fname=null;
 				if (ap.hasKey("plist"))
+					initialClustPoints = new ArrayList<List<StrandedPoint>>();
 					fname=Args.parseString(args, "plist", null);
 				if (fname!=null){
 					String[] lines= IOUtil.readFile2Array(fname);
