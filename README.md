@@ -40,14 +40,13 @@ java -Xmx20G org.seqcode.projects.chexmix.ChExMix <options - see below>
 
 Options (Required/important options are in __bold__.)
 
-1. General:
+__General__:
 
   * --__out__ \<prefix>: Output file prefix. All output will be put into a directory with the prefix name. 
-  * --__memepath__  \<path\>: Path to the meme bin dir (default: meme is in $PATH).
   * --threads \<n\>:  Use n threads during binding event detection (default=100)
   * --verbose: Flag to print intermediate files and extra output.
 
-2. Specifying the Genome:
+__Specifying the Genome__:
 
   * --__geninfo__ \<genome info file\>: This file should list the lengths of all chromosomes on separate lines using the format chrName\<tab\>chrLength. You can generate a suitable file from UCSC 2bit format genomes using the UCSC utility “twoBitInfo”. The chromosome names should be exactly the same as those used in your input list of genomic regions. 
    
@@ -56,7 +55,7 @@ Options (Required/important options are in __bold__.)
   * --__seq__ \<path\> : A directory containing fasta format files corresponding to every named chromosome is required if you want to find subtypes run motif-finding or use a motif-prior within ChExMix.
   * --__back__ \<path\> : A file containing Markov background model for the genome is required if you want to run motif-finding or use a motif-prior within ChExMix.
 
-3. Loading Data:
+__Loading Data__:
 
   * --__exptCONDNAME-REPNAME__ \<file\>: Defines a file containing reads from a signal experiment. Replace CONDNAME and REPNAME with appropriate condition and replicate labels.
   * --__ctrlCONDNAME-REPNAME__ \<file\>: Optional arguments. Defines a file containing reads from a control experiment. Replace CONDNAME and REPNAME with appropriate labels to match a signal experiment (i.e. to tell ChExMix which condition/replicate this is a control for). If you leave out a REPNAME, this file will be used as a control for all replicates of CONDNAME.  
@@ -72,7 +71,7 @@ Instead of using the above options to specify each and every ChIP-seq data file 
     * Condition name
     * Replicate name (optional for control experiments – if used, the control will only be used for the corresponding named signal replicate)
  
-4. Running ChExMix:
+__Running ChExMix__:
 
   * --round \<int\>: Max. model update rounds (default=3).
   * --nomodelupdate: Flag to turn off binding model updates.
@@ -86,8 +85,11 @@ Instead of using the above options to specify each and every ChIP-seq data file 
   * --exclude \<file\>: File of regions to ignore
   * --peaks \<file\>: File of peaks to initialize component positions
 
-5. ChExMix subtype discovery via motif:
+__ChExMix subtype discovery__:
 
+ __Using Motif__
+ 
+  * --__memepath__  \<path\>: Path to the meme bin dir (default: meme is in $PATH). MEME path is required for motif finding.
   * --nomotifs \<value\>: Flag to turn off motif-finding & motif priors
   * --nomotifprior \<value\>: Flag to turn off motif priors only
   * --mememinw \<value\>: minw arg for MEME (default=6).
@@ -95,13 +97,13 @@ Instead of using the above options to specify each and every ChIP-seq data file 
   * --memenmotifs \<int\>: Number of motifs MEME should find in each condition (default=3)
   * --memeargs \<args\>: Additional args for MEME (default:  -dna -mod zoops -revcomp -nostatus)
   * --minroc \<value\>: Minimum motif ROC value (default=0.7)
-
-5. ChExMix subtype discovery via read distribution clustering:
+ 
+ __Read Distribution__
 
   * --noclustering: Flag to turn off read distribution clustering
   * --pref \<value\>: Preference value for read distribution clustering (default=-0.1)
   
-6. Reporting binding events:
+__Reporting binding events__:
 
   * --q \<value\>: Q-value minimum (default=0.01)
   * --minfold \<value\>: Minimum event fold-change vs scaled control (default=1.5)
