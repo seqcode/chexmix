@@ -38,24 +38,24 @@ In the above, the “-Xmx20G” argument tells java to use up to 20GB of memory.
 java -Xmx20G org.seqcode.projects.chexmix.ChExMix <options - see below>
 ```
 
-Options (Required/important options are in __bold__.)
+Options (Required/important options are in __bold__)
 
-1. General:
+__General__:
 
   * --__out__ \<prefix>: Output file prefix. All output will be put into a directory with the prefix name. 
-  * --threads \<n\>:  Use n threads during binding event detection. Default is 1 thread.
-  * --verbose: Flag to print intermediate files and extra output
-  * --memepath \<path\>: path to the meme bin dir (default: meme is in $PATH).
+  * --threads \<n\>:  Use n threads during binding event detection (default=1)
+  * --verbose: Flag to print intermediate files and extra output.
 
-2. Specifying the Genome:
+__Specifying the Genome__:
 
-  * --__geninfo__ \<genome info file\>:  This file should list the lengths of all chromosomes on separate lines using the format chrName\<tab\>chrLength. You can generate a suitable file from UCSC 2bit format genomes using the UCSC utility “twoBitInfo”. The chromosome names should be exactly the same as those used in your input list of genomic regions. 
+  * --__geninfo__ \<genome info file\>: This file should list the lengths of all chromosomes on separate lines using the format chrName\<tab\>chrLength. You can generate a suitable file from UCSC 2bit format genomes using the UCSC utility “twoBitInfo”. The chromosome names should be exactly the same as those used in your input list of genomic regions. 
    
       The genome info files for some UCSC genome versions:  
       | [hg18](http://lugh.bmb.psu.edu/software/multigps/support/hg18.info) | [hg19](http://lugh.bmb.psu.edu/software/multigps/support/hg19.info) | [hg38](http://lugh.bmb.psu.edu/software/multigps/support/hg38.info) | [mm8](http://lugh.bmb.psu.edu/software/multigps/support/mm8.info) | [mm9](http://lugh.bmb.psu.edu/software/multigps/support/mm9.info) | [mm10](http://lugh.bmb.psu.edu/software/multigps/support/mm10.info) | [rn4](http://lugh.bmb.psu.edu/software/multigps/support/rn4.info) | [rn5](http://lugh.bmb.psu.edu/software/multigps/support/rn5.info) | [danRer6](http://lugh.bmb.psu.edu/software/multigps/support/danRer6.info) | [ce10](http://lugh.bmb.psu.edu/software/multigps/support/ce10.info) | [dm3](http://lugh.bmb.psu.edu/software/multigps/support/dm3.info) | [sacCer2](http://lugh.bmb.psu.edu/software/multigps/support/sacCer2.info) | [sacCer3](http://lugh.bmb.psu.edu/software/multigps/support/sacCer3.info) |
-  * --__seq__ \<path\> : A directory containing fasta format files corresponding to every named chromosome is required if you want to run motif-finding or use a motif-prior within ChExMix.
+  * --__seq__ \<path\> : A directory containing fasta format files corresponding to every named chromosome is required if you want to find subtypes run motif-finding or use a motif-prior within ChExMix.
+  * --__back__ \<path\> : A file containing Markov background model for the genome is required if you want to run motif-finding or use a motif-prior within ChExMix.
 
-3. Loading Data:
+__Loading Data__:
 
   * --__exptCONDNAME-REPNAME__ \<file\>: Defines a file containing reads from a signal experiment. Replace CONDNAME and REPNAME with appropriate condition and replicate labels.
   * --__ctrlCONDNAME-REPNAME__ \<file\>: Optional arguments. Defines a file containing reads from a control experiment. Replace CONDNAME and REPNAME with appropriate labels to match a signal experiment (i.e. to tell ChExMix which condition/replicate this is a control for). If you leave out a REPNAME, this file will be used as a control for all replicates of CONDNAME.  
@@ -71,16 +71,46 @@ Instead of using the above options to specify each and every ChIP-seq data file 
     * Condition name
     * Replicate name (optional for control experiments – if used, the control will only be used for the corresponding named signal replicate)
  
-4. Other ChExMix options (Recommend using defaul options):
+__Running ChExMix__:
 
-  * --mememinw \<value\>: minw arg for MEME. Default=6.
-  * --mememaxw \<value\>: maxw arg for MEME. Default=13. This value should always be less than "maxScanLen".
+  * --round \<int\>: Max. model update rounds (default=3).
+  * --nomodelupdate: Flag to turn off binding model updates.
+  * --minmodelupdateevents \<int\>: Minimum number of events to support an update (default=100)
+  * --prlogconf \<value\>: Poisson log threshold for potential region scanning (default=-6)
+  * --fixedalpha \<int\>: Impose this alpha (default: set automatically). The alpha parameter is a sparse prior on binding events in the ChExMix model. It can be interpreted as a minimum number of reads that each binding event must be responsible for in the model. 
+  * --alphascale \<value\>: Alpha scaling factor (default=1.0). Increasing this parameter results in stricter binding event calls.
+  * --betascale \<value\>: Beta scaling factor (default=0.05). The beta parameter is a sparse prior on binding event subtype assignment in the ChExMix model. Increasing this parameter may result in inaccurate subtype assignment.
+  * --epsilonscale \<value\>: Epsilon scaling factor (default=0.2). The epsilon parameter control a balance between motif and read distribution in subtype assignment. Increasing this parameter will increase the contribution of motif and decreases the contribution of read distribution.
+  * --mlconfignotshared: Flag to not share component configs in the ML step
+  * --exclude \<file\>: File of regions to ignore
+  * --peaks \<file\>: File of peaks to initialize component positions
+
+__Finding ChExMix subtypes__:
+
+1. Using motif:
+
+  * --__memepath__  \<path\>: Path to the meme bin dir (default: meme is in $PATH). MEME path is required for motif finding.
+  * --nomotifs \<value\>: Flag to turn off motif-finding & motif priors
+  * --nomotifprior \<value\>: Flag to turn off motif priors only
+  * --mememinw \<value\>: minw arg for MEME (default=6).
+  * --mememaxw \<value\>: maxw arg for MEME (default=18).
   * --memenmotifs \<int\>: Number of motifs MEME should find in each condition (default=3)
-  * --memeargs \<args\> : Additional args for MEME (default:  -dna -mod zoops -revcomp -nostatus)
+  * --memeargs \<args\>: Additional args for MEME (default:  -dna -mod zoops -revcomp -nostatus)
+  * --minroc \<value\>: Minimum motif ROC value (default=0.7)
+ 
+ 2. Using read distribution:
+
+  * --noclustering: Flag to turn off read distribution clustering
+  * --pref \<value\>: Preference value for read distribution clustering (default=-0.1)
+  
+__Reporting binding events__:
+
+  * --q \<value\>: Q-value minimum (default=0.01)
+  * --minfold \<value\>: Minimum event fold-change vs scaled control (default=1.5)
 
 Example
 --------------
-This example runs ChExMix v0.1.2 on simulated dataset. Simulated data to run this example can be found [here]
+This example runs ChExMix v0.1 on simulated dataset. Simulated data to run this example can be found [here]
 
 Command:
 ```{r, engine='sh', count_lines}
@@ -95,4 +125,4 @@ For queries, please contact Naomi (nuy11@psu.edu) or Shaun Mahony (mahony@psu.ed
 
 Major History:
 --------------  
-Version 0.1 (2017-11-06): Initial release.
+Version 0.1 (2018-02-14): Initial release.
