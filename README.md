@@ -85,7 +85,7 @@ __Running ChExMix__:
   * --exclude \<file\>: File of regions to ignore
   * --peaks \<file\>: File of peaks to initialize component positions
 
-__ChExMix subtype discovery__:
+__Finding ChExMix subtypes__:
 
 1. Using motif
 
