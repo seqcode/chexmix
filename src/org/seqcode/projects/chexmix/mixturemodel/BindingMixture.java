@@ -276,7 +276,9 @@ public class BindingMixture {
 			List<List<StrandedPoint>> initClustPoints = new ArrayList<List<StrandedPoint>>();		
 			if (config.getInitialClustPoints()!=null){		
 				initClustPoints = config.getInitialClustPoints();		
-			}else{			
+			}else{	
+				
+				System.out.println("Performing read distribution clustering");				
 				// Choose which ones to include
 				//Sum read profiles if there are enough binding components
 				List<BindingSubComponents> currComps = new ArrayList<BindingSubComponents>();
@@ -300,7 +302,7 @@ public class BindingMixture {
 				Collections.reverse(currComps);		
 							
 				List<StrandedPoint> topPos = new ArrayList<StrandedPoint>();
-				for (int i=0; i< Math.min(currComps.size(), config.NUM_COMP_CLUSTER);i++)
+				for (int i=0; i< Math.min(currComps.size(), config.getNumClusteringComps());i++)
 					topPos.add(new StrandedPoint(currComps.get(i).getCoord(), '+'));
 			
 				shapeconfig.setStrandedPoints(topPos);
@@ -396,7 +398,7 @@ public class BindingMixture {
 			for (ExperimentCondition cond : manager.getConditions())
 				clustPoints.add(initClustPoints);
 		
-			// What is this step for ?
+			/**
 			// Find motif within clusters
 			if (config.getFindingMotifs()){
 				try {
@@ -406,6 +408,7 @@ public class BindingMixture {
 					e.printStackTrace();
 				}
 			}
+			**/
 			
 			// Make binding subtype
 			for (ExperimentCondition cond : manager.getConditions()){

@@ -232,7 +232,6 @@ public class ChExMix {
             //Update binding models
             String distribFilename = gpsconfig.getOutputIntermediateDir()+File.separator+gpsconfig.getOutBase()+"_t"+round;
             if (round <= 1){
-            	System.out.println("BindingMixture read distribution clustering");
                 mixtureModel.doReadDistributionClustering();
             }else{
             	mixtureModel.updateBindingModelUsingReadDistributions(distribFilename);
@@ -405,6 +404,7 @@ public class ChExMix {
 				" ChExMix subtype discovery via read distribution clustering:\n"+
 				"\t--noclustering [flag to turn off read distribution clustering]\n" +
 				"\t--pref <preference value for read distribution clustering (default=-0.1)>\n"+
+				"\t--numcomps <number of components to cluster (default=500)>\n"+
 				"\t--win <window size for read distribution clustering (default=150)>\n"+
 				" Reporting binding events:\n" +
 				"\t--q <Q-value minimum (default=0.01)>\n" +

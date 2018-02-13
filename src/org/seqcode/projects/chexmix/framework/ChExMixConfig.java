@@ -85,7 +85,7 @@ public class ChExMixConfig {
 	protected String distribB=null;	//Stranded distribution B
 	protected double preferenceValue = -0.1; // Preference value for read distribution clustering
 	protected int clusteringWindow = 150;
-	
+	protected int numClusteringComps = 500;	// Number of components to perform AP clustering
     
 	//Constants
 	public final double LOG2 = Math.log(2);
@@ -128,8 +128,6 @@ public class ChExMixConfig {
     public final double KMEANS_CONVERGENCE_THRES = 0.01;
     public final double KL_DIVERGENCE_BM_THRES = -10;
     public final double CORR_THRES =100; //100 is no threshold
-    public final int NUM_COMP_CLUSTER=500; // Number of components to perform AP clustering
-
 	
 	protected String[] args;
 	public String getArgs(){
@@ -220,6 +218,8 @@ public class ChExMixConfig {
 				initComponentSpacing = Args.parseInteger(args,"compspacing",initComponentSpacing);
 				//Preference value for AP clustering
 				preferenceValue = Args.parseDouble(args, "pref", preferenceValue);
+				// Number of components to perform AP clustering
+				numClusteringComps = Args.parseInteger(args,"numcomps",numClusteringComps);
 				
 				if(ap.hasKey("plotregions"))
 					regionsToPlot = RegionFileUtilities.loadRegionsFromFile(Args.parseString(args, "plotregions", null), gen, -1);
@@ -366,6 +366,7 @@ public class ChExMixConfig {
 	public String getDistribB(){return distribB;}
 	public double getPreferenceValue(){return preferenceValue;}
 	public int getClusterWindowSize(){return clusteringWindow;}
+	public int getNumClusteringComps(){return numClusteringComps;}
 	
 	
 	/**
@@ -442,7 +443,7 @@ public class ChExMixConfig {
 				"\t--mlconfignotshared [flag to not share component configs in the ML step]\n" +
 				"\t--exclude <file of regions to ignore>\n" +
 				"\t--plotregions <regions to print during EM training>\n" +
-				"\t--peaks <peak file used for component initialization>\n" +
+				"\t--peakf <peak file used for component initialization>\n" +
 				"\t--motifregions <regions to print component distribution histogram>\n" +
 				"\t--eventbasecomp [flag to record event base compositions]\n"+
 				"\t--nomotifs [flag to turn off motif-finding & motif priors]\n" +
