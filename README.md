@@ -44,7 +44,7 @@ Options (Required/important options are in __bold__.)
 
   * --__out__ \<prefix>: Output file prefix. All output will be put into a directory with the prefix name. 
   * --__memepath__  \<path\>: Path to the meme bin dir (default: meme is in $PATH).
-  * --threads \<n\>:  Use n threads during binding event detection. Default is 1 thread.
+  * --threads \<n\>:  Use n threads during binding event detection (default=100)
   * --verbose: Flag to print intermediate files and extra output.
 
 2. Specifying the Genome:
@@ -74,7 +74,7 @@ Instead of using the above options to specify each and every ChIP-seq data file 
  
 4. Running ChExMix:
 
-  * --round \<int\>: Max. model update rounds, default=3.
+  * --round \<int\>: Max. model update rounds (default=3).
   * --nomodelupdate: Flag to turn off binding model updates.
   * --minmodelupdateevents \<int\>: Minimum number of events to support an update (default=100)
   * --prlogconf \<value\>: Poisson log threshold for potential region scanning (default=-6)
@@ -90,8 +90,8 @@ Instead of using the above options to specify each and every ChIP-seq data file 
 
   * --nomotifs \<value\>: Flag to turn off motif-finding & motif priors
   * --nomotifprior \<value\>: Flag to turn off motif priors only
-  * --mememinw \<value\>: minw arg for MEME. Default=6.
-  * --mememaxw \<value\>: maxw arg for MEME. Default=13. This value should always be less than "maxScanLen".
+  * --mememinw \<value\>: minw arg for MEME (default=6).
+  * --mememaxw \<value\>: maxw arg for MEME (default=18).
   * --memenmotifs \<int\>: Number of motifs MEME should find in each condition (default=3)
   * --memeargs \<args\>: Additional args for MEME (default:  -dna -mod zoops -revcomp -nostatus)
   * --minroc \<value\>: Minimum motif ROC value (default=0.7)
