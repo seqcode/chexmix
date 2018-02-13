@@ -72,7 +72,7 @@ public class ChExMix {
 		prevModels = new HashMap<ExperimentCondition, List<BindingSubtype>>();
 		
 		List<TagProbabilityDensity> tagProbDensities = new ArrayList<TagProbabilityDensity>();	
-		if (!gpsconfig.getInitialClustPoints().isEmpty()){
+		if (gpsconfig.getInitialClustPoints()!=null){
 			List<List<StrandedPoint>> initialClustPoints = gpsconfig.getInitialClustPoints();
 			for (List<StrandedPoint> points : initialClustPoints){
 				List<StrandedPoint> compositePoints = new ArrayList<StrandedPoint>();
