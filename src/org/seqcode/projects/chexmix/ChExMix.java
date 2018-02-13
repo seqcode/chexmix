@@ -320,6 +320,7 @@ public class ChExMix {
 		ChExMixConfig config = new ChExMixConfig(gcon, args);
 		XLAnalysisConfig xlconfig = new XLAnalysisConfig(gcon, args);
 		ShapeAlignConfig sc = new ShapeAlignConfig(args);
+		sc.setWindowSize(config.getClusterWindowSize());
 		
 		ExptConfig econ = new ExptConfig(gcon.getGenome(), args);
 		if (!config.useReadFilter())
@@ -359,11 +360,13 @@ public class ChExMix {
 				"\n OPTIONS:\n" +
 				" General:\n"+
 				"\t--out <output file prefix>\n" +
+				"\t--memepath <path to the meme bin dir (default: meme is in $PATH)>\n" +
 				"\t--threads <number of threads to use (default=1)>\n" +
 				"\t--verbose [flag to print intermediate files and extra output]\n" +
 				"\t--config <config file: all options here can be specified in a name<space>value text file, over-ridden by command-line args>\n" +
 				" Genome:\n" +
-				"\t--geninfo <genome info file> AND --seq <fasta seq directory reqd if using motif prior>\n" +
+				"\t--geninfo <genome info file> AND --seq <fasta seq directory reqd if finding motif>\n" +
+				"\t--back <Markov background model file reqd if finding motif>\n"+
 				" Loading Data:\n" +
 				"\t--expt <file name> AND --format <SAM/BED/IDX>\n" +
 				"\t--ctrl <file name (optional argument. must be same format as expt files)>\n" +
@@ -382,23 +385,20 @@ public class ChExMix {
 				"\t--scalewin <window size for scaling procedure (default=10000)>\n" +
 				"\t--plotscaling [flag to plot diagnostic information for the chosen scaling method]\n" +
 				" Running ChExMix:\n" +
-				"\t--d <binding event read distribution file>\n" +
-				"\t--round <max. model update rounds, default=3>\n" +
+				"\t--round <max. model update rounds (default=3)>\n" +
 				"\t--nomodelupdate [flag to turn off binding model updates]\n" +
 				"\t--minmodelupdateevents <minimum number of events to support an update (default=100)>\n" +
-				"\t--prlogconf <Poisson log threshold for potential region scanning(default=-6)>\n" +
-				"\t--alphascale <alpha scaling factor(default=1.0>\n" +
-				"\t--betascale <beta scaling factor(default=0.05>\n" +
-				"\t--epsilonscale <epsilon scaling factor(default=0.2>\n" +
+				"\t--prlogconf <Poisson log threshold for potential region scanning (default=-6)>\n" +
+				"\t--alphascale <alpha scaling factor (default=1.0)>\n" +
+				"\t--betascale <beta scaling factor (default=0.05)>\n" +
+				"\t--epsilonscale <epsilon scaling factor (default=0.2)>\n" +
 				"\t--fixedalpha <impose this alpha (default: set automatically)>\n" +
 				"\t--mlconfignotshared [flag to not share component configs in the ML step]\n" +
 				"\t--exclude <file of regions to ignore>\n" +
-				"\t--peaks <file of peaks to initialize components>\n" +
+				"\t--peakf <file of peaks to initialize component positions>\n" +
 				" ChExMix subtype discovery via motif:\n"+
 				"\t--nomotifs [flag to turn off motif-finding & motif priors]\n" +
-				"\t--noposprior [flag to turn off inter-experiment positional prior (default=on)]\n" +
 				"\t--nomotifprior [flag to turn off motif priors only]\n" +
-				"\t--memepath <path to the meme bin dir (default: meme is in $PATH)>\n" +
 				"\t--memenmotifs <number of motifs MEME should find for each condition (default=3)>\n" +
 				"\t--mememinw <minw arg for MEME (default=6)>\n"+
 				"\t--mememaxw <maxw arg for MEME (default=18)>\n"+
@@ -406,7 +406,8 @@ public class ChExMix {
 				"\t--minroc <minimum motif ROC value (default=0.7)>\n"+
 				" ChExMix subtype discovery via read distribution clustering:\n"+
 				"\t--noclustering [flag to turn off read distribution clustering]\n" +
-				"\t--pref <preference value for AP clustering (default=-0.1)>\n"+
+				"\t--pref <preference value for read distribution clustering (default=-0.1)>\n"+
+				"\t--win <window size for read distribution clustering (default=150)>\n"+
 				" Reporting binding events:\n" +
 				"\t--q <Q-value minimum (default=0.01)>\n" +
 				"\t--minfold <minimum event fold-change vs scaled control (default=1.5)>\n" +

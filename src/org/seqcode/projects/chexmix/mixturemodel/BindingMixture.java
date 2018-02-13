@@ -9,6 +9,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -278,6 +279,34 @@ public class BindingMixture {
 			
 			initClustPoints = new ArrayList<List<StrandedPoint>>();
 			
+			// Choose which ones to include
+			//Sum read profiles if there are enough binding components
+			List<BindingSubComponents> currComps = new ArrayList<BindingSubComponents>();
+	    	for(ExperimentCondition cond : manager.getConditions()){
+	    		double currAlpha = (double)conditionBackgrounds.get(cond).getMaxThreshold('.');
+	    		//Choose which components to include
+	    		for(Region r : activeComponents.keySet()){
+	    			for(BindingSubComponents bc : activeComponents.get(r).get(cond.getIndex())){
+	    				//1) Component must not be at the edge of the region 
+	    				if((bc.getPosition()-r.getStart()>bindingManager.getMaxInfluenceRange(cond)/2) && (r.getEnd()-bc.getPosition()>bindingManager.getMaxInfluenceRange(cond)/2)){
+	    					//2) Arbitrary minimum read support for BM components
+	    					if(bc.getSumResponsibility()>(config.getMinComponentReadFactorForBM()*currAlpha))
+	    						currComps.add(bc);
+	    				}
+	    			}
+	    		}	
+	    	}
+            Collections.sort(currComps, new Comparator<BindingSubComponents>(){
+            	public int compare(BindingSubComponents o1, BindingSubComponents o2) {return o1.compareByResp(o2);}
+			});
+			Collections.reverse(currComps);		
+							
+			List<StrandedPoint> topPos = new ArrayList<StrandedPoint>();
+			for (int i=0; i< Math.min(currComps.size(), config.NUM_COMP_CLUSTER);i++)
+				topPos.add(new StrandedPoint(currComps.get(i).getCoord(), '+'));
+			
+			shapeconfig.setStrandedPoints(topPos);
+			
 			//Run the aligner
 			ShapeAlignmentTesting profile = new ShapeAlignmentTesting(shapeconfig, gconfig, manager); 	
 			try {
@@ -369,6 +398,7 @@ public class BindingMixture {
 		for (ExperimentCondition cond : manager.getConditions())
 			clustPoints.add(initClustPoints);
 		
+		// What is this step for ?
 		// Find motif within clusters
 		if (config.getFindingMotifs()){
 			try {

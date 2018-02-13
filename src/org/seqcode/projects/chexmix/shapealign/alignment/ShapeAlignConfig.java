@@ -87,6 +87,8 @@ public class ShapeAlignConfig {
 	
 	// setters
 	public void setStrandedRegions(List<StrandedRegion> strandedRegs){strandedRegions = strandedRegs;}
+	public void setStrandedPoints(List<StrandedPoint> spos){spoints=spos;}
+	public void setWindowSize(int w){win=w;}
 	
 	public ShapeAlignConfig(String[] arguments) {
 		
@@ -103,7 +105,7 @@ public class ShapeAlignConfig {
 		win = Args.parseInteger(args, "win", 200);
 		K = Args.parseInteger(args, "K", 5);
 		percentile = Args.parseInteger(args, "percentile", 10);
-		spoints = RegionFileUtilities.loadStrandedPointsFromMotifFile(gconf.getGenome(), ap.getKeyValue("peaks"), win);
+		spoints = RegionFileUtilities.loadStrandedPointsFromMotifFile(gconf.getGenome(), ap.getKeyValue("peakf"), win);
 		
 		// Get outdir and outbase and make them; delete dirs that exist with the same
 		outbase = Args.parseString(args, "out", "shapealign");
@@ -152,7 +154,7 @@ public class ShapeAlignConfig {
 		outdir.mkdirs();
 	}
 	/**
-	 * Delete a direcctory
+	 * Delete a directory
 	 */
 	public boolean deleteDirectory(File path) {
 	    if( path.exists() ) {

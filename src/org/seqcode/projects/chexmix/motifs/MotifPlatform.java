@@ -517,7 +517,6 @@ public class MotifPlatform {
             typeComps.removeAll(comps2Remove);
             
             for (List<BindingSubComponents> peaks : typeComps){
-            	// Sort by tau probabilities
             	Collections.sort(peaks, new Comparator<BindingSubComponents>(){
 //					public int compare(BindingSubComponents o1, BindingSubComponents o2) {return o1.compareByTauProb(o2);}
             		public int compare(BindingSubComponents o1, BindingSubComponents o2) {return o1.compareByResp(o2);}
