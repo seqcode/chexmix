@@ -325,7 +325,7 @@ public class ChExMix {
 		econ.setLoadRead2(false);
 		
 		if(config.helpWanted()){
-			System.err.println(config.getArgsList());
+			System.err.println(ChExMix.getChExMixArgsList());
 		}else{
 			
 			ExperimentManager manager = new ExperimentManager(econ);
@@ -346,7 +346,7 @@ public class ChExMix {
 	 * returns a string describing the arguments for the public version of ChExMix. 
 	 * @return String
 	 */
-	public static String getxogpsArgsList(){
+	public static String getChExMixArgsList(){
 		return(new String("" +
 				"Copyright (C) Naomi Yamada 2018\n" +
 				"<http://mahonylab.org/software/chexmix>\n" +
@@ -357,7 +357,6 @@ public class ChExMix {
 				"\n OPTIONS:\n" +
 				" General:\n"+
 				"\t--out <output file prefix>\n" +
-				"\t--memepath <path to the meme bin dir (default: meme is in $PATH)>\n" +
 				"\t--threads <number of threads to use (default=1)>\n" +
 				"\t--verbose [flag to print intermediate files and extra output]\n" +
 				"\t--config <config file: all options here can be specified in a name<space>value text file, over-ridden by command-line args>\n" +
@@ -393,7 +392,8 @@ public class ChExMix {
 				"\t--mlconfignotshared [flag to not share component configs in the ML step]\n" +
 				"\t--exclude <file of regions to ignore>\n" +
 				"\t--peakf <file of peaks to initialize component positions>\n" +
-				" ChExMix subtype discovery via motif:\n"+
+				" Finding ChExMix subtypes using motif:\n"+
+				"\t--memepath <path to the meme bin dir (default: meme is in $PATH)>\n" +
 				"\t--nomotifs [flag to turn off motif-finding & motif priors]\n" +
 				"\t--nomotifprior [flag to turn off motif priors only]\n" +
 				"\t--memenmotifs <number of motifs MEME should find for each condition (default=3)>\n" +
@@ -401,11 +401,12 @@ public class ChExMix {
 				"\t--mememaxw <maxw arg for MEME (default=18)>\n"+
 				"\t--memeargs <additional args for MEME (default=  -dna -mod zoops -revcomp -nostatus)>\n"+
 				"\t--minroc <minimum motif ROC value (default=0.7)>\n"+
-				" ChExMix subtype discovery via read distribution clustering:\n"+
+				"\t--minmodelupdaterefs <minimum number of motif reference to support an subtype distribution update (default=50)>\n"+
+				" Finding ChExMix subtypes using read distribution clustering:\n"+
 				"\t--noclustering [flag to turn off read distribution clustering]\n" +
 				"\t--pref <preference value for read distribution clustering (default=-0.1)>\n"+
 				"\t--numcomps <number of components to cluster (default=500)>\n"+
-				"\t--win <window size for read distribution clustering (default=150)>\n"+
+				"\t--win <window size of read profiles (default=150)>\n"+
 				" Reporting binding events:\n" +
 				"\t--q <Q-value minimum (default=0.01)>\n" +
 				"\t--minfold <minimum event fold-change vs scaled control (default=1.5)>\n" +

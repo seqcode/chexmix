@@ -424,7 +424,7 @@ public class ChExMixConfig {
 				"\tOR\n" +
 				"\t--geninfo <genome info file> AND --seq <fasta seq directory>\n" +
 				"General:\n" +
-				"\t--r <max. model update rounds (default="+maxModelUpdateRounds+">\n" +
+				"\t--round <max. model update rounds (default="+maxModelUpdateRounds+">\n" +
 				"\t--out <out name (default="+outBase+">\n" +
 				"\t--d <read distribution model file>\n" +
 				"\t--nonunique [flag to use non-unique reads]\n" +
