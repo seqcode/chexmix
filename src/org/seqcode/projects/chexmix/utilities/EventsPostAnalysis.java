@@ -366,14 +366,13 @@ public class EventsPostAnalysis {
 			fout.write("\t\t</tr>\n");
 			
 			for(ExperimentCondition cond : manager.getConditions()){
-				String subtypeEventFileName = config.getOutBase()+"_"+cond.getName()+".subtype.events";
 				String heatmapFileName = "images/"+config.getOutBase()+"_"+cond.getName()+".events_"+cond.getName()+"_"+"heatmap.png";
 				String seqcolorplot = "images/"+config.getOutBase()+"_"+cond.getName()+"_seq.png";
 	    		fout.write("\t\t<tr>" +
 		    			"\t\t<td rowspan=3>"+cond.getName()+"</td>\n" +
-		    			"\t\t<td rowspan=3><a href='#' onclick='return fullpopitup(\""+heatmapFileName+"\")'><img src='"+heatmapFileName+"' height='500' width='150'></a></td>\n");
+		    			"\t\t<td rowspan=3><a href='#' onclick='return fullpopitup(\""+heatmapFileName+"\")'><img src='"+heatmapFileName+"' height='400' width='150'></a></td>\n");
 				if(config.getFindingMotifs()){
-					fout.write("\t\t<td rowspan=3><a href='#' onclick='return fullpopitup(\""+seqcolorplot+"\")'><img src='"+seqcolorplot+"' height='500' width='100'></a></td>\n");
+					fout.write("\t\t<td rowspan=3><a href='#' onclick='return fullpopitup(\""+seqcolorplot+"\")'><img src='"+seqcolorplot+"' height='400' width='100'></a></td>\n");
 				}
 	    		String replicateName = cond.getName()+"-"+cond.getReplicates().get(0).getRepName();
 	    		for (int i=0; i < maxNumSubtypes; i++){
@@ -392,7 +391,7 @@ public class EventsPostAnalysis {
 	    			if(!motifImageNames.get(cond).isEmpty()){
 	    				for (BindingSubtype subtype :bindingManager.getBindingSubtype(cond)){
 	    					if (subtype.hasMotif()){
-	    						fout.write("\t\t<td><img src='"+motifImageNames.get(cond).get(mc)+"'height='60' width='200'><a href='#' onclick='return motifpopitup(\""+motifRCImageNames.get(cond).get(mc)+"\")'>rc</a></td>\n");
+	    						fout.write("\t\t<td><img src='"+motifImageNames.get(cond).get(mc)+"'height='70' width='300'><a href='#' onclick='return motifpopitup(\""+motifRCImageNames.get(cond).get(mc)+"\")'>rc</a></td>\n");
 	    						mc++;
 	    					}else{
 	    						fout.write("\t\t<td>NA</td>\n");
