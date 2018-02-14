@@ -415,7 +415,7 @@ public class EventsPostAnalysis {
 	    		int[] subtypeCounts=bindingManager.countSubtypeEventsInCondition(cond, evconfig.getQMinThres());
 	    		int colc=0;
 	    		for (int i=0; i< bindingManager.getNumBindingType(cond);i++){
-	    			fout.write("\t\t<td>"+subtypeCounts[i]+"</td>\n");
+	    			fout.write("\t\t<td>"+subtypeCounts[i]+" events</td>\n");
 	    			colc++;
 	    		}
 	    		for (int j=colc; j<maxNumSubtypes;j++)
