@@ -425,11 +425,11 @@ public class EventsPostAnalysis {
 			
 			//File list of extras (histograms, etc)
 			fout.write("\t<h2>Miscellaneous files</h2>\n");
-			if(config.getFindingMotifs())
-				if(evconfig.getEventsFileTXTExtension())
-					fout.write("\t<p><a href='"+config.getOutBase()+".motifs.txt'>Positional prior motifs.</a> Try inputting these motifs into <a href='http://www.benoslab.pitt.edu/stamp/'>STAMP</a> for validation.</p>\n");
-				else
-					fout.write("\t<p><a href='"+config.getOutBase()+".motifs'>Positional prior motifs.</a> Try inputting these motifs into <a href='http://www.benoslab.pitt.edu/stamp/'>STAMP</a> for validation.</p>\n");
+			if(config.getFindingMotifs()){
+				for(ExperimentCondition cond : manager.getConditions())
+					fout.write("\t<p><a href='intermediate-results/"+config.getOutBase()+"."+cond.getName()+".transfac'>"+cond.getName()+" subtype motifs.</a></p>\n");
+				fout.write("\t<p> Try inputting these motifs into <a href='http://www.benoslab.pitt.edu/stamp/'>STAMP</a> for validation.</p>\n");
+			}
 			fout.write("\t<p><a href='intermediate-results/"+config.getOutBase()+".intraCondPeakDistances.histo.txt'>Peak-peak distance histograms (same condition)</a></p>\n");
 			if(manager.getNumConditions()>1)
 				fout.write("\t<p><a href='intermediate-results/"+config.getOutBase()+".interCondPeakDistances.histo.txt'>Peak-peak distance histograms (between conditions)</a></p>\n");
