@@ -282,19 +282,15 @@ public class EventsPostAnalysis {
 	    			"\t\t<th>Replicate</th>\n" +
 	    			"\t\t<th>ReadCount</th>\n" +
 	    			"\t\t<th>CtrlScaling</th>\n" +
-	    			"\t\t<th>SignalFraction</th>\n" +
-	    			"\t\t<th>ReadDistributionModel</th>\n");
+	    			"\t\t<th>SignalFraction</th>\n");
 	    	fout.write("\t\t</tr>\n");
 	    	for(ControlledExperiment rep : manager.getReplicates()){
-	    		String replicateName = rep.getCondName()+"-"+rep.getRepName();
-				String distribFilename = "images/"+config.getOutBase()+"_"+replicateName+"_Read_Distributions.png";
 				String tmpscale = rep.hasControl()?String.format("%.3f",rep.getControlScaling()):"NA";
 	    		fout.write("\t\t<tr>" +
 		    			"\t\t<td>"+rep.getCondName()+" "+rep.getRepName()+"</td>\n" +
 	    				"\t\t<td>"+rep.getSignal().getHitCount()+"</td>\n" +
 	    				"\t\t<td>"+tmpscale+"</td>\n" +
 	    				"\t\t<td>"+String.format("%.3f",rep.getSignalVsNoiseFraction())+"</td>\n");
-	    		fout.write("\t\t<td><a href='#' onclick='return fullpopitup(\""+distribFilename+"\")'><img src='"+distribFilename+"' height='300'></a></td>\n");
 	    		fout.write("\t\t</tr>\n");
 			}fout.write("\t</table>\n");
 			
@@ -310,19 +306,23 @@ public class EventsPostAnalysis {
 	    			"\t\t<th>Condition</th>\n" +
 	    			"\t\t<th>File</th>\n");
 			for (int i=0; i < maxNumSubtypes; i++)
-				fout.write("\t\t<th>Subtype"+i+"</th>\n");
+				fout.write("\t\t<th>Subtype "+i+"</th>\n");
 			fout.write("\t\t</tr>\n");
 			
-			for (int i=0; i <  manager.getConditions().size(); i++){
-				ExperimentCondition cond = manager.getConditions().get(i);
+			for(ExperimentCondition cond : manager.getConditions()){
 				String subtypeEventFileName = config.getOutBase()+"_"+cond.getName()+".subtype.events";
 	    		fout.write("\t\t<tr>" +
 		    			"\t\t<td>"+cond.getName()+"</td>\n" +
 		    			"\t\t<td><a href='"+subtypeEventFileName+"'>"+subtypeEventFileName+"</a></td>\n");
 	    		String replicateName = cond.getName()+"-"+cond.getReplicates().get(0).getRepName();
-	    		String distribFilename = "images/"+config.getOutBase()+"_"+replicateName+"_"+i+"_Read_Distributions.png";
-	    		fout.write("\t\t<td><a href='#' onclick='return fullpopitup(\""+distribFilename+"\")'><img src='"+distribFilename+"' height='300'></a></td>\n");
-	    		fout.write("\t\t</tr>\n");
+	    		for (int i=0; i < maxNumSubtypes; i++){
+	    			if (i < bindingManager.getNumBindingType(cond)){
+	    				String distribFilename = "images/"+config.getOutBase()+"_"+replicateName+"_"+i+"_Read_Distributions.png";
+	    				fout.write("\t\t<td><a href='#' onclick='return fullpopitup(\""+distribFilename+"\")'><img src='"+distribFilename+"' height='300'></a></td>\n");
+	    			}else{
+	    				fout.write("\t\t<td>NA</td>\n");
+	    			}					
+	    		}fout.write("\t\t</tr>\n");
 			}fout.write("\t</table>\n");
 			
 			
