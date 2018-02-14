@@ -387,15 +387,15 @@ public class EventsPostAnalysis {
 			
 			for(ExperimentCondition cond : manager.getConditions()){
 				String subtypeEventFileName = config.getOutBase()+"_"+cond.getName()+".subtype.events";
-				String heatmapFileName = config.getOutBase()+"_"+cond.getName()+".events_"+cond.getName()+"_"+"heatmap.png";
-				String seqcolorplot = config.getOutBase()+"_"+cond.getName()+"_seq.png";
+				String heatmapFileName = "images/"+config.getOutBase()+"_"+cond.getName()+".events_"+cond.getName()+"_"+"heatmap.png";
+				String seqcolorplot = "images/"+config.getOutBase()+"_"+cond.getName()+"_seq.png";
 	    		fout.write("\t\t<tr>" +
 		    			"\t\t<td rowspan=3>"+cond.getName()+"</td>\n" +
 		    			"\t\t<td rowspan=3>"+bindingManager.countEventsInCondition(cond, evconfig.getQMinThres())+"</td>\n" +
 		    			"\t\t<td rowspan=3><a href='"+subtypeEventFileName+"'>"+subtypeEventFileName+"</a></td>\n" +
-		    			"\t\t<td rowspan=3><a href='"+heatmapFileName+"'>"+heatmapFileName+"</a></td>\n");	//heatmap
+		    			"\t\t<td><a href='#' onclick='return fullpopitup(\""+heatmapFileName+"\")'><img src='"+heatmapFileName+"' height='300'></a></td>\n");
 				if(config.getFindingMotifs()){
-					fout.write("\t\t<td rowspan=3><a href='"+seqcolorplot+"'>"+seqcolorplot+"</a></td>\n");
+					fout.write("\t\t<td><a href='#' onclick='return fullpopitup(\""+seqcolorplot+"\")'><img src='"+seqcolorplot+"' height='300'></a></td>\n");
 				}
 	    		String replicateName = cond.getName()+"-"+cond.getReplicates().get(0).getRepName();
 	    		for (int i=0; i < maxNumSubtypes; i++){
@@ -430,8 +430,13 @@ public class EventsPostAnalysis {
 	    		}else{
 	    			for (int i=0; i < maxNumSubtypes; i++)
 		    			fout.write("\t\t<td>NA</td>\n");
-	    		}
-	    		fout.write("\t\t</tr>\n");
+	    		}fout.write("\t\t</tr>\n");
+	    		
+	    		// add number of subtype specific sites
+	    		for (BindingSubtype subtype :bindingManager.getBindingSubtype(cond)){
+	    			fout.write("\t\t<td>NA</td>\n");
+	    		}fout.write("\t\t</tr>\n");
+	    		
 			}fout.write("\t</table>\n");
 			
 			
