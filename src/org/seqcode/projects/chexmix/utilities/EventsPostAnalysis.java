@@ -378,7 +378,7 @@ public class EventsPostAnalysis {
 	    		for (int i=0; i < maxNumSubtypes; i++){
 	    			if (i < bindingManager.getNumBindingType(cond)){
 	    				String distribFilename = "images/"+config.getOutBase()+"_"+replicateName+"_"+i+"_Read_Distributions.png";
-	    				fout.write("\t\t<td><a href='#' onclick='return fullpopitup(\""+distribFilename+"\")'><img src='"+distribFilename+"' height='250'></a></td>\n");
+	    				fout.write("\t\t<td><a href='#' onclick='return fullpopitup(\""+distribFilename+"\")'><img src='"+distribFilename+"' height='300'></a></td>\n");
 	    			}else{
 	    				fout.write("\t\t<td>NA</td>\n");
 	    			}					
@@ -410,9 +410,15 @@ public class EventsPostAnalysis {
 	    		}fout.write("\t\t</tr>\n");
 	    		
 	    		// add number of subtype specific sites
-	    		for (BindingSubtype subtype :bindingManager.getBindingSubtype(cond)){
-	    			fout.write("\t\t<td>NA</td>\n");
-	    		}fout.write("\t\t</tr>\n");
+	    		int[] subtypeCounts=bindingManager.countSubtypeEventsInCondition(cond, evconfig.getQMinThres());
+	    		int colc=0;
+	    		for (int i=0; i< bindingManager.getNumBindingType(cond);i++){
+	    			fout.write("\t\t<td>"+subtypeCounts[i]+"</td>\n");
+	    			colc++;
+	    		}
+	    		for (int j=colc; j<maxNumSubtypes;j++)
+					fout.write("\t\t<td>NA</td>\n");
+	    		fout.write("\t\t</tr>\n");
 	    		
 			}fout.write("\t</table>\n");
 			

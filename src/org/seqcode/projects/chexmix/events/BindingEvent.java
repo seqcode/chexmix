@@ -248,7 +248,7 @@ public class BindingEvent implements Comparable<BindingEvent>{
 	 * the output of BindingEvent.toString().
 	 */
 	public static String fullHeadString(){
-		String head="### MultiGPS output\n";
+		String head="### ChExMix output\n";
 		
 		head = head + "#Condition\tName\tIndex\tTotalSigCount\tSignalFraction\n";
 		//Add some basic information on the experiments

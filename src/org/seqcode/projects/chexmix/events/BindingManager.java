@@ -184,6 +184,21 @@ public class BindingManager {
 		return count;
 	}
 	/**
+	 * Count the binding events present in a given condition
+	 * @param cond
+	 * @return
+	 */
+	public int[] countSubtypeEventsInCondition(ExperimentCondition cond, double qMinThres){
+		int [] subtypeCount = new int[getNumBindingType(cond)];
+		for (int i=0; i <getNumBindingType(cond); i++){ subtypeCount[i]=0;}
+		ArrayList<Integer> subtyeCount= new ArrayList<Integer>();
+		for(BindingEvent e : events){
+			if(e.isFoundInCondition(cond) && e.getCondSigVCtrlP(cond) <=qMinThres)
+				subtypeCount[e.getMaxSubtypePoint(cond).car()]++;
+		}
+		return subtypeCount;
+	}
+	/**
 	 * Count the differential binding events present in a given pair of conditions
 	 * @param cond
 	 * @return
