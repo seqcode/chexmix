@@ -356,7 +356,7 @@ public class EventsPostAnalysis {
 			}
 //			fout.write("\t<h2>Binding event subtype images</h2>\n" +
 //	    			"\t<table>\n");
-			fout.write("\t<table>\n");
+			fout.write("\n\t<table>\n");
 			fout.write("\t\t<tr>" +
 	    			"\t\t<th>Condition</th>\n" +
 	    			"\t\t<th>Heatmap</th>\n");
