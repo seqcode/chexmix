@@ -304,94 +304,91 @@ public class BindingMixture {
 				List<StrandedPoint> topPos = new ArrayList<StrandedPoint>();
 				for (int i=0; i< Math.min(currComps.size(), config.getNumClusteringComps());i++)
 					topPos.add(new StrandedPoint(currComps.get(i).getCoord(), '+'));
-			
-				shapeconfig.setStrandedPoints(topPos);
-			
-				//Run the aligner
-				ShapeAlignmentTesting profile = new ShapeAlignmentTesting(shapeconfig, gconfig, manager); 	
-				try {
-					profile.execute();
-				} catch (FileNotFoundException | UnsupportedEncodingException e) {
-					e.printStackTrace();
-				}
+				
+				if (topPos.size()> config.getMinComponentsForBMUpdate()){			
+					shapeconfig.setStrandedPoints(topPos);			
+					//Run the aligner
+					ShapeAlignmentTesting profile = new ShapeAlignmentTesting(shapeconfig, gconfig, manager); 	
+					try {
+						profile.execute();
+					} catch (FileNotFoundException | UnsupportedEncodingException e) {
+						e.printStackTrace();
+					}
 
-				//Get the alignment matrix
-				double[][] alignmentScores = profile.getSimilarityMatrix();
-				List<StrandedRegion> regs = profile.getStrandedRegions();
-				List<String> regNames= new ArrayList<String>();
-				for(StrandedRegion sr : regs)
-					regNames.add(sr.getLocationString());
+					//Get the alignment matrix
+					double[][] alignmentScores = profile.getSimilarityMatrix();
+					List<StrandedRegion> regs = profile.getStrandedRegions();
+					List<String> regNames= new ArrayList<String>();
+					for(StrandedRegion sr : regs)
+						regNames.add(sr.getLocationString());
 			
-				//Run AffinityPropagation
-				MatrixSimilarityMeasure<Clusterable> msm = new MatrixSimilarityMeasure<Clusterable>(regNames, 
-						alignmentScores, config.getPreferenceValue());
-				double netsim = APCluster.cluster(msm.objects(), msm, 0.9, 200, 2000); //higher damping factor leads to slower convergence
-				List<SimilarityMeasure<Clusterable>.APExemplar> exemplars = msm.getExemplars();
-				List<SimilarityMeasure<Clusterable>.APAssignment> assignments = msm.getAssignments();
+					//Run AffinityPropagation
+					MatrixSimilarityMeasure<Clusterable> msm = new MatrixSimilarityMeasure<Clusterable>(regNames, 
+							alignmentScores, config.getPreferenceValue());
+					double netsim = APCluster.cluster(msm.objects(), msm, 0.9, 200, 2000); //higher damping factor leads to slower convergence
+					List<SimilarityMeasure<Clusterable>.APExemplar> exemplars = msm.getExemplars();
+					List<SimilarityMeasure<Clusterable>.APAssignment> assignments = msm.getAssignments();
 			
-				int numExemplars = exemplars.size();
-				Map<Integer, List<Integer>> clusters = 
-						new HashMap<Integer, List<Integer>>();
-				for(SimilarityMeasure<Clusterable>.APExemplar e : exemplars){
-					clusters.put(e.index, new ArrayList<Integer>());
-					clusters.get(e.index).add(e.index);
-				}
+					int numExemplars = exemplars.size();
+					Map<Integer, List<Integer>> clusters = 
+							new HashMap<Integer, List<Integer>>();
+					for(SimilarityMeasure<Clusterable>.APExemplar e : exemplars){
+						clusters.put(e.index, new ArrayList<Integer>());
+						clusters.get(e.index).add(e.index);
+					}
 			
-				for(SimilarityMeasure<Clusterable>.APAssignment a : assignments){
-					//System.out.println(a.index+"\t"+a.name+"\t"+a.exemplar.index);
-					clusters.get(a.exemplar.index).add(a.index);
-				}
+					for(SimilarityMeasure<Clusterable>.APAssignment a : assignments){
+						//System.out.println(a.index+"\t"+a.name+"\t"+a.exemplar.index);
+						clusters.get(a.exemplar.index).add(a.index);
+					}
 			
-				System.out.println("Affinity Propagation exemplars:");
-				for(SimilarityMeasure<Clusterable>.APExemplar e : exemplars){
-					System.out.println(e.index+"\t"+e.name+"\t"+clusters.get(e.index).size()+" members");
-				}
+					System.out.println("Affinity Propagation exemplars:");
+					for(SimilarityMeasure<Clusterable>.APExemplar e : exemplars){
+						System.out.println(e.index+"\t"+e.name+"\t"+clusters.get(e.index).size()+" members");
+					}
 			
 			
-				//OUTPUT
-			
-				//Get composites for each cluster
-				int window = shapeconfig.getWindowSize();
-				for(Integer c : clusters.keySet()){
-					for (ExperimentCondition condition : manager.getConditions()){		
-						for (ControlledExperiment rep: condition.getReplicates()){	
-							double[][] composite = profile.getExemplarBasedAlignment(rep, c, clusters.get(c));
+					//OUTPUT
+					//Get composites for each cluster
+					int window = shapeconfig.getWindowSize();
+					for(Integer c : clusters.keySet()){
+						for (ExperimentCondition condition : manager.getConditions()){		
+							for (ControlledExperiment rep: condition.getReplicates()){	
+								double[][] composite = profile.getExemplarBasedAlignment(rep, c, clusters.get(c));
 						
-							try {
-								File compFlie = new File(config.getOutputIntermediateDir()+File.separator+"cluster"+c+".composite.txt");
-								FileWriter fout = new FileWriter(compFlie);
-								fout.write("#Cluster"+c+"\n");
-								for(int i=0; i<=window; i++){
-									fout.write(composite[i][0]+"\t"+composite[i][1]+"\n");
-								}
-								fout.close();
-							} catch (IOException e1) {
-								e1.printStackTrace();
+								try {
+									File compFlie = new File(config.getOutputIntermediateDir()+File.separator+"cluster"+c+".composite.txt");
+									FileWriter fout = new FileWriter(compFlie);
+									fout.write("#Cluster"+c+"\n");
+									for(int i=0; i<=window; i++){
+										fout.write(composite[i][0]+"\t"+composite[i][1]+"\n");
+									}
+									fout.close();
+								} catch (IOException e1) {
+									e1.printStackTrace();
+								}					
 							}
-						
 						}
 					}
+			
+					//Get aligned points for each cluster
+					for(Integer c : clusters.keySet()){
+						List<StrandedPoint> spts = profile.getExemplarBasedAlignedPoints(c, clusters.get(c));
+				
+						try {
+							File compFlie = new File(config.getOutputIntermediateDir()+File.separator+"cluster"+c+".points");
+							FileWriter fout = new FileWriter(compFlie);
+							fout.write("#Cluster"+c+"\n");
+							for(StrandedPoint s :spts)
+								fout.write(s.getLocationString()+"\n");
+							fout.close();
+						} catch (IOException e1) {
+							e1.printStackTrace();
+						}			
+						initClustPoints.add(spts);
+					}	
 				}
-			
-				//Get aligned points for each cluster
-				for(Integer c : clusters.keySet()){
-					List<StrandedPoint> spts = profile.getExemplarBasedAlignedPoints(c, clusters.get(c));
-				
-					try {
-						File compFlie = new File(config.getOutputIntermediateDir()+File.separator+"cluster"+c+".points");
-						FileWriter fout = new FileWriter(compFlie);
-						fout.write("#Cluster"+c+"\n");
-						for(StrandedPoint s :spts)
-							fout.write(s.getLocationString()+"\n");
-						fout.close();
-					} catch (IOException e1) {
-						e1.printStackTrace();
-					}
-				
-					initClustPoints.add(spts);
-				}			
-			}
-			
+			}	
 			
 			// Test on clustered points
 			List<List<List<StrandedPoint>>> clustPoints = new ArrayList<List<List<StrandedPoint>>>();

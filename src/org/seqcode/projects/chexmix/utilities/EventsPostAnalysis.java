@@ -233,11 +233,11 @@ public class EventsPostAnalysis {
 	    			"\t<script language='javascript' type='text/javascript'><!--\nfunction motifpopitup(url) {	newwindow=window.open(url,'name','height=75');	if (window.focus) {newwindow.focus()}	return false;}// --></script>\n" +
 	    			"\t<script language='javascript' type='text/javascript'><!--\nfunction fullpopitup(url) {	newwindow=window.open(url,'name');	if (window.focus) {newwindow.focus()}	return false;}// --></script>\n" +
 	    			"\t<body>\n" +
-	    			"\t<h1>MultiGPS results ("+config.getOutBase()+")</h1>\n" +
+	    			"\t<h1>ChExMix results ("+config.getOutBase()+")</h1>\n" +
 	    			"");
 	    	DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 	    	Date date = new Date();
-	    	fout.write("\t<p>MultiGPS version "+config.version+" run completed on: "+dateFormat.format(date));
+	    	fout.write("\t<p>ChExMix version "+config.version+" run completed on: "+dateFormat.format(date));
 	    	fout.write(" with arguments:\n "+config.getArgs()+"\n</p>\n");
 	    	
 	    	
@@ -294,6 +294,33 @@ public class EventsPostAnalysis {
 	    				"\t\t<td>"+rep.getSignal().getHitCount()+"</td>\n" +
 	    				"\t\t<td>"+tmpscale+"</td>\n" +
 	    				"\t\t<td>"+String.format("%.3f",rep.getSignalVsNoiseFraction())+"</td>\n");
+	    		fout.write("\t\t<td><a href='#' onclick='return fullpopitup(\""+distribFilename+"\")'><img src='"+distribFilename+"' height='300'></a></td>\n");
+	    		fout.write("\t\t</tr>\n");
+			}fout.write("\t</table>\n");
+			
+			//Binding subtype information (per condition)
+			int maxNumSubtypes=0;
+			for(ExperimentCondition cond : manager.getConditions()){
+				int condNumSubtype = bindingManager.getNumBindingType(cond);
+				if (condNumSubtype > maxNumSubtypes){maxNumSubtypes=condNumSubtype;}	
+			}
+			fout.write("\t<h2>Binding events</h2>\n" +
+	    			"\t<table>\n");
+			fout.write("\t\t<tr>" +
+	    			"\t\t<th>Condition</th>\n" +
+	    			"\t\t<th>File</th>\n");
+			for (int i=0; i < maxNumSubtypes; i++)
+				fout.write("\t\t<th>Subtype"+i+"</th>\n");
+			fout.write("\t\t</tr>\n");
+			
+			for (int i=0; i <  manager.getConditions().size(); i++){
+				ExperimentCondition cond = manager.getConditions().get(i);
+				String subtypeEventFileName = config.getOutBase()+"_"+cond.getName()+".subtype.events";
+	    		fout.write("\t\t<tr>" +
+		    			"\t\t<td>"+cond.getName()+"</td>\n" +
+		    			"\t\t<td><a href='"+subtypeEventFileName+"'>"+subtypeEventFileName+"</a></td>\n");
+	    		String replicateName = cond.getName()+"-"+cond.getReplicates().get(0).getRepName();
+	    		String distribFilename = "images/"+config.getOutBase()+"_"+replicateName+"_"+i+"_Read_Distributions.png";
 	    		fout.write("\t\t<td><a href='#' onclick='return fullpopitup(\""+distribFilename+"\")'><img src='"+distribFilename+"' height='300'></a></td>\n");
 	    		fout.write("\t\t</tr>\n");
 			}fout.write("\t</table>\n");
