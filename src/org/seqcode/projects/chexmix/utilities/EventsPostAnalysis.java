@@ -300,10 +300,11 @@ public class EventsPostAnalysis {
 				int condNumSubtype = bindingManager.getNumBindingType(cond);
 				if (condNumSubtype > maxNumSubtypes){maxNumSubtypes=condNumSubtype;}	
 			}
-			fout.write("\t<h2>Binding events</h2>\n" +
+			fout.write("\t<h2>Binding event subtypes</h2>\n" +
 	    			"\t<table>\n");
 			fout.write("\t\t<tr>" +
 	    			"\t\t<th>Condition</th>\n" +
+	    			"\t\t<th>Events</th>\n" +
 	    			"\t\t<th>File</th>\n");
 			for (int i=0; i < maxNumSubtypes; i++)
 				fout.write("\t\t<th>Subtype "+i+"</th>\n");
@@ -313,6 +314,7 @@ public class EventsPostAnalysis {
 				String subtypeEventFileName = config.getOutBase()+"_"+cond.getName()+".subtype.events";
 	    		fout.write("\t\t<tr>" +
 		    			"\t\t<td rowspan=2>"+cond.getName()+"</td>\n" +
+		    			"\t\t<td rowspan=2>"+bindingManager.countEventsInCondition(cond, evconfig.getQMinThres())+"</td>\n" +
 		    			"\t\t<td rowspan=2><a href='"+subtypeEventFileName+"'>"+subtypeEventFileName+"</a></td>\n");
 	    		String replicateName = cond.getName()+"-"+cond.getReplicates().get(0).getRepName();
 	    		for (int i=0; i < maxNumSubtypes; i++){
