@@ -401,7 +401,7 @@ public class EventsPostAnalysis {
 	    		for (int i=0; i < maxNumSubtypes; i++){
 	    			if (i < bindingManager.getNumBindingType(cond)){
 	    				String distribFilename = "images/"+config.getOutBase()+"_"+replicateName+"_"+i+"_Read_Distributions.png";
-	    				fout.write("\t\t<td><a href='#' onclick='return fullpopitup(\""+distribFilename+"\")'><img src='"+distribFilename+"' height='200'></a></td>\n");
+	    				fout.write("\t\t<td><a href='#' onclick='return fullpopitup(\""+distribFilename+"\")'><img src='"+distribFilename+"' height='300'></a></td>\n");
 	    			}else{
 	    				fout.write("\t\t<td>NA</td>\n");
 	    			}					
@@ -414,7 +414,7 @@ public class EventsPostAnalysis {
 	    			if(!motifImageNames.get(cond).isEmpty()){
 	    				for (BindingSubtype subtype :bindingManager.getBindingSubtype(cond)){
 	    					if (subtype.hasMotif()){
-	    						fout.write("\t\t<td><img src='"+motifImageNames.get(cond).get(mc)+"'height='100'><a href='#' onclick='return motifpopitup(\""+motifRCImageNames.get(cond).get(mc)+"\")'>rc</a></td>\n");
+	    						fout.write("\t\t<td><img src='"+motifImageNames.get(cond).get(mc)+"'height='50' width='200'><a href='#' onclick='return motifpopitup(\""+motifRCImageNames.get(cond).get(mc)+"\")'>rc</a></td>\n");
 	    						mc++;
 	    					}else{
 	    						fout.write("\t\t<td>NA</td>\n");
