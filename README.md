@@ -83,7 +83,7 @@ __Running ChExMix__:
   * --epsilonscale \<value\>: Epsilon scaling factor (default=0.2). The epsilon parameter control a balance between motif and read distribution in subtype assignment. Increasing this parameter will increase the contribution of motif and decreases the contribution of read distribution.
   * --mlconfignotshared: Flag to not share component configs in the ML step
   * --exclude \<file\>: File of regions to ignore
-  * --peaks \<file\>: File of peaks to initialize component positions
+  * --peakf \<file\>: File of peaks to initialize component positions
 
 __Finding ChExMix subtypes__:
 
@@ -102,6 +102,8 @@ __Finding ChExMix subtypes__:
 
   * --noclustering: Flag to turn off read distribution clustering
   * --pref \<value\>: Preference value for read distribution clustering (default=-0.1)
+  * --numcomps \<int\>: Number of components to cluster (default=500)
+  * --win \<int\>: Read profile window size (default=150)
   
 __Reporting binding events__:
 
