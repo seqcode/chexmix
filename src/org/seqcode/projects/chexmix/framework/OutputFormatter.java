@@ -87,6 +87,7 @@ public class OutputFormatter {
 			    	g2.drawLine(x1, y1, x2, y2);	    
 			    }
 			    g.setFont(new Font("Arial",Font.PLAIN,20));
+			    g2.setColor(Color.black);
 			    g2.drawString(String.format("%d", i), w-300, i*25+margin+25);
 			    
 			    try{

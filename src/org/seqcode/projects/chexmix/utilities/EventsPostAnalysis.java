@@ -313,7 +313,7 @@ public class EventsPostAnalysis {
 				String subtypeEventFileName = config.getOutBase()+"_"+cond.getName()+".subtype.events";
 	    		fout.write("\t\t<tr>" +
 		    			"\t\t<td>"+cond.getName()+"</td>\n" +
-		    			"\t\t<td><a href='"+subtypeEventFileName+"'>"+subtypeEventFileName+"</a></td>\n");
+		    			"\t\t<td rowspan=2><a href='"+subtypeEventFileName+"'>"+subtypeEventFileName+"</a></td>\n");
 	    		String replicateName = cond.getName()+"-"+cond.getReplicates().get(0).getRepName();
 	    		for (int i=0; i < maxNumSubtypes; i++){
 	    			if (i < bindingManager.getNumBindingType(cond)){
