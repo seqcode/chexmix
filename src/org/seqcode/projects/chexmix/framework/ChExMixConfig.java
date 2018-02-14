@@ -227,8 +227,8 @@ public class ChExMixConfig {
 				if(ap.hasKey("exclude"))
 					regionsToIgnore = RegionFileUtilities.loadRegionsFromFile(Args.parseString(args, "exclude", null), gen, -1);
 				//Initial peak file
-				if (ap.hasKey("peaks"))
-					initialPos = RegionFileUtilities.loadPeaksFromPeakFile(gen, Args.parseString(args, "peaks", null));
+				if (ap.hasKey("peakf"))
+					initialPos = RegionFileUtilities.loadPeaksFromPeakFile(gen, Args.parseString(args, "peakf", null));
 				//Motif for plotting components
 				if (ap.hasKey("motifregions"))
 					motifRegions = RegionFileUtilities.loadStrandedRegionsFromMotifFile(gen, Args.parseString(args, "motifregions", null), -1);
