@@ -324,8 +324,30 @@ public class EventsPostAnalysis {
 	    			}					
 	    		}fout.write("\t\t</tr>\n");
 	    		fout.write("\t\t<tr>");
-	    		for (int i=0; i < maxNumSubtypes; i++)
-	    			fout.write("\t\t<td>NA</td>\n");	//place holder for motif file
+	    		
+	    		if(config.getFindingMotifs()){
+	    			int mc=0;
+	    			int colc=0;
+	    			if(!motifImageNames.get(cond).isEmpty()){
+	    				for (BindingSubtype subtype :bindingManager.getBindingSubtype(cond)){
+	    					if (subtype.hasMotif()){
+	    						fout.write("\t\t<td><img src='"+motifImageNames.get(cond).get(mc)+"'><a href='#' onclick='return motifpopitup(\""+motifRCImageNames.get(cond).get(mc)+"\")'>rc</a></td>\n");
+	    						mc++;
+	    					}else{
+	    						fout.write("\t\t<td>NA</td>\n");
+	    					}
+	    					colc++;
+	    				}
+	    				for (int j=colc; j<maxNumSubtypes;j++)
+    						fout.write("\t\t<td>NA</td>\n");
+	    			}else{
+	    				for (int i=0; i < maxNumSubtypes; i++)
+			    			fout.write("\t\t<td>NA</td>\n");
+	    			}
+	    		}else{
+	    			for (int i=0; i < maxNumSubtypes; i++)
+		    			fout.write("\t\t<td>NA</td>\n");
+	    		}
 	    		fout.write("\t\t</tr>\n");
 			}fout.write("\t</table>\n");
 			
