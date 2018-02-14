@@ -70,6 +70,25 @@ Instead of using the above options to specify each and every ChIP-seq data file 
     * File format (SAM/BAM/BED/IDX) – mixtures of formats are allowed in design files
     * Condition name
     * Replicate name (optional for control experiments – if used, the control will only be used for the corresponding named signal replicate)
+    
+ Limits on how many reads can have their 5′ end at the same position in each replicate:
+
+ * --fixedpb \<value\>: Fixed per-base limit.
+ * --poissongausspb \<value\>: Filter per base using a Poisson threshold parameterized by a local Gaussian sliding window (i.e. look at neighboring positions to decide what the per-base limit should be).
+ * Default behavior is to estimate a global per-base limit from a Poisson distribution parameterized by the number of reads divided by the number of mappable bases in the genome. The per-base limit is set as the count corresponding to the 10^-7 probability level from the Poisson.
+ * --nonunique: Flag to use non-unique reads. 
+ * --mappability \<value\>: Fraction of the genome that is mappable for these experiments. Default=0.8.
+ * --nocache: Flag to turn off caching of the entire set of experiments (i.e. run slower with less memory)
+ 
+ __Scaling Data__:
+ 
+ * --noscaling: Flag to turn off auto estimation of signal vs control scaling factor.
+ * --medianscale: Flag to use scaling by median ratio of binned tag counts. Default = scaling by NCIS.
+ * --regressionscale: Flag to use scaling by regression on binned tag counts. Default = scaling by NCIS.
+ * --sesscale: Flag to use scaling by SES (Diaz, et al. Stat Appl Genet Mol Biol. 2012).
+ * --fixedscaling \<scaling factor\>: Multiply control counts by total tag count ratio and then by this factor. Default: scaling by NCIS.
+ * --scalewin \<window size\>: Window size for estimating scaling ratios. Default is 10Kbp. Use something much smaller if scaling via SES (e.g. 200bp).
+ * --plotscaling: Flag to plot diagnostic information for the chosen scaling method.
  
 __Running ChExMix__:
 
