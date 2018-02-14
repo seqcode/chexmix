@@ -3,6 +3,9 @@ ChExMix: the ChIP-exo mixture model
 
 ChExMix aims to characterize protein-DNA binding subtypes in ChIP-exo experiments. ChExMix assumes that different regulatory complexes will result in different protein-DNA crosslinking signatures in ChIP-exo data, and thus analysis of ChIP-exo sequencing tag patterns should enable detection of multiple protein-DNA binding modes for a given regulatory protein. ChExMix uses a mixture modeling framework to probabilistically model the genomic locations and subtype membership of protein-DNA binding events, leveraging both ChIP-exo tag enrichment patterns and DNA sequence information. In doing so, ChExMix offers a more principled and robust approach to characterizing binding subtypes than simply clustering binding events using motif information.
 
+Citation:
+--------------
+
 Downloading Executables
 --------------
 Executables will be available soon from: http://mahonylab.org/software/chexmix 
@@ -15,17 +18,13 @@ If you want to build the code yourself, you will need to first download and buil
 Dependencies:
 --------------
 1. ChExMix requires Java 8+. 
-2. ChExMix depends on [MEME](http://meme-suite.org/) being available in $PATH (tested with MEME version 4.11.3).
-
-Note:
---------------
-ChExMix loads all data to memory, so you will need a lot of available memory if you are running analysis over many conditions or large datasets.
-
-Citation:
---------------
+2. You need [MEME](http://meme-suite.org/) installed and being available in $PATH if you want to find subtypes using motif (tested with MEME version 4.11.3).
+2. ChExMix loads all data to memory, so you will need a lot of available memory if you are running analysis over many conditions or large datasets.
 
 Running ChExMix
 --------------
+Note that ChExMix performs a lot of EM optimization of binding events along the genome, and also integrates motif-finding via MEME. Therefore, expect it to be very time and memory intensive.
+
 Running from a jar file:
 
 ```{r, engine='sh', count_lines}
