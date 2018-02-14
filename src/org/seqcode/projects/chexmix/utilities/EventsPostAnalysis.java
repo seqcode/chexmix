@@ -332,16 +332,13 @@ public class EventsPostAnalysis {
 	    		fout.write("\t\t</tr>\n");
 			}fout.write("\t</table>\n");
 			
-			//Binding event information (per condition)
-	    	fout.write("\t<h2>Binding events</h2>\n" +
+			//Binding subtype information (per condition)
+	    	fout.write("\t<h2>Binding event subtypes</h2>\n" +
 	    			"\t<table>\n");
 	    	fout.write("\t\t<tr>" +
 	    			"\t\t<th>Condition</th>\n" +
 	    			"\t\t<th>Events</th>\n" +
 	    			"\t\t<th>File</th>\n");
-	    	if(config.getFindingMotifs())
-	    		fout.write("\t\t<th>Positional Prior Motif</th>\n" +
-	    				"\t\t<th>Motif Relative Offset</th>\n");
 	    	fout.write("\t\t</tr>\n");
 	    	for(ExperimentCondition cond : manager.getConditions()){
 	    		String subtypeEventFileName = config.getOutBase()+"_"+cond.getName()+".subtype.events";
@@ -352,19 +349,18 @@ public class EventsPostAnalysis {
 		    	fout.write("\t\t</tr>\n");
 			}fout.write("\t</table>\n");
 			
-			//Binding subtype information (per condition)
 			int maxNumSubtypes=0;
 			for(ExperimentCondition cond : manager.getConditions()){
 				int condNumSubtype = bindingManager.getNumBindingType(cond);
 				if (condNumSubtype > maxNumSubtypes){maxNumSubtypes=condNumSubtype;}	
 			}
-			fout.write("\t<h2>Binding event subtypes</h2>\n" +
+			fout.write("\t<h2>Binding event subtype images</h2>\n" +
 	    			"\t<table>\n");
 			fout.write("\t\t<tr>" +
 	    			"\t\t<th>Condition</th>\n" +
 	    			"\t\t<th>Heatmap</th>\n");
 			if(config.getFindingMotifs())
-				fout.write("\t\t<th>Sequence color plot</th>\n");
+				fout.write("\t\t<th>Sequence plot</th>\n");
 			for (int i=0; i < maxNumSubtypes; i++)
 				fout.write("\t\t<th>Subtype "+i+"</th>\n");
 			fout.write("\t\t</tr>\n");
@@ -375,7 +371,7 @@ public class EventsPostAnalysis {
 				String seqcolorplot = "images/"+config.getOutBase()+"_"+cond.getName()+"_seq.png";
 	    		fout.write("\t\t<tr>" +
 		    			"\t\t<td rowspan=3>"+cond.getName()+"</td>\n" +
-		    			"\t\t<td rowspan=3><a href='#' onclick='return fullpopitup(\""+heatmapFileName+"\")'><img src='"+heatmapFileName+"' height='500' width='100'></a></td>\n");
+		    			"\t\t<td rowspan=3><a href='#' onclick='return fullpopitup(\""+heatmapFileName+"\")'><img src='"+heatmapFileName+"' height='500' width='150'></a></td>\n");
 				if(config.getFindingMotifs()){
 					fout.write("\t\t<td rowspan=3><a href='#' onclick='return fullpopitup(\""+seqcolorplot+"\")'><img src='"+seqcolorplot+"' height='500' width='100'></a></td>\n");
 				}
