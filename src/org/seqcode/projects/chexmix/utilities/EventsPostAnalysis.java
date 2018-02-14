@@ -393,15 +393,15 @@ public class EventsPostAnalysis {
 		    			"\t\t<td rowspan=3>"+cond.getName()+"</td>\n" +
 		    			"\t\t<td rowspan=3>"+bindingManager.countEventsInCondition(cond, evconfig.getQMinThres())+"</td>\n" +
 		    			"\t\t<td rowspan=3><a href='"+subtypeEventFileName+"'>"+subtypeEventFileName+"</a></td>\n" +
-		    			"\t\t<td rowspan=3><a href='#' onclick='return fullpopitup(\""+heatmapFileName+"\")'><img src='"+heatmapFileName+"' height='300'></a></td>\n");
+		    			"\t\t<td rowspan=3><a href='#' onclick='return fullpopitup(\""+heatmapFileName+"\")'><img src='"+heatmapFileName+"' height='500' width='100'></a></td>\n");
 				if(config.getFindingMotifs()){
-					fout.write("\t\t<td rowspan=3><a href='#' onclick='return fullpopitup(\""+seqcolorplot+"\")'><img src='"+seqcolorplot+"' width='100'></a></td>\n");
+					fout.write("\t\t<td rowspan=3><a href='#' onclick='return fullpopitup(\""+seqcolorplot+"\")'><img src='"+seqcolorplot+"' height='500' width='100'></a></td>\n");
 				}
 	    		String replicateName = cond.getName()+"-"+cond.getReplicates().get(0).getRepName();
 	    		for (int i=0; i < maxNumSubtypes; i++){
 	    			if (i < bindingManager.getNumBindingType(cond)){
 	    				String distribFilename = "images/"+config.getOutBase()+"_"+replicateName+"_"+i+"_Read_Distributions.png";
-	    				fout.write("\t\t<td><a href='#' onclick='return fullpopitup(\""+distribFilename+"\")'><img src='"+distribFilename+"' width='100'></a></td>\n");
+	    				fout.write("\t\t<td><a href='#' onclick='return fullpopitup(\""+distribFilename+"\")'><img src='"+distribFilename+"' height='200'></a></td>\n");
 	    			}else{
 	    				fout.write("\t\t<td>NA</td>\n");
 	    			}					
@@ -414,7 +414,7 @@ public class EventsPostAnalysis {
 	    			if(!motifImageNames.get(cond).isEmpty()){
 	    				for (BindingSubtype subtype :bindingManager.getBindingSubtype(cond)){
 	    					if (subtype.hasMotif()){
-	    						fout.write("\t\t<td><img src='"+motifImageNames.get(cond).get(mc)+"'><a href='#' onclick='return motifpopitup(\""+motifRCImageNames.get(cond).get(mc)+"\")'>rc</a></td>\n");
+	    						fout.write("\t\t<td><img src='"+motifImageNames.get(cond).get(mc)+"'height='100'><a href='#' onclick='return motifpopitup(\""+motifRCImageNames.get(cond).get(mc)+"\")'>rc</a></td>\n");
 	    						mc++;
 	    					}else{
 	    						fout.write("\t\t<td>NA</td>\n");
