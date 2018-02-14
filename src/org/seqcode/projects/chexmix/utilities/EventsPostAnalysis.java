@@ -323,6 +323,10 @@ public class EventsPostAnalysis {
 	    				fout.write("\t\t<td>NA</td>\n");
 	    			}					
 	    		}fout.write("\t\t</tr>\n");
+	    		fout.write("\t\t<tr>");
+	    		for (int i=0; i < maxNumSubtypes; i++)
+	    			fout.write("\t\t<td>NA</td>\n");	//place holder for motif file
+	    		fout.write("\t\t</tr>\n");
 			}fout.write("\t</table>\n");
 			
 			
