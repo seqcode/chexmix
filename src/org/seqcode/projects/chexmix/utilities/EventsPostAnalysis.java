@@ -188,7 +188,79 @@ public class EventsPostAnalysis {
 			e.printStackTrace();
 		}
 		
-		//4) HTML report
+		//4) Print motif transfac file
+		try {
+			if(config.getFindingMotifs()){
+				for(ExperimentCondition cond : manager.getConditions()){
+					String motfilename = config.getOutputIntermediateDir()+File.separator+config.getOutBase()+"."+cond.getName()+".transfac";
+					FileWriter fout = new FileWriter(motfilename);
+					String out = "";
+					for (BindingSubtype sub : bindingManager.getBindingSubtype(cond))
+						if (sub.hasMotif())
+							out = out+WeightMatrix.printTransfacMatrix(sub.getFreqMatrix(),sub.getFreqMatrix().getName());
+					fout.write(out);
+					fout.close();
+				}
+			}
+		}catch (IOException e) {
+			e.printStackTrace();
+		}
+				
+		//5) Print aligned sequences and 4 color sequence plot  
+		if (gconfig.getSequenceGenerator().usingLocalFiles()){
+			for(ExperimentCondition cond : manager.getConditions()){		
+				try {
+					String outFile = config.getOutputImagesDir()+File.separator+config.getOutBase()+"_"+cond.getName()+"_seq.png";
+					String seqOutFile = config.getOutputIntermediateDir()+File.separator+config.getOutBase()+"."+cond.getName()+".seq";
+					SequenceGenerator seqgen = gconfig.getSequenceGenerator();
+		    	
+					List<StrandedRegion> regions = new ArrayList<StrandedRegion>();
+					for (List<StrandedPoint> pl : bindingManager.getAlignedEventPoints(cond))            
+						for (StrandedPoint p : pl)
+							regions.add(p.expand(evconfig.SEQPLOTWIN, evconfig.SEQPLOTWIN));
+		                
+					List<String> seqs = RegionFileUtilities.getSequencesForStrandedRegions(regions, seqgen);
+		        	
+					if(seqs !=null){
+						SequenceAlignmentFigure fig = new SequenceAlignmentFigure();
+						fig.setColors(Color.RED, Color.BLUE, Color.ORANGE, Color.GREEN);
+						fig.visualizeSequences(seqs, 3, 1, new File(outFile));
+				    	
+						if(seqOutFile != null){
+							FileWriter fout = new FileWriter(seqOutFile);
+							for(String s: seqs){
+								fout.write(String.format("%s\n", s));
+							}
+							fout.close();
+						}
+					}
+				}catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+				
+		//6) Make heatmap
+		for (ExperimentCondition cond : manager.getConditions()){
+			String pointArgs = " --peaks "+config.getOutputParentDir()+File.separator+config.getOutBase()+"_"+cond.getName()+".subtype.aligned.events";
+			// Run for each strand
+			System.out.println(config.getMetaMakerArgs()+pointArgs+" --strand + --color blue --noborder --out "+cond.getName()+".events");
+			runMetaMaker(config.getMetaMakerArgs()+pointArgs+" --strand + --color blue --noborder --out "+cond.getName()+".events");
+			runMetaMaker(config.getMetaMakerArgs()+pointArgs+" --strand - --color red --noborder --out "+cond.getName()+".events");
+					
+			// Combine plots
+			for (ExperimentCondition pcond : manager.getConditions()){				
+				String pngPath=config.getOutputImagesDir()+File.separator+config.getOutBase()+"_"+pcond.getName()+".events_"+cond.getName()+"_";
+				try {
+					Process proc = Runtime.getRuntime().exec("composite -dissolve 60,100 -transparent-color white "+pngPath+"+_lines.png "+pngPath+"-_lines.png "+pngPath+"heatmap.png");
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}				
+		
+		//7) HTML report
 		try {
 			System.err.println("Writing results report to: "+htmlfilename);
 			
@@ -305,17 +377,26 @@ public class EventsPostAnalysis {
 			fout.write("\t\t<tr>" +
 	    			"\t\t<th>Condition</th>\n" +
 	    			"\t\t<th>Events</th>\n" +
-	    			"\t\t<th>File</th>\n");
+	    			"\t\t<th>File</th>\n" +
+	    			"\t\t<th>Heatmap</th>\n");
+			if(config.getFindingMotifs())
+				fout.write("\t\t<th>Sequence color plot</th>\n");
 			for (int i=0; i < maxNumSubtypes; i++)
 				fout.write("\t\t<th>Subtype "+i+"</th>\n");
 			fout.write("\t\t</tr>\n");
 			
 			for(ExperimentCondition cond : manager.getConditions()){
 				String subtypeEventFileName = config.getOutBase()+"_"+cond.getName()+".subtype.events";
+				String heatmapFileName = config.getOutBase()+"_"+cond.getName()+".events_"+cond.getName()+"_"+"heatmap.png";
+				String seqcolorplot = config.getOutBase()+"_"+cond.getName()+"_seq.png";
 	    		fout.write("\t\t<tr>" +
-		    			"\t\t<td rowspan=2>"+cond.getName()+"</td>\n" +
-		    			"\t\t<td rowspan=2>"+bindingManager.countEventsInCondition(cond, evconfig.getQMinThres())+"</td>\n" +
-		    			"\t\t<td rowspan=2><a href='"+subtypeEventFileName+"'>"+subtypeEventFileName+"</a></td>\n");
+		    			"\t\t<td rowspan=3>"+cond.getName()+"</td>\n" +
+		    			"\t\t<td rowspan=3>"+bindingManager.countEventsInCondition(cond, evconfig.getQMinThres())+"</td>\n" +
+		    			"\t\t<td rowspan=3><a href='"+subtypeEventFileName+"'>"+subtypeEventFileName+"</a></td>\n" +
+		    			"\t\t<td rowspan=3><a href='"+heatmapFileName+"'>"+heatmapFileName+"</a></td>\n");	//heatmap
+				if(config.getFindingMotifs()){
+					fout.write("\t\t<td rowspan=3><a href='"+seqcolorplot+"'>"+seqcolorplot+"</a></td>\n");
+				}
 	    		String replicateName = cond.getName()+"-"+cond.getReplicates().get(0).getRepName();
 	    		for (int i=0; i < maxNumSubtypes; i++){
 	    			if (i < bindingManager.getNumBindingType(cond)){
@@ -376,77 +457,6 @@ public class EventsPostAnalysis {
 			e.printStackTrace();
 		}
 		
-		// Print motif transfac file
-		try {
-			if(config.getFindingMotifs()){
-				for(ExperimentCondition cond : manager.getConditions()){
-					String motfilename = config.getOutputIntermediateDir()+File.separator+config.getOutBase()+"."+cond.getName()+".transfac";
-					FileWriter fout = new FileWriter(motfilename);
-					String out = "";
-					for (BindingSubtype sub : bindingManager.getBindingSubtype(cond))
-						if (sub.hasMotif())
-							out = out+WeightMatrix.printTransfacMatrix(sub.getFreqMatrix(),sub.getFreqMatrix().getName());
-					fout.write(out);
-					fout.close();
-				}
-			}
-		}catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-		// Print aligned sequences and 4 color sequence plot  
-		if (gconfig.getSequenceGenerator().usingLocalFiles()){
-			for(ExperimentCondition cond : manager.getConditions()){		
-				try {
-					String outFile = config.getOutputImagesDir()+File.separator+config.getOutBase()+"_"+cond.getName()+"_seq.png";
-					String seqOutFile = config.getOutputIntermediateDir()+File.separator+config.getOutBase()+"."+cond.getName()+".seq";
-					SequenceGenerator seqgen = gconfig.getSequenceGenerator();
-    	
-					List<StrandedRegion> regions = new ArrayList<StrandedRegion>();
-					for (List<StrandedPoint> pl : bindingManager.getAlignedEventPoints(cond))            
-						for (StrandedPoint p : pl)
-							regions.add(p.expand(evconfig.SEQPLOTWIN, evconfig.SEQPLOTWIN));
-                
-					List<String> seqs = RegionFileUtilities.getSequencesForStrandedRegions(regions, seqgen);
-        	
-					if(seqs !=null){
-						SequenceAlignmentFigure fig = new SequenceAlignmentFigure();
-						fig.setColors(Color.RED, Color.BLUE, Color.ORANGE, Color.GREEN);
-						fig.visualizeSequences(seqs, 3, 1, new File(outFile));
-		    	
-						if(seqOutFile != null){
-							FileWriter fout = new FileWriter(seqOutFile);
-							for(String s: seqs){
-								fout.write(String.format("%s\n", s));
-							}
-							fout.close();
-						}
-					}
-				}catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}
-		
-		// Make heatmap
-		for (ExperimentCondition cond : manager.getConditions()){
-			String pointArgs = " --peaks "+config.getOutputParentDir()+File.separator+config.getOutBase()+"_"+cond.getName()+".subtype.aligned.events";
-			// Run for each strand
-			System.out.println(config.getMetaMakerArgs()+pointArgs+" --strand + --color blue --noborder --out "+cond.getName()+".events");
-			runMetaMaker(config.getMetaMakerArgs()+pointArgs+" --strand + --color blue --noborder --out "+cond.getName()+".events");
-			runMetaMaker(config.getMetaMakerArgs()+pointArgs+" --strand - --color red --noborder --out "+cond.getName()+".events");
-			
-			// Combine plots
-			for (ExperimentCondition pcond : manager.getConditions()){				
-				String pngPath=config.getOutputImagesDir()+File.separator+config.getOutBase()+"_"+pcond.getName()+".events_"+cond.getName()+"_";
-				try {
-					Process proc = Runtime.getRuntime().exec("composite -dissolve 60,100 -transparent-color white "+pngPath+"+_lines.png "+pngPath+"-_lines.png "+pngPath+"heatmap.png");
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-		}		
 	}
 	
 	public void runMetaMaker(String args){
