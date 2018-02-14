@@ -311,41 +311,7 @@ public class EventsPostAnalysis {
 	    	Date date = new Date();
 	    	fout.write("\t<p>ChExMix version "+config.version+" run completed on: "+dateFormat.format(date));
 	    	fout.write(" with arguments:\n "+config.getArgs()+"\n</p>\n");
-	    	
-	    	
-	    	//Binding event information (per condition)
-	    	fout.write("\t<h2>Binding events</h2>\n" +
-	    			"\t<table>\n");
-	    	fout.write("\t\t<tr>" +
-	    			"\t\t<th>Condition</th>\n" +
-	    			"\t\t<th>Events</th>\n" +
-	    			"\t\t<th>File</th>\n");
-	    	if(config.getFindingMotifs())
-	    		fout.write("\t\t<th>Positional Prior Motif</th>\n" +
-	    				"\t\t<th>Motif Relative Offset</th>\n");
-	    	fout.write("\t\t</tr>\n");
-	    	for(ExperimentCondition cond : manager.getConditions()){
-	    		String eventFileName=config.getOutBase()+"_"+cond.getName()+".events";
-	    		if(evconfig.getEventsFileTXTExtension())
-	    			eventFileName = eventFileName+".txt";
-	    		fout.write("\t\t<tr>" +
-		    			"\t\t<td>"+cond.getName()+"</td>\n" +
-	    				"\t\t<td>"+bindingManager.countEventsInCondition(cond, evconfig.getQMinThres())+"</td>\n" +
-		    			"\t\t<td><a href='"+eventFileName+"'>"+eventFileName+"</a></td>\n");
-		    	if(config.getFindingMotifs()){
-		    		if(motifImageNames.get(cond)!=null){
-		    			for (int i=0; i< motifImageNames.get(cond).size();i++){
-		    				fout.write("\t\t<td><img src='"+motifImageNames.get(cond).get(i)+"'><a href='#' onclick='return motifpopitup(\""+motifRCImageNames.get(cond).get(i)+"\")'>rc</a></td>\n" +
-		    					"\t\t<td>"+bindingManager.getBindingSubtype(cond).get(i).getMotifOffset()+"</td>\n");
-		    			}
-		    		}
-		    		else
-		    			fout.write("\t\t<td>No motif found</td>\n" +
-		    					"\t\t<td>NA</td>\n");
-		    	}
-		    	fout.write("\t\t</tr>\n");
-			}fout.write("\t</table>\n");
-			
+	   
 	    	
 	    	//Input data read counts and read distribs (per replicate)
 	    	fout.write("\t<h2>Input data</h2>\n" +
@@ -366,6 +332,26 @@ public class EventsPostAnalysis {
 	    		fout.write("\t\t</tr>\n");
 			}fout.write("\t</table>\n");
 			
+			//Binding event information (per condition)
+	    	fout.write("\t<h2>Binding events</h2>\n" +
+	    			"\t<table>\n");
+	    	fout.write("\t\t<tr>" +
+	    			"\t\t<th>Condition</th>\n" +
+	    			"\t\t<th>Events</th>\n" +
+	    			"\t\t<th>File</th>\n");
+	    	if(config.getFindingMotifs())
+	    		fout.write("\t\t<th>Positional Prior Motif</th>\n" +
+	    				"\t\t<th>Motif Relative Offset</th>\n");
+	    	fout.write("\t\t</tr>\n");
+	    	for(ExperimentCondition cond : manager.getConditions()){
+	    		String subtypeEventFileName = config.getOutBase()+"_"+cond.getName()+".subtype.events";
+	    		fout.write("\t\t<tr>" +
+		    			"\t\t<td>"+cond.getName()+"</td>\n" +
+	    				"\t\t<td>"+bindingManager.countEventsInCondition(cond, evconfig.getQMinThres())+"</td>\n" +
+		    			"\t\t<td><a href='"+subtypeEventFileName+"'>"+subtypeEventFileName+"</a></td>\n");
+		    	fout.write("\t\t</tr>\n");
+			}fout.write("\t</table>\n");
+			
 			//Binding subtype information (per condition)
 			int maxNumSubtypes=0;
 			for(ExperimentCondition cond : manager.getConditions()){
@@ -376,8 +362,6 @@ public class EventsPostAnalysis {
 	    			"\t<table>\n");
 			fout.write("\t\t<tr>" +
 	    			"\t\t<th>Condition</th>\n" +
-	    			"\t\t<th>Events</th>\n" +
-	    			"\t\t<th>File</th>\n" +
 	    			"\t\t<th>Heatmap</th>\n");
 			if(config.getFindingMotifs())
 				fout.write("\t\t<th>Sequence color plot</th>\n");
@@ -391,8 +375,6 @@ public class EventsPostAnalysis {
 				String seqcolorplot = "images/"+config.getOutBase()+"_"+cond.getName()+"_seq.png";
 	    		fout.write("\t\t<tr>" +
 		    			"\t\t<td rowspan=3>"+cond.getName()+"</td>\n" +
-		    			"\t\t<td rowspan=3>"+bindingManager.countEventsInCondition(cond, evconfig.getQMinThres())+"</td>\n" +
-		    			"\t\t<td rowspan=3><a href='"+subtypeEventFileName+"'>"+subtypeEventFileName+"</a></td>\n" +
 		    			"\t\t<td rowspan=3><a href='#' onclick='return fullpopitup(\""+heatmapFileName+"\")'><img src='"+heatmapFileName+"' height='500' width='100'></a></td>\n");
 				if(config.getFindingMotifs()){
 					fout.write("\t\t<td rowspan=3><a href='#' onclick='return fullpopitup(\""+seqcolorplot+"\")'><img src='"+seqcolorplot+"' height='500' width='100'></a></td>\n");
@@ -401,7 +383,7 @@ public class EventsPostAnalysis {
 	    		for (int i=0; i < maxNumSubtypes; i++){
 	    			if (i < bindingManager.getNumBindingType(cond)){
 	    				String distribFilename = "images/"+config.getOutBase()+"_"+replicateName+"_"+i+"_Read_Distributions.png";
-	    				fout.write("\t\t<td><a href='#' onclick='return fullpopitup(\""+distribFilename+"\")'><img src='"+distribFilename+"' height='300'></a></td>\n");
+	    				fout.write("\t\t<td><a href='#' onclick='return fullpopitup(\""+distribFilename+"\")'><img src='"+distribFilename+"' height='250'></a></td>\n");
 	    			}else{
 	    				fout.write("\t\t<td>NA</td>\n");
 	    			}					
@@ -414,7 +396,7 @@ public class EventsPostAnalysis {
 	    			if(!motifImageNames.get(cond).isEmpty()){
 	    				for (BindingSubtype subtype :bindingManager.getBindingSubtype(cond)){
 	    					if (subtype.hasMotif()){
-	    						fout.write("\t\t<td><img src='"+motifImageNames.get(cond).get(mc)+"'height='50' width='200'><a href='#' onclick='return motifpopitup(\""+motifRCImageNames.get(cond).get(mc)+"\")'>rc</a></td>\n");
+	    						fout.write("\t\t<td><img src='"+motifImageNames.get(cond).get(mc)+"'height='60' width='200'><a href='#' onclick='return motifpopitup(\""+motifRCImageNames.get(cond).get(mc)+"\")'>rc</a></td>\n");
 	    						mc++;
 	    					}else{
 	    						fout.write("\t\t<td>NA</td>\n");
