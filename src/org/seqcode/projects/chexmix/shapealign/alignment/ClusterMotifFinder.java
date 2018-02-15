@@ -225,7 +225,7 @@ public class ClusterMotifFinder {
 					if(fm.get(w)!=null){
 						System.out.println("\t"+fm.get(w).getName()+"\t"+ WeightMatrix.getConsensus(fm.get(w))+"\tROC:"+String.format("%.2f",rocScores[w]));
 					}
-					if(rocScores[w] > MemeER.MOTIF_MIN_ROC){
+					if(rocScores[w] > meme.getMotifMinROC()){
 						//selectedMotifs.add(fm.get(w));
 						fm.get(w).setName("cluster"+(i+1)+"_"+Integer.toString(motInd));
 						motifs.add(fm.get(w));

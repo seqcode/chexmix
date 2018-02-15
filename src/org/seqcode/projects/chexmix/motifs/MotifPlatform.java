@@ -15,7 +15,6 @@ import java.util.Random;
 import java.util.Set;
 
 import org.seqcode.data.io.BackgroundModelIO;
-import org.seqcode.data.io.RegionFileUtilities;
 import org.seqcode.data.motifdb.CountsBackgroundModel;
 import org.seqcode.data.motifdb.MarkovBackgroundModel;
 import org.seqcode.data.motifdb.WeightMatrix;
@@ -93,11 +92,10 @@ public class MotifPlatform {
 		//Load the background model or make background model
         try{       
         	if(config.getBackModel() == null)
-        		backMod = new MarkovBackgroundModel(CountsBackgroundModel.modelFromWholeGenome(Genome.findGenome(genome.getDBID()))); // this doesn't seem working for sacCer3
+        		backMod = new MarkovBackgroundModel(CountsBackgroundModel.modelFromWholeGenome(genome)); // this doesn't seem working for sacCer3
         	else
-				backMod = BackgroundModelIO.parseMarkovBackgroundModel(config.getBackModel(), Genome.findGenome(genome.getDBID()));
-        } catch (IOException | ParseException | NotFoundException e) {
-			// TODO Auto-generated catch block
+				backMod = BackgroundModelIO.parseMarkovBackgroundModel(config.getBackModel(), genome);
+        } catch (IOException | ParseException e) {
 			e.printStackTrace();
 		}
         
