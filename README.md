@@ -53,6 +53,9 @@ __Specifying the Genome__:
       | [hg18](http://lugh.bmb.psu.edu/software/multigps/support/hg18.info) | [hg19](http://lugh.bmb.psu.edu/software/multigps/support/hg19.info) | [hg38](http://lugh.bmb.psu.edu/software/multigps/support/hg38.info) | [mm8](http://lugh.bmb.psu.edu/software/multigps/support/mm8.info) | [mm9](http://lugh.bmb.psu.edu/software/multigps/support/mm9.info) | [mm10](http://lugh.bmb.psu.edu/software/multigps/support/mm10.info) | [rn4](http://lugh.bmb.psu.edu/software/multigps/support/rn4.info) | [rn5](http://lugh.bmb.psu.edu/software/multigps/support/rn5.info) | [danRer6](http://lugh.bmb.psu.edu/software/multigps/support/danRer6.info) | [ce10](http://lugh.bmb.psu.edu/software/multigps/support/ce10.info) | [dm3](http://lugh.bmb.psu.edu/software/multigps/support/dm3.info) | [sacCer2](http://lugh.bmb.psu.edu/software/multigps/support/sacCer2.info) | [sacCer3](http://lugh.bmb.psu.edu/software/multigps/support/sacCer3.info) |
   * --__seq__ \<path\> : A directory containing fasta format files corresponding to every named chromosome is required if you want to find subtypes run motif-finding or use a motif-prior within ChExMix.
   * --__back__ \<path\> : A file containing Markov background model for the genome is required if you want to run motif-finding or use a motif-prior within ChExMix.
+  
+      The Markov background model files for some species:
+      | [human](http://lugh.bmb.psu.edu/software/chexmix/backgrounds/human.back) | [mouse](http://lugh.bmb.psu.edu/software/chexmix/backgrounds/mouse.back) | [Drosophila](http://lugh.bmb.psu.edu/software/chexmix/backgrounds/fly.back) | [S. cerevisiae](http://lugh.bmb.psu.edu/software/chexmix/backgrounds/yeast.back) | [E. coli](http://lugh.bmb.psu.edu/software/chexmix/backgrounds/ecoli.back) |
 
 __Loading Data__:
 
