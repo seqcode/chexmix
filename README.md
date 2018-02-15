@@ -108,7 +108,7 @@ __Running ChExMix__:
 
 __Finding ChExMix subtypes__:
 
-1. Using motif:
+1. Using motifs:
 
   * --__memepath__  \<path\>: Path to the meme bin dir (default: meme is in $PATH). MEME path is required for motif finding.
   * --nomotifs \<value\>: Flag to turn off motif-finding & motif priors
@@ -120,7 +120,7 @@ __Finding ChExMix subtypes__:
   * --minroc \<value\>: Minimum motif ROC value (default=0.7)
   * --minmodelupdaterefs \<int\>: Minimum number of motif reference to support an subtype distribution update (default=50)
  
- 2. Using read distribution:
+ 2. Using ChIP-exo tag distributions:
 
   * --noclustering: Flag to turn off read distribution clustering
   * --pref \<value\>: Preference value for read distribution clustering (default=-0.1)
