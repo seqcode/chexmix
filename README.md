@@ -54,7 +54,7 @@ __Specifying the Genome__:
   * --__seq__ \<path\> : A directory containing fasta format files corresponding to every named chromosome is required if you want to find subtypes run motif-finding or use a motif-prior within ChExMix.
   * --__back__ \<path\> : A file containing Markov background model for the genome is required if you want to run motif-finding or use a motif-prior within ChExMix.
   
-      The Markov background model files for some species:
+      The Markov background model files for some species:  
       | [human](http://lugh.bmb.psu.edu/software/chexmix/backgrounds/human.back) | [mouse](http://lugh.bmb.psu.edu/software/chexmix/backgrounds/mouse.back) | [Drosophila](http://lugh.bmb.psu.edu/software/chexmix/backgrounds/fly.back) | [S. cerevisiae](http://lugh.bmb.psu.edu/software/chexmix/backgrounds/yeast.back) | [E. coli](http://lugh.bmb.psu.edu/software/chexmix/backgrounds/ecoli.back) |
 
 __Loading Data__:
