@@ -8,8 +8,7 @@ Citation:
 
 Downloading Executables
 --------------
-Executables will be available soon from: http://mahonylab.org/software/chexmix 
-Check back soon!
+Executable available from: http://mahonylab.org/software/chexmix 
 
 Building from Source
 --------------
