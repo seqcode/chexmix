@@ -5,6 +5,8 @@ ChExMix aims to characterize protein-DNA binding subtypes in ChIP-exo experiment
 
 Citation:
 --------------
+Yamada, et al.“Characterizing protein-DNA binding event subtypes in ChIP-exo data”. BioRxiv. doi:10.1101/266536.
+This paper will also be presented at [RECOMB 2018](http://recomb2018.fr/).
 
 Downloading Executables
 --------------
@@ -133,14 +135,25 @@ __Reporting binding events__:
 
 Example
 --------------
-This example runs ChExMix v0.1 on simulated dataset. Simulated data to run this example can be found [here]
+This example runs ChExMix v0.1 on a simulated dataset. The simulated data is made by mixing mutually-exclusive binding events from yeast Reb1 and Abf1 ChIP-exo datasets. This ensures that there are two distinct binding event subtypes in the dataset. The version of ChExMix and all files required to run this analysis are in this file: [chexmix-yeast-example.tar.gz](http://lugh.bmb.psu.edu/software/chexmix/examples/chexmix-yeast-example.tar.gz)
 
-Command:
+Let’s demonstrate how ChExMix works in two different modes. Note that you will need to install [MEME](http://meme-suite.org/) to run the first example.
+
+__Defining and assigning subtypes using both DNA motif discovery and ChIP-exo tag distributions:__
+
 ```{r, engine='sh', count_lines}
-java -Xmx20G -jar chexmix.jar --threads 10 --expt example.bam --format BAM --memepath path-to-meme --geninfo sacCer3.info --seq path-to-genomes/sacCer3/ --verbose  --out example
+java -Xmx10G -jar chexmix.public.jar --geninfo sacCer3.info --threads 16 --expt Abf1_Reb1_merged_toppeaks.bam --ctrl masterNotag_20161101.bam --format BAM --back sacCer3.back --exclude sacCer3_exludes.txt --seq ~/group/genomes/sacCer3/ --memepath path_to_meme_bin/ --mememinw 6 --mememaxw 18 --out testchexmix_20180214_reb1_abf1_all > testchexmix_20180214_reb1_abf1_all.out 2>&1
 ```
+Expected results can be found here: [testchexmix_20180214_reb1_abf1_all](http://lugh.bmb.psu.edu/software/chexmix/examples/testchexmix_20180214_reb1_abf1_all/ChExMix_testchexmix_20180214_reb1_abf1_all_results.html)
 
-Results can be found [here]
+__Defining and assigning subtypes using only ChIP-exo tag distributions:__
+
+```{r, engine='sh', count_lines}
+java -Xmx10G -jar chexmix.public.jar --geninfo sacCer3.info --threads 16 --expt Abf1_Reb1_merged_toppeaks.bam --ctrl masterNotag_20161101.bam --format BAM --back sacCer3.back --exclude sacCer3_exludes.txt --nomotifs --out testchexmix_20180214_reb1_abf1_all_nomotifs > testchexmix_20180214_reb1_abf1_all_nomotifs.out 2>&1
+```
+Expected results can be found here: [testchexmix_20180214_reb1_abf1_all_nomotifs](http://lugh.bmb.psu.edu/software/chexmix/examples/testchexmix_20180214_reb1_abf1_all_nomotifs/ChExMix_testchexmix_20180214_reb1_abf1_all_nomotifs_results.html)
+
+Note that due to some stochasticity between runs, your results may not match those above exactly, but should be broadly similar.
 
 Contact
 --------------
