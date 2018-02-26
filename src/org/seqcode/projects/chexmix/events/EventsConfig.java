@@ -38,8 +38,8 @@ public class EventsConfig {
 	protected boolean calcEventBaseCompositions=false; //Calculate base compositions around events and tags belonging to events. Useful for analyzing permanganate ChIP-seq
 	protected double qMinThres=0.01;		//Minimum  Q-value for reported binding events
 	protected double minEventFoldChange=1.5;
-	protected double multiGPSqMinThres=0.1;	// Enrichment test after multiGPS style peak calling to remove non-significant binding events
-	protected double multiGPSMinEventFoldChange= 1.0;
+	protected double multiGPSqMinThres=0.05;	// Enrichment test after multiGPS style peak calling to remove non-significant binding events
+	protected double multiGPSMinEventFoldChange= 1.2;
 	protected double differentialSignificanceP = 0.01;
 	protected boolean runDiffTests = true; //Run differential enrichment testing
 	protected String Rpath="";
