@@ -201,7 +201,7 @@ public class ChExMix {
 		boolean converged = false;
 		
 		System.err.println("\n============================ Round "+round+" ============================");
-		//Execute the MultiGPS mixture model
+		//Execute the ChExMix mixture model
 		mixtureModel.execute(true, true, false); //EM
 		
 		//Update noise models

@@ -156,9 +156,6 @@ public class BindingMixture {
 		            t.start();
 		            threads[i] = t;
 		        }
-		        
-		        System.out.println("Number of active threads from the given thread: " + Thread.activeCount());
-		        
 		        boolean anyrunning = true;
 		        while (anyrunning) {
 		            anyrunning = false;
