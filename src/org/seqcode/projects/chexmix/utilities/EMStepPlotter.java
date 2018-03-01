@@ -45,7 +45,7 @@ public class EMStepPlotter {
 			String filename = outName +"cond"+c+".png";
 			File f = new File(filename);
 			int w = plotWidth;
-			int h = ((trackHeight*(numConditions+1))+(trackSpacing*(numConditions+2)))*2; //x2 for number of different plots
+			int h = ((trackHeight*(numBindingType[c]+1))+(trackSpacing*(numBindingType[c]+2)))*2; //x2 for number of different plots
 			int hmargin= 50, wmargin=20;
 			BufferedImage im = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
 			Graphics g = im.getGraphics();
