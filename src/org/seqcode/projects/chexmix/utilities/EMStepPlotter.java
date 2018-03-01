@@ -129,9 +129,17 @@ public class EMStepPlotter {
 						}
 					}
 					tStart += trackHeight+trackSpacing;
+					
+					g2.setColor(Color.black);
+					g2.drawLine(wmargin, tStart+trackHeight, w-wmargin, tStart+trackHeight);		// x-axis line
+					g2.drawLine(wmargin, tStart, wmargin, tStart+trackHeight);	// y-axis line
+					g2.drawString(String.format("%.3f",priorMax), wmargin+2, tStart);
+		    	
+					g2.setColor(Color.red);
+					
 					for(int x=0; x<rWidth; x++){
 						int pos = x+trimLeft;
-						if(forCondPrior[c][bt][pos]>0){
+						if(revCondPrior[c][bt][pos]>0){
 							float roffset = x;
 							float toffset = (roffset/rWidth)*trackWidth;
 							double priorHeight =(revCondPrior[c][bt][pos]/priorMax)*trackHeight;  
