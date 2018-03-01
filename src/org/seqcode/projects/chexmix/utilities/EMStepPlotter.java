@@ -30,22 +30,11 @@ public class EMStepPlotter {
 	
 	public static void execute(String outName, Region reg, int [][][][] mu, double [][] pi, double[][][][] tau, int[] numBindingType, double[][][] forCondPrior, double[][][] revCondPrior, int numConditions, int numComps, int iteration, int trimLeft, int trimRight){
 		
-		int [][] weightedMu = new int[numConditions][numComps];
-		double newMu=0;
-		for(int c=0; c<numConditions; c++){	
-			for (int j=0; j <numComps;j++){
-				for (int bt=0; bt <numBindingType[c];bt++){
-					for (int s=0; s< 2; s++){ if(tau[c][j][bt][s]>0){
-						newMu += ((double) mu[c][j][bt][s])*tau[c][j][bt][s];
-					}}}
-				weightedMu[c][j] = (int) Math.round(newMu);
-			}}
-		
 		for(int c=0; c<numConditions; c++){		
 			String filename = outName +"cond"+c+".png";
 			File f = new File(filename);
 			int w = plotWidth;
-			int h = ((trackHeight*(numBindingType[c]+1))+(trackSpacing*(numBindingType[c]+2)))*2; //x2 for number of different plots
+			int h = ((trackHeight*(numBindingType[c]+1))+(trackSpacing*(numBindingType[c]+2)))*4; //x2 for number of different plots
 			int hmargin= 50, wmargin=20;
 			BufferedImage im = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
 			Graphics g = im.getGraphics();
@@ -91,7 +80,7 @@ public class EMStepPlotter {
 					g2.setStroke(componentStroke);
 					for(int j=0;j<numComps;j++){ 
 						if(pi[c][j]>0){
-							float roffset = weightedMu[c][j]-rstart;
+							float roffset = mu[c][j][bt][s]-rstart;
 							if(roffset>=0 && roffset<rWidth){ //Some points may be out of bounds due to trimming
 								float toffset = (roffset/rWidth)*trackWidth;
 								double tauHeight =(pi[c][j]*tau[c][j][bt][s]/tauMax)*trackHeight;  
@@ -142,7 +131,7 @@ public class EMStepPlotter {
 					tStart += trackHeight+trackSpacing;
 					for(int x=0; x<rWidth; x++){
 						int pos = x+trimLeft;
-						if(forCondPrior[c][0][pos]>0){
+						if(forCondPrior[c][bt][pos]>0){
 							float roffset = x;
 							float toffset = (roffset/rWidth)*trackWidth;
 							double priorHeight =(revCondPrior[c][bt][pos]/priorMax)*trackHeight;  
