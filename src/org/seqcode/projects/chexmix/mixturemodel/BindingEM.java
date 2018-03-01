@@ -16,6 +16,7 @@ import org.seqcode.projects.chexmix.composite.TagProbabilityDensity;
 import org.seqcode.projects.chexmix.events.BindingManager;
 import org.seqcode.projects.chexmix.events.BindingSubtype;
 import org.seqcode.projects.chexmix.framework.ChExMixConfig;
+import org.seqcode.projects.chexmix.utilities.EMStepPlotter;
 
 
 /**
@@ -378,10 +379,10 @@ public class BindingEM {
         	int trimLeft = Math.max(0, plotSubRegion.getStart()-regStart);
         	int trimRight = Math.max(0, currRegion.getEnd()-plotSubRegion.getEnd());
         	
-//        	if(config.useMotifPrior())
-//       			EMStepPlotter.execute(outName, currRegion, mu, pi, forMotifPrior, revMotifPrior, numConditions, numComponents, 0, trimLeft, trimRight);
-//       		else
-//       			EMStepPlotter.execute(outName, currRegion, mu, pi, null,null, numConditions, numComponents, 0, trimLeft, trimRight);
+        	if(config.useMotifPrior())
+       			EMStepPlotter.execute(outName, currRegion, mu, pi, tau, numBindingType, forMotifPrior, revMotifPrior, numConditions, numComponents, 0, trimLeft, trimRight);
+       		else
+       			EMStepPlotter.execute(outName, currRegion, mu, pi, tau, numBindingType, null,null, numConditions, numComponents, 0, trimLeft, trimRight);
         }
         
     	
@@ -807,10 +808,10 @@ public class BindingEM {
             	int trimLeft = Math.max(0, plotSubRegion.getStart()-regStart);
             	int trimRight = Math.max(0, currRegion.getEnd()-plotSubRegion.getEnd());
 
-//           		if(config.useMotifPrior())
-//           			EMStepPlotter.execute(outName, currRegion, mu, pi, forMotifPrior, revMotifPrior, numConditions, numComponents, t+1, trimLeft, trimRight);
-//           		else
-//           			EMStepPlotter.execute(outName, currRegion, mu, pi, null,null, numConditions, numComponents, t+1, trimLeft, trimRight);
+           		if(config.useMotifPrior())
+           			EMStepPlotter.execute(outName, currRegion, mu, pi, tau, numBindingType, forMotifPrior, revMotifPrior, numConditions, numComponents, t+1, trimLeft, trimRight);
+           		else
+           			EMStepPlotter.execute(outName, currRegion, mu, pi, tau, numBindingType, null,null, numConditions, numComponents, t+1, trimLeft, trimRight);
             }
 
             //Is current state equivalent to the last?
