@@ -1,5 +1,6 @@
 package org.seqcode.projects.chexmix.mixturemodel;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -375,7 +376,7 @@ public class BindingEM {
     	////////////
         if(plotEM){
         	String regStr = currRegion.getLocationString().replaceAll(":", "-");
-        	String outName = "EM_"+regStr+"_r"+trainingRound+"_t0";
+        	String outName = config.getOutputImagesDir()+File.separator+"EM_"+regStr+"_r"+trainingRound+"_t0";
         	int trimLeft = Math.max(0, plotSubRegion.getStart()-regStart);
         	int trimRight = Math.max(0, currRegion.getEnd()-plotSubRegion.getEnd());
         	
@@ -804,7 +805,7 @@ public class BindingEM {
         	////////////
             if(plotEM){
             	String regStr = currRegion.getLocationString().replaceAll(":", "-");
-            	String outName = "EM_"+regStr+"_r"+trainingRound+"_t"+(t+1)+"_i"+(iter+1);
+            	String outName = config.getOutputImagesDir()+File.separator+"EM_"+regStr+"_r"+trainingRound+"_t"+(t+1)+"_i"+(iter+1);
             	int trimLeft = Math.max(0, plotSubRegion.getStart()-regStart);
             	int trimRight = Math.max(0, currRegion.getEnd()-plotSubRegion.getEnd());
 

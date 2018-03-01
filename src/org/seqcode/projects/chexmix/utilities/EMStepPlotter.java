@@ -112,7 +112,7 @@ public class EMStepPlotter {
 				for (int bt=0; bt <numBindingType[c];bt++)
 					for(int x=0; x<reg.getWidth(); x++)
 						if(Math.max(forCondPrior[c][bt][x], revCondPrior[c][bt][x])>maxPrior)
-							maxPrior = Math.max(forCondPrior[c][0][x], revCondPrior[c][0][x]);
+							maxPrior = Math.max(forCondPrior[c][bt][x], revCondPrior[c][bt][x]);
 				if(maxPrior>1)
 					priorMax = maxPrior;
 				else if(maxPrior >0.1)
@@ -122,7 +122,7 @@ public class EMStepPlotter {
 				else
 					priorMax = 0.01;
 		    
-				for (int bt=0; bt<numBindingType[c]*2; bt++){
+				for (int bt=0; bt<numBindingType[c]; bt++){
 		    
 					g2.setColor(Color.black);
 					g2.drawLine(wmargin, tStart+trackHeight, w-wmargin, tStart+trackHeight);		// x-axis line
@@ -132,7 +132,7 @@ public class EMStepPlotter {
 					g2.setColor(Color.red);
 					for(int x=0; x<rWidth; x++){
 						int pos = x+trimLeft;
-						if(forCondPrior[c][0][pos]>0){
+						if(forCondPrior[c][bt][pos]>0){
 							float roffset = x;
 							float toffset = (roffset/rWidth)*trackWidth;
 							double priorHeight =(forCondPrior[c][bt][pos]/priorMax)*trackHeight;  
