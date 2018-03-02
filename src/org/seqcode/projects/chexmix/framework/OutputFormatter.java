@@ -34,17 +34,9 @@ public class OutputFormatter {
 		for(ControlledExperiment rep : models.keySet()){
 			String replicateName = rep.getCondName()+"-"+rep.getRepName();
 			
-			double maxProb = 0;
-		    List<TagProbabilityDensity> currModels = models.get(rep);
-		    for (TagProbabilityDensity bm:currModels){
-		    	double[] wpoints = bm.getWatsonProbabilities();
-		    	double[] cpoints = bm.getCrickProbabilities();
-		    	for (int i=0; i < wpoints.length ; i++)
-		    		maxProb = Math.max(maxProb, Math.max(wpoints[i], cpoints[i]));	//max probability
-		    }
 			
-			for (int i=0;i<currModels.size();i++){
-				TagProbabilityDensity m = currModels.get(i);
+			for (int i=0;i<models.get(rep).size();i++){
+				TagProbabilityDensity m = models.get(rep).get(i);
 				String filename = config.getOutputImagesDir()+File.separator+config.getOutBase()+"_"+replicateName +"_"+i+ "_Read_Distributions.png";
 				File f = new File(filename);
 				int w = 500; //changed from 1000 to 500
@@ -67,6 +59,11 @@ public class OutputFormatter {
 			    
 			    double[] wpoints = m.getWatsonProbabilities();
 		    	double[] cpoints = m.getCrickProbabilities();
+		    	
+		    	double maxProb = 0;
+		    	for (int p=0; p < wpoints.length ; p++)
+		    		maxProb = Math.max(maxProb, Math.max(wpoints[p], cpoints[p]));	//max probability
+		    	
 			    g2.setColor(Color.blue);
 			    g2.setStroke(new BasicStroke(4));
 			    for (int p=0;p<wpoints.length-1;p++){
