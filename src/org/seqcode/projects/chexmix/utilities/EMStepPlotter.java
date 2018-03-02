@@ -69,8 +69,7 @@ public class EMStepPlotter {
 			else
 				tauMax = 0.01;
 			
-			for (int bt=0; bt<numBindingType[c]; bt++){
-				
+			for (int bt=0; bt<numBindingType[c]; bt++){				
 				g2.setColor(Color.black);
 				g2.drawLine(wmargin, tStart+trackHeight, w-wmargin, tStart+trackHeight);		// x-axis
 				g2.drawLine(wmargin, tStart, wmargin, tStart+trackHeight);	// y-axis
@@ -81,7 +80,7 @@ public class EMStepPlotter {
 				
 				for (int s=0; s< 2;s++){	//For each subtype strand
 					for(int j=0;j<numComps;j++){ 
-						if(pi[c][j]>0){
+						if((pi[c][j]*tau[c][j][bt][s])>0){
 							float roffset = mu[c][j][bt][s]-rstart;
 							if(roffset>=0 && roffset<rWidth){ //Some points may be out of bounds due to trimming
 								float toffset = (roffset/rWidth)*trackWidth;
