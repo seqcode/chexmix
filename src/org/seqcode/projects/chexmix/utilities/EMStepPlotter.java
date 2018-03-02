@@ -31,10 +31,10 @@ public class EMStepPlotter {
 	public static void execute(String outName, Region reg, int [][][][] mu, double [][] pi, double[][][][] tau, int[] numBindingType, double[][][] forCondPrior, double[][][] revCondPrior, int numConditions, int numComps, int iteration, int trimLeft, int trimRight){
 		
 		for(int c=0; c<numConditions; c++){		
-			String filename = outName +"cond"+c+".png";
+			String filename = outName +"_cond"+c+".png";
 			File f = new File(filename);
 			int w = plotWidth;
-			int h = ((trackHeight*(numBindingType[c]+1))+(trackSpacing*(numBindingType[c]+2)))*4; //x2 for number of different plots
+			int h = ((trackHeight*(numBindingType[c]+1))+(trackSpacing*(numBindingType[c]+2)))*2; //x2 for number of different plots
 			int hmargin= 50, wmargin=20;
 			BufferedImage im = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
 			Graphics g = im.getGraphics();
@@ -70,14 +70,16 @@ public class EMStepPlotter {
 				tauMax = 0.01;
 			
 			for (int bt=0; bt<numBindingType[c]; bt++){
-				for (int s=0; s< 2;s++){    
-					g2.setColor(Color.black);
-					g2.drawLine(wmargin, tStart+trackHeight, w-wmargin, tStart+trackHeight);		// x-axis
-					g2.drawLine(wmargin, tStart, wmargin, tStart+trackHeight);	// y-axis
-					g2.drawString(String.format("%.3f",tauMax), wmargin+2, tStart);
-	    	
-					g2.setColor(Color.blue);
-					g2.setStroke(componentStroke);
+				
+				g2.setColor(Color.black);
+				g2.drawLine(wmargin, tStart+trackHeight, w-wmargin, tStart+trackHeight);		// x-axis
+				g2.drawLine(wmargin, tStart, wmargin, tStart+trackHeight);	// y-axis
+				g2.drawString(String.format("%.3f",tauMax), wmargin+2, tStart);
+				
+				g2.setColor(Color.blue);
+				g2.setStroke(componentStroke);
+				
+				for (int s=0; s< 2;s++){	//For each subtype strand
 					for(int j=0;j<numComps;j++){ 
 						if(pi[c][j]>0){
 							float roffset = mu[c][j][bt][s]-rstart;
@@ -90,8 +92,8 @@ public class EMStepPlotter {
 						}
 					}
 					g2.setStroke(defaultStroke);
-					tStart += trackHeight+trackSpacing;
 				}
+				tStart += trackHeight+trackSpacing;
 			}
 	    
 			if(forCondPrior!=null){
@@ -111,8 +113,8 @@ public class EMStepPlotter {
 				else
 					priorMax = 0.01;
 		    
-				for (int bt=0; bt<numBindingType[c]; bt++){
-		    
+				for (int bt=0; bt<numBindingType[c]; bt++){		    
+					// Forward motif prior
 					g2.setColor(Color.black);
 					g2.drawLine(wmargin, tStart+trackHeight, w-wmargin, tStart+trackHeight);		// x-axis line
 					g2.drawLine(wmargin, tStart, wmargin, tStart+trackHeight);	// y-axis line
@@ -128,15 +130,8 @@ public class EMStepPlotter {
 							g2.drawLine((int)(wmargin+toffset), (int)(tStart+trackHeight-priorHeight), (int)(wmargin+toffset), (int)(tStart+trackHeight));	// y-axis
 						}
 					}
-					tStart += trackHeight+trackSpacing;
 					
-					g2.setColor(Color.black);
-					g2.drawLine(wmargin, tStart+trackHeight, w-wmargin, tStart+trackHeight);		// x-axis line
-					g2.drawLine(wmargin, tStart, wmargin, tStart+trackHeight);	// y-axis line
-					g2.drawString(String.format("%.3f",priorMax), wmargin+2, tStart);
-		    	
-					g2.setColor(Color.red);
-					
+					// Reverse motif prior					
 					for(int x=0; x<rWidth; x++){
 						int pos = x+trimLeft;
 						if(revCondPrior[c][bt][pos]>0){
@@ -152,7 +147,7 @@ public class EMStepPlotter {
 			//Iteration label:
 			g2.setColor(Color.black);
 			g2.setFont(new Font("Ariel", Font.BOLD, 14));
-			String iString = "EM:"+iteration;
+			String iString = "EM:"+iteration+"\t"+"chr"+reg.getChrom()+rstart+"-"+rend;
 			FontMetrics metrics = g2.getFontMetrics();
 			g2.drawString(iString, (w/2-(metrics.stringWidth(iString)/2)), hmargin);
 	    
