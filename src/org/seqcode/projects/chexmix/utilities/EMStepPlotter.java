@@ -146,7 +146,7 @@ public class EMStepPlotter {
 			//Iteration label:
 			g2.setColor(Color.black);
 			g2.setFont(new Font("Ariel", Font.BOLD, 14));
-			String iString = "EM:"+iteration+"\t"+"chr"+reg.getChrom()+rstart+"-"+rend;
+			String iString = "EM:"+iteration+","+"chr"+reg.getChrom()+":"+rstart+"-"+rend;
 			FontMetrics metrics = g2.getFontMetrics();
 			g2.drawString(iString, (w/2-(metrics.stringWidth(iString)/2)), hmargin);
 	    
