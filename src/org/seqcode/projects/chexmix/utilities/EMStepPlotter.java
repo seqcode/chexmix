@@ -86,7 +86,35 @@ public class EMStepPlotter {
 								float toffset = (roffset/rWidth)*trackWidth;
 								double tauHeight =(pi[c][j]*tau[c][j][bt][s]/tauMax)*trackHeight;  
 								//System.out.println("Pi: "+piHeight);
-								g2.drawLine((int)(wmargin+toffset), (int)(tStart+trackHeight-tauHeight), (int)(wmargin+toffset), (int)(tStart+trackHeight));	// y-axis
+
+								// binding event bar
+								g2.drawLine((int)(wmargin+toffset), (int)(tStart+trackHeight-tauHeight), (int)(wmargin+toffset), (int)(tStart+trackHeight));
+								
+								//direction glyph
+								double arrowHt = 3;
+								double arrowWd = 3;
+								if(arrowWd > arrowHt) { arrowWd = arrowHt; }
+								int a[];
+								int startX = (int)(wmargin+toffset);
+								
+								if(s == 0) {// forward arrow
+									int a1 = startX; 
+									int a2 = (int) Math.round(startX + arrowWd); 
+									int[] t = {a1, a2, a1};
+									a = t;
+								}else { //reverse arrow 
+									int a1 = startX; 
+									int a2 = (int) Math.round(startX - arrowWd);
+									int[] t = {a1, a1, a2, a1};
+									a = t;
+								}
+								int my =  (int)(tStart+trackHeight-tauHeight);
+								int b1 = (int) Math.round(my);
+								int b2 = (int) Math.round(my - (arrowHt/2));
+								int b3 = (int) Math.round(my - arrowHt);								
+								int[] b = {b1, b2, b3};
+								g.drawPolyline(a, b, 3);
+
 							}
 						}
 					}
