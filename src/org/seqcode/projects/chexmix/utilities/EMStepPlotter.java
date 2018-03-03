@@ -105,7 +105,7 @@ public class EMStepPlotter {
 								}else { //reverse arrow 
 									int a1 = startX; 
 									int a2 = (int) Math.round(startX - arrowWd);
-									int[] t = {a1, a1, a2, a1};
+									int[] t = {a1, a2, a1};
 									a = t;
 								}
 								int my =  (int)(tStart+trackHeight-tauHeight);
