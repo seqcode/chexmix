@@ -78,8 +78,8 @@ public class EMStepPlotter {
 				g2.setColor(Color.blue);
 				g2.setStroke(componentStroke);
 				
-				for (int s=0; s< 2;s++){	//For each subtype strand
-					for(int j=0;j<numComps;j++){ 
+				for(int j=0;j<numComps;j++){ 
+					for (int s=0; s< 2;s++){	//For each subtype strand
 						if((pi[c][j]*tau[c][j][bt][s])>0){
 							float roffset = mu[c][j][bt][s]-rstart;
 							if(roffset>=0 && roffset<rWidth){ //Some points may be out of bounds due to trimming
@@ -118,8 +118,8 @@ public class EMStepPlotter {
 							}
 						}
 					}
-					g2.setStroke(defaultStroke);
 				}
+				g2.setStroke(defaultStroke);
 				tStart += trackHeight+trackSpacing;
 			}
 	    
