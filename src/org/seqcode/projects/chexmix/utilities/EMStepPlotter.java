@@ -70,10 +70,6 @@ public class EMStepPlotter {
 				tauMax = 0.01;
 			
 			for (int bt=0; bt<numBindingType[c]; bt++){				
-				g2.setColor(Color.black);
-				g2.drawLine(wmargin, tStart+trackHeight, w-wmargin, tStart+trackHeight);		// x-axis
-				g2.drawLine(wmargin, tStart, wmargin, tStart+trackHeight);	// y-axis
-				g2.drawString(String.format("%.3f",tauMax), wmargin+2, tStart);
 				
 				g2.setColor(Color.blue);
 				g2.setStroke(componentStroke);
@@ -90,9 +86,9 @@ public class EMStepPlotter {
 								// binding event bar
 								g2.drawLine((int)(wmargin+toffset), (int)(tStart+trackHeight-tauHeight), (int)(wmargin+toffset), (int)(tStart+trackHeight));
 								
-								//direction glyph
-								double arrowHt = 3;
-								double arrowWd = 3;
+								//direction glyph (base of component)
+								double arrowHt = 6;
+								double arrowWd = 6;
 								if(arrowWd > arrowHt) { arrowWd = arrowHt; }
 								int a[];
 								int startX = (int)(wmargin+toffset);
@@ -100,26 +96,31 @@ public class EMStepPlotter {
 								if(s == 0) {// forward arrow
 									int a1 = startX; 
 									int a2 = (int) Math.round(startX + arrowWd); 
-									int[] t = {a1, a2, a1};
+									int[] t = {a1, a2, a1, a1};
 									a = t;
 								}else { //reverse arrow 
 									int a1 = startX; 
 									int a2 = (int) Math.round(startX - arrowWd);
-									int[] t = {a1, a2, a1};
+									int[] t = {a1, a2, a1, a1};
 									a = t;
 								}
-								int my =  (int)(tStart+trackHeight-tauHeight);
-								int b1 = (int) Math.round(my);
-								int b2 = (int) Math.round(my - (arrowHt/2));
-								int b3 = (int) Math.round(my - arrowHt);								
-								int[] b = {b1, b2, b3};
-								g.drawPolyline(a, b, 3);
+								int my =  (int)(tStart+trackHeight);
+								int b1 = (int) Math.round(my - (arrowHt/2));
+								int b2 = (int) Math.round(my);
+								int b3 = (int) Math.round(my + (arrowHt/2));								
+								int[] b = {b1, b2, b3, b2};
+								g.drawPolyline(a, b, 4);
 
 							}
 						}
 					}
 				}
 				g2.setStroke(defaultStroke);
+				g2.setColor(Color.black);
+				g2.drawLine(wmargin, tStart+trackHeight, w-wmargin, tStart+trackHeight);		// x-axis
+				g2.drawLine(wmargin, tStart, wmargin, tStart+trackHeight);	// y-axis
+				g2.drawString(String.format("%.3f",tauMax), wmargin+2, tStart);
+				
 				tStart += trackHeight+trackSpacing;
 			}
 	    
