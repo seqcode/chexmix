@@ -262,6 +262,26 @@ public class ShapeAlignmentTesting {
 			this.printSimScores();
 		}
 		
+		//Print similarity score
+		System.out.println("similarity score");
+		for (int i=0; i < pairwiseSimilarities.length; i++){
+			for (int j=0; j < pairwiseSimilarities[i].length ;j++)
+				System.out.print(pairwiseSimilarities[i][j]+",");
+			System.out.println();
+		}
+		System.out.println("strand");
+		for (int i=0; i < pairwiseStrands.length; i++){
+			for (int j=0; j < pairwiseStrands[i].length ;j++)
+				System.out.print(pairwiseStrands[i][j]+",");
+			System.out.println();
+		}
+		System.out.println("offset");
+		for (int i=0; i < pairwiseOffsets.length; i++){
+			for (int j=0; j < pairwiseOffsets[i].length ;j++)
+				System.out.print(pairwiseOffsets[i][j]+",");
+			System.out.println();
+		}
+		
 	}	
 	
 	public double slidingComparison(ControlledExperiment controlledExpt, Region regA, Region regB){
