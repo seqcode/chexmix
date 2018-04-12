@@ -262,6 +262,7 @@ public class ShapeAlignmentTesting {
 			this.printSimScores();
 		}
 		
+		/**
 		//Print similarity score
 		System.out.println("similarity score");
 		for (int i=0; i < pairwiseSimilarities.length; i++){
@@ -281,6 +282,7 @@ public class ShapeAlignmentTesting {
 				System.out.print(pairwiseOffsets[i][j]+",");
 			System.out.println();
 		}
+		**/
 		
 	}	
 	
