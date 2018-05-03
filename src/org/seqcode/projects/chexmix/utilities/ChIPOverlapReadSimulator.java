@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Random;
 
 import org.apache.commons.math3.distribution.NormalDistribution;
+import org.seqcode.data.io.RegionFileUtilities;
 import org.seqcode.deepseq.ReadHit;
 import org.seqcode.deepseq.events.BindingModel;
 import org.seqcode.deepseq.experiments.ExperimentManager;
@@ -71,8 +72,9 @@ public class ChIPOverlapReadSimulator {
 	private boolean subsampleControl=false;
 	private boolean paired=false;
 	private int overlapEvent=1000;
+	private List<Point> eventPositions = new ArrayList<Point>();
 	
-	public ChIPOverlapReadSimulator(BindingModel m, Genome g, List<SimCounts> counts, int numCond, int numRep, double noiseProb, double jointRate, int jointSpacing, int eventSpacing, int overlapEvent, String outPath){
+	public ChIPOverlapReadSimulator(BindingModel m, Genome g, List<SimCounts> counts, int numCond, int numRep, double noiseProb, double jointRate, int jointSpacing, int eventSpacing, int overlapEvent, List<Point> peaks, String outPath){
 		model=m;
 		numConditions = numCond;
 		numReplicates = numRep;
@@ -84,6 +86,7 @@ public class ChIPOverlapReadSimulator {
 		genomeLength = (long)fakeGen.getGenomeLength();
 		chromLens = new long[fakeGen.getChromList().size()];
 		this.overlapEvent=overlapEvent;
+		this.eventPositions=peaks;
 		
 		int c=0; long offset=0;
 		for(String chr : fakeGen.getChromList()){
@@ -116,7 +119,10 @@ public class ChIPOverlapReadSimulator {
 		
 		if(noiseProb<1.0){
 			simCounts = counts;
-			setBindingPositions();
+			if (eventPositions.isEmpty())
+				setBindingPositions();	//Place binding events at an interval
+			else
+				setBindingPositionsFromPreDefinedLocations();	//Place binding events at pre-defined locations
 			numEvents = events.size();
 			
 			//Count signal reads and infer total reads
@@ -185,6 +191,17 @@ public class ChIPOverlapReadSimulator {
 			}
 			eventC++;
 		}
+	}
+	
+	/**
+	 * Make binding positions corresponding to all simulated counts at pre-defined locations.
+	 */
+	private void setBindingPositionsFromPreDefinedLocations(){
+		int eventC=0;
+		for(SimCounts s : simCounts){
+			events.add(new Pair<Point, SimCounts>(eventPositions.get(eventC),s));
+			eventC++;
+		}	
 	}
 	
 	
@@ -482,6 +499,7 @@ public class ChIPOverlapReadSimulator {
 		double frags=1000000, reads=1000000, a, up, down, diff, jointRate=0.0;
 		String bmfile;
 		boolean printEvents=true, subsampleControl=false, isPaired=false;
+		List<Point> peakPos=null;
 		ArgParser ap = new ArgParser(args);
 		if(args.length==0 || ap.hasKey("h") || !ap.hasKey("emp")){
 			System.err.println("ChIPReadSimulator:\n" +
@@ -511,11 +529,14 @@ public class ChIPOverlapReadSimulator {
 		}else{
 			GenomeConfig gcon = new GenomeConfig(args);
 			ExptConfig econ = new ExptConfig(gcon.getGenome(), args);
-			CountDataSimulator cdsim = new CountDataSimulator();
+			CountDataSimulator cdsim = new CountDataSimulator();			
 			
 			//////////////////////////////////////////////////
 			// Read in parameters 
-			if(ap.hasKey("emp")){
+			if (ap.hasKey("points")){
+				peakPos = RegionFileUtilities.loadPointsFromFile(ap.getKeyValue("points"), gcon.getGenome());	
+				cdsim.setDataPoints(peakPos.size());
+			}if(ap.hasKey("emp")){
 				empFile = ap.getKeyValue("emp");
 				cdsim.loadEmpiricalFromFile(empFile);
 			}if(ap.hasKey("numdata")){
@@ -598,7 +619,7 @@ public class ChIPOverlapReadSimulator {
 			// Simulate reads according to counts and binding model
 			BindingModel bm = new BindingModel(mFile);
 	        //Initialize the MultiConditionReadSimulator
-			ChIPOverlapReadSimulator sim = new ChIPOverlapReadSimulator(bm, gcon.getGenome(), counts, c, r, noiseProb, jointRate, jointSpacing,eventSpacing, overlapEvent, outFile);
+			ChIPOverlapReadSimulator sim = new ChIPOverlapReadSimulator(bm, gcon.getGenome(), counts, c, r, noiseProb, jointRate, jointSpacing, eventSpacing, overlapEvent,peakPos, outFile);
 	        if(noiseProb==1.0)
 	        	sim.setTotalFrags((int) frags);
 
