@@ -200,6 +200,7 @@ public class ChIPOverlapReadSimulator {
 		int eventC=0;
 		for(SimCounts s : simCounts){
 			events.add(new Pair<Point, SimCounts>(eventPositions.get(eventC),s));
+			eventIsJoint.put(eventPositions.get(eventC), false);
 			eventC++;
 		}	
 	}
@@ -506,6 +507,7 @@ public class ChIPOverlapReadSimulator {
 					"\t--geninfo <genome info file>\n" +
 					"\t--emp <empirical data file>\n" +
 					"\t--numdata <number of events to simulate>\n" +
+					"\t--points <event locations to simulate>\n" +
 					"\t--c <num conditions>\n" +
 					"\t--r <num replicates per condition>\n" +
 					"\t--a <over-dispersion param>\n" +
