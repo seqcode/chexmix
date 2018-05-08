@@ -311,8 +311,8 @@ public class ChExMixConfig {
 					distribB=Args.parseString(args, "distrB", null);	
 				
 				// Motif file list
-				String motfile=null;
 				if (ap.hasKey("motfile")){
+					String motfile=ap.getKeyValue("motfile");
 					initMotifs= new ArrayList<WeightMatrix>();
 					FreqMatrixImport motifImport = new FreqMatrixImport();
 					motifImport.setBackground(markovBackMode);
