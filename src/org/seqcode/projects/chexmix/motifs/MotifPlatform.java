@@ -89,16 +89,8 @@ public class MotifPlatform {
 		cachedRegions = regionsOfInterest;
 		meme = new MEMERunner(config, man);
 		
-		//Load the background model or make background model
-        try{       
-        	if(config.getBackModel() == null)
-        		backMod = new MarkovBackgroundModel(CountsBackgroundModel.modelFromWholeGenome(genome)); // this doesn't seem working for sacCer3
-        	else
-				backMod = BackgroundModelIO.parseMarkovBackgroundModel(config.getBackModel(), genome);
-        } catch (IOException | ParseException e) {
-			e.printStackTrace();
-		}
-        
+		backMod = c.getBackModel();
+		
         //Pre-load the random sequences
 		RandomSequenceGenerator randGen = new RandomSequenceGenerator(backMod);
 		for(int i=0; i<config.MARKOV_NUM_TEST; i++){
@@ -255,7 +247,7 @@ public class MotifPlatform {
 	 * @param trainingRound
 	 * @throws Exception 
 	 */
-	public void recursivelyFindMotifs(HashMap<Region, List<List<BindingSubComponents>>> activeComponents, int trainingRound) throws Exception{
+	public void updateSubtypesUsingMotifs(HashMap<Region, List<List<BindingSubComponents>>> activeComponents, int trainingRound) throws Exception{
 		Map<ExperimentCondition, List<BindingSubComponents>> allpeaks = new HashMap<ExperimentCondition, List<BindingSubComponents>>();
 		for (ExperimentCondition cond : manager.getConditions())
 			allpeaks.put(cond, new ArrayList<BindingSubComponents>());
@@ -306,12 +298,15 @@ public class MotifPlatform {
 				}
 		
 				// find motifs recursively until no motifs pass ROC threshold scores
-				boolean findMotif = true;		
-				int counter = 0;   	
-				if (sortedRegions.size() < config.getMinRefsForBMUpdate()){
+				boolean findMotif = true;	
+				if (config.getInitialMotifs()!=null){
+					findMotif=false;	// No motif finding if initial motifs are defined
+				}else if (sortedRegions.size() < config.getMinRefsForBMUpdate()){
 					findMotif = false;
 					System.err.println("cannot do motif finding due to too few regions ("+sortedRegions.size()+"<"+config.getMinRefsForBMUpdate()+").");
 				}
+				
+				int counter = 0;
 				while (findMotif) {		
 					//check size of region 
 					System.out.println("number of regions "+sortedRegions.size());
@@ -391,7 +386,35 @@ public class MotifPlatform {
 					}
 				} // End of while loop to recursively find motifs
 				
-				// What is this ?
+				// Define subtypes and read distributions using the provided motifs
+				if (config.getInitialMotifs()!=null){
+					//Define subtypes using initially provided motifs
+					List<WeightMatrix> sigMotifs = config.getInitialMotifs();
+					List<WeightMatrix> sigFreqMatrix = new ArrayList<WeightMatrix>();
+					for (WeightMatrix m : sigMotifs)
+						m.toFrequency(backMod);
+				
+					for (int m=0; m< sigMotifs.size(); m++){
+						WeightMatrix currMotif = sigMotifs.get(m);
+						WeightMatrix currFreqMatrix = sigFreqMatrix.get(m);	
+						MarkovMotifThresholdFinder finder = new MarkovMotifThresholdFinder(currMotif, backMod, config.MARKOV_NUM_TEST);
+						finder.setRandomSeq(MarkovRandSeq);
+						Set<StrandedPoint> refs = new HashSet<StrandedPoint>();	// motif references
+						double motifThres = finder.execute(config.MARKOV_BACK_MODEL_THRES); 
+						for (Region reg : sortedRegions)
+							if (getMotifPosition(currMotif, motifThres, reg)!=null)
+								refs.add(getMotifPosition(currMotif, motifThres, reg));
+					
+						if (refs.size() > config.getMinRefsForBMUpdate()){
+							//Add motif and frequency matrix to list
+							selecMotifs.add(currMotif);
+							selecFreqMatrix.add(currFreqMatrix);
+							motifRefs.add(refs);
+						}
+					} 
+				} // End of defining the motif positions using the known motifs
+			
+				
 				// Keep list of peaks that can be used for BM updates later
 				if (!groupFoundMotif){
 					if (peaks.size() < config.getMinComponentsForBMUpdate())

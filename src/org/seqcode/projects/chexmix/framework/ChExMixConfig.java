@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -14,8 +15,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
 
+import org.seqcode.data.io.BackgroundModelIO;
 import org.seqcode.data.io.IOUtil;
 import org.seqcode.data.io.RegionFileUtilities;
+import org.seqcode.data.motifdb.CountsBackgroundModel;
+import org.seqcode.data.motifdb.MarkovBackgroundModel;
+import org.seqcode.data.motifdb.WeightMatrix;
 import org.seqcode.genome.Genome;
 import org.seqcode.genome.GenomeConfig;
 import org.seqcode.genome.location.Point;
@@ -24,6 +29,7 @@ import org.seqcode.genome.location.StrandedPoint;
 import org.seqcode.genome.location.StrandedRegion;
 import org.seqcode.gseutils.ArgParser;
 import org.seqcode.gseutils.Args;
+import org.seqcode.motifs.FreqMatrixImport;
 
 /**
  * XOGPSConfig: 
@@ -76,13 +82,14 @@ public class ChExMixConfig {
 	protected String MEMEargs=" -dna -mod zoops -revcomp -nostatus ";    //Do not try using -p here; it leads to MEME runtime errors
 	public int MEMEminw=7;
 	public int MEMEmaxw=18;
-	protected String markovBackMode; // Markov background model file
+	protected MarkovBackgroundModel markovBackMode; // Markov background model file
 	protected boolean verbose = false; //Print extra output
 	protected List<List<StrandedPoint>> initialClustPoints = null; // Initial cluster points
 	protected String MetaMakerArgs="--win 250 --bins 250 --batch --nocolorbar --linemax 1 --linethick 1 --transparent";
 	protected int initComponentSpacing=30;	//Initial component spacing
 	protected String distribA=null;	//Stranded distribution A
 	protected String distribB=null;	//Stranded distribution B
+	protected List<WeightMatrix> initMotifs=null; //Initial motifs
 	protected double preferenceValue = -0.1; // Preference value for read distribution clustering
 	protected int clusteringWindow = 150;
 	protected int numClusteringComps = 500;	// Number of components to perform AP clustering
@@ -268,7 +275,16 @@ public class ChExMixConfig {
 				MEMEargs = MEMEargs + " -nmotifs "+MEMEnmotifs + " -minw "+MEMEminw+" -maxw "+MEMEmaxw;
 				
 				// Markove background model
-				markovBackMode = Args.parseString(args, "back", null);
+				String backfile = Args.parseString(args, "back", null);				
+				//Load the background model or make background model
+		        try{       
+		        	if(backfile == null)
+		        		markovBackMode = new MarkovBackgroundModel(CountsBackgroundModel.modelFromWholeGenome(gen)); // this doesn't seem working for sacCer3
+		        	else
+		        		markovBackMode = BackgroundModelIO.parseMarkovBackgroundModel(backfile, gen);
+		        } catch (IOException | ParseException e) {
+					e.printStackTrace();
+				}
 				
 				//Extra output
 				verbose = Args.parseFlags(args).contains("verbose") ? true : false;
@@ -278,9 +294,10 @@ public class ChExMixConfig {
 								
 				//Initial clustering points
 				String fname=null;
-				if (ap.hasKey("plist"))
+				if (ap.hasKey("plist")){
 					initialClustPoints = new ArrayList<List<StrandedPoint>>();
 					fname=Args.parseString(args, "plist", null);
+				}
 				if (fname!=null){
 					String[] lines= IOUtil.readFile2Array(fname);
 					for (int i=0; i <lines.length; i++)
@@ -291,7 +308,16 @@ public class ChExMixConfig {
 				if (ap.hasKey("distrA"))
 					distribA=Args.parseString(args, "distrA", null);
 				if (ap.hasKey("distrB"))
-					distribB=Args.parseString(args, "distrB", null);				
+					distribB=Args.parseString(args, "distrB", null);	
+				
+				// Motif file list
+				String motfile=null;
+				if (ap.hasKey("motfile")){
+					initMotifs= new ArrayList<WeightMatrix>();
+					FreqMatrixImport motifImport = new FreqMatrixImport();
+					motifImport.setBackground(markovBackMode);
+					initMotifs.addAll(motifImport.readTransfacMatrices(motfile));
+				}
 
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
@@ -356,7 +382,7 @@ public class ChExMixConfig {
 	public String getMEMEpath(){return MEMEpath;}
 	public String getMEMEargs(){return MEMEargs;}
 	public String getMetaMakerArgs(){return MetaMakerArgs;}
-	public String getBackModel(){return markovBackMode;}
+	public MarkovBackgroundModel getBackModel(){return markovBackMode;}
 	public double getPosPriorScaling(){return posPriorScaling;}
 	public int getMinMotifLength(){return MEMEminw;}
 	public boolean isVerbose(){return verbose;}
@@ -364,6 +390,7 @@ public class ChExMixConfig {
 	public int getInitialCompSpacing(){return initComponentSpacing;}
 	public String getDistribA(){return distribA;}
 	public String getDistribB(){return distribB;}
+	public List<WeightMatrix> getInitialMotifs(){return initMotifs;}
 	public double getPreferenceValue(){return preferenceValue;}
 	public int getClusterWindowSize(){return clusteringWindow;}
 	public int getNumClusteringComps(){return numClusteringComps;}

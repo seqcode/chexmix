@@ -646,7 +646,7 @@ public class BindingMixture {
      */
     public void updateBindingModelUsingMotifs() throws Exception{
     	if(config.getFindingMotifs()){
-    		motifFinder.recursivelyFindMotifs(activeComponents, trainingRound);
+    		motifFinder.updateSubtypesUsingMotifs(activeComponents, trainingRound);
     		
     		//Print progress
     		for(ExperimentCondition cond : manager.getConditions()){
