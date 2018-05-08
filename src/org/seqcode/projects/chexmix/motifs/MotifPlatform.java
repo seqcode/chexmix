@@ -391,8 +391,15 @@ public class MotifPlatform {
 					//Define subtypes using initially provided motifs
 					List<WeightMatrix> sigMotifs = config.getInitialMotifs();
 					List<WeightMatrix> sigFreqMatrix = new ArrayList<WeightMatrix>();
-					for (WeightMatrix m : sigMotifs)
-						m.toFrequency(backMod);
+					for (WeightMatrix m : sigMotifs){
+						float[][] matrix = new float[m.matrix.length][WeightMatrix.MAXLETTERVAL];
+						for (int i=0; i < m.matrix.length; i++)
+							for (int j=0; j < WeightMatrix.MAXLETTERVAL; j++)
+								matrix[i][j]=m.matrix[i][j];
+						WeightMatrix wm = new WeightMatrix(matrix);
+						wm.toFrequency();
+						sigFreqMatrix.add(wm);
+					}
 				
 					for (int m=0; m< sigMotifs.size(); m++){
 						WeightMatrix currMotif = sigMotifs.get(m);
