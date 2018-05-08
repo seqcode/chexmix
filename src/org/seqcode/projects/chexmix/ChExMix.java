@@ -392,6 +392,7 @@ public class ChExMix {
 				"\t--mlconfignotshared [flag to not share component configs in the ML step]\n" +
 				"\t--exclude <file of regions to ignore>\n" +
 				"\t--peakf <file of peaks to initialize component positions>\n" +
+				"\t--motfile <file of motifs in transfac format to define subtype motifs>\n" +
 				" Finding ChExMix subtypes using motif:\n"+
 				"\t--memepath <path to the meme bin dir (default: meme is in $PATH)>\n" +
 				"\t--nomotifs [flag to turn off motif-finding & motif priors]\n" +
