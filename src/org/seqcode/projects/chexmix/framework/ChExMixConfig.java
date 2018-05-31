@@ -125,7 +125,7 @@ public class ChExMixConfig {
     public final double MOTIF_FINDING_ALLOWED_REPETITIVE = 0.2; //Percentage of the examined sequence window allowed to be lowercase or N			
     public final int MOTIF_FINDING_NEGSEQ=5000; //Number of negative sequences for motif significance tests		
     public final double MARKOV_BACK_MODEL_THRES = 0.05; // Markov background threshold for making models
-    public final double MARKOV_BACK_SEQ_RM_THRES = 0.1; // Markov background threshold for removind sequences
+    public final double MARKOV_BACK_SEQ_RM_THRES = 0.2; // Markov background threshold for removing sequences
     public final int SLIDING_WINDOW=60; // Sliding window range in computing KL divergence 
     public final double MOTIF_PCC_THRES = 0.95; //Motif length adjusted similarity threshold for selecting one motif
     public final int MARKOV_NUM_TEST=100000;
