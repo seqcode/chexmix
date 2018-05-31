@@ -366,6 +366,8 @@ public class MotifPlatform {
 									found.add(reg);
 							}
 							
+							System.out.println("removing "+found.size()+" sequences with "+WeightMatrix.getConsensus(currFreqMatrix));
+							
 							if (refs.size() > config.getMinRefsForBMUpdate()){
 								//remove all regions that has motif hits
 								sortedRegions.removeAll(found);
