@@ -358,7 +358,7 @@ public class MotifPlatform {
 							Set<StrandedPoint> refs = new HashSet<StrandedPoint>();	// motif references
 							List<Region> found = new ArrayList<Region>();	//region with motifs to be removed from next motif finding iteration
 							double motifThres = finder.execute(config.MARKOV_BACK_MODEL_THRES); 
-							double seqRmThres = finder.execute(config.MARKOV_BACK_SEQ_RM_THRES); 
+							double seqRmThres = finder.execute(config.getMarkovBackSeqRmThres()); 
 							for (Region reg : sortedRegions){
 								if (getMotifPosition(currMotif, motifThres, reg)!=null)
 									refs.add(getMotifPosition(currMotif, motifThres, reg));

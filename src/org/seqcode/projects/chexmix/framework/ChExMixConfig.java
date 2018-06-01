@@ -93,6 +93,7 @@ public class ChExMixConfig {
 	protected double preferenceValue = -0.1; // Preference value for read distribution clustering
 	protected int clusteringWindow = 150;
 	protected int numClusteringComps = 500;	// Number of components to perform AP clustering
+	protected double MarkovBackSeqRmThres = 0.1; // Markov background threshold for removing sequences
     
 	//Constants
 	public final double LOG2 = Math.log(2);
@@ -125,7 +126,6 @@ public class ChExMixConfig {
     public final double MOTIF_FINDING_ALLOWED_REPETITIVE = 0.2; //Percentage of the examined sequence window allowed to be lowercase or N			
     public final int MOTIF_FINDING_NEGSEQ=5000; //Number of negative sequences for motif significance tests		
     public final double MARKOV_BACK_MODEL_THRES = 0.05; // Markov background threshold for making models
-    public final double MARKOV_BACK_SEQ_RM_THRES = 0.2; // Markov background threshold for removing sequences
     public final int SLIDING_WINDOW=60; // Sliding window range in computing KL divergence 
     public final double MOTIF_PCC_THRES = 0.95; //Motif length adjusted similarity threshold for selecting one motif
     public final int MARKOV_NUM_TEST=100000;
@@ -260,6 +260,8 @@ public class ChExMixConfig {
 				posPriorScaling = Args.parseInteger(args,"pospriorscale",posPriorScaling);
 				// Turn on per base read filtering
 				doReadFilter = Args.parseFlags(args).contains("readfilter") ? true : false;	
+				// Markov background threshold to remove sequences with a discovered motif
+				MarkovBackSeqRmThres = Args.parseDouble(args, "seqrmthres", MarkovBackSeqRmThres);
 				
 				//MEME path
 				MEMEpath = Args.parseString(args, "memepath", MEMEpath);
@@ -394,6 +396,7 @@ public class ChExMixConfig {
 	public double getPreferenceValue(){return preferenceValue;}
 	public int getClusterWindowSize(){return clusteringWindow;}
 	public int getNumClusteringComps(){return numClusteringComps;}
+	public double getMarkovBackSeqRmThres(){return MarkovBackSeqRmThres;}
 	
 	
 	/**
