@@ -1,18 +1,18 @@
 package org.seqcode.projects.chexmix.mixturemodel;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 import org.seqcode.deepseq.StrandedBaseCount;
-import org.seqcode.deepseq.composite.CompositeTagDistribution;
 import org.seqcode.deepseq.experiments.ControlledExperiment;
 import org.seqcode.deepseq.experiments.ExperimentCondition;
 import org.seqcode.deepseq.experiments.ExperimentManager;
 import org.seqcode.deepseq.stats.BackgroundCollection;
 import org.seqcode.genome.location.Region;
-import org.seqcode.genome.location.StrandedPoint;
 import org.seqcode.projects.chexmix.composite.TagProbabilityDensity;
 import org.seqcode.projects.chexmix.events.BindingManager;
 import org.seqcode.projects.chexmix.events.BindingSubtype;
@@ -69,6 +69,7 @@ public class BindingEM {
 	protected int[][][][]  		lastMu;		//Last positions (monitor convergence)
 	protected double lastLAP, LAP; 			//log-likelihood monitoring
 	protected boolean plotEM=false;			//Plot the current region components
+	protected boolean exportEM=false;		//Export the parameters form the current region components
 	protected Region plotSubRegion=null; 	//Sub region to plot
 	protected double initCondPosPriorVar=10, finalCondPosPriorVar=0.001, currCondPosPriorVar=initCondPosPriorVar; //positional prior final Gaussian variance
 	protected double numPotentialRegions;
@@ -97,6 +98,7 @@ public class BindingEM {
      * Returns lists of binding components indexed by condition 
      *
      * Almost purely matrix/array operations.
+	 * @throws FileNotFoundException 
      */
     public List<List<BindingSubComponents>>  train(List<List<StrandedBaseCount>> signals, 
     											  Region w, 
@@ -106,7 +108,7 @@ public class BindingEM {
     											  double[][][] forMotifPrior,
     											  double[][][] revMotifPrior,
     											  int trainingRound,
-    											  Region plotSubRegion){
+    											  Region plotSubRegion) throws FileNotFoundException{
     	components = comps;
         this.noise = noise;
         numComponents = numComp;
@@ -134,7 +136,9 @@ public class BindingEM {
         mu = new int[numConditions][numComponents][][];// mu : positions of the binding components
         tau = new double[numConditions][numComponents][][];// tau : binding event subtype probabilities
         TagProbabilityDensities = new TagProbabilityDensity[manager.getReplicates().size()][]; //Array of bindingModels for convenience
-        plotEM = (plotSubRegion!=null && plotSubRegion.overlaps(w));
+        // Temporary commented out
+    //    plotEM = (plotSubRegion!=null && plotSubRegion.overlaps(w));
+        exportEM = (plotSubRegion!=null && plotSubRegion.overlaps(w));
         //Monitor state convergence using the following last variables
         lastRBind = new double[numConditions][][][][];
         lastPi = new double[numConditions][numComponents];
@@ -323,8 +327,9 @@ public class BindingEM {
     /**
      * Core EM iterations with sparse prior (component elimination) & multi-condition positional priors.
      * Assumes H function, pi, and responsibilities have all been initialized
+     * @throws FileNotFoundException 
      */
-    private void EM_MAP (Region currRegion) {
+    private void EM_MAP (Region currRegion) throws FileNotFoundException {
         int numComp = numComponents;
         double [][] totalResp = new double[numConditions][];
         int regStart = currRegion.getStart();
@@ -814,6 +819,74 @@ public class BindingEM {
            		else
            			EMStepPlotter.execute(outName, currRegion, mu, pi, tau, numBindingType, null,null, numConditions, numComponents, t+1, trimLeft, trimRight);
             }
+        	////////////
+            //Export pi, prior, tau 
+        	////////////   
+            if(exportEM){
+            	String regStr = currRegion.getLocationString().replaceAll(":", "-");
+            	String outName = config.getOutputImagesDir()+File.separator+"EM_"+regStr+"_r"+trainingRound+"_t"+(t+1)+"_i"+(iter+1);
+            	
+            	int trimLeft = Math.max(0, plotSubRegion.getStart()-regStart);
+            	int trimRight = Math.max(0, currRegion.getEnd()-plotSubRegion.getEnd());
+            	int rstart = currRegion.getStart()+trimLeft, rend = currRegion.getEnd()-trimRight; 
+    			float rWidth = (float)(rend-rstart);
+            	for (int c=0; c < numConditions;c++){
+            		String filename = outName +"_cond"+c+".png";
+        			File f = new File(filename);
+        			PrintWriter w = new PrintWriter(f);
+        			String outstring="";
+        			
+        			//pi
+        			outstring+="pi\n";
+        			for(int j=0;j<numComponents;j++){if (pi[c][j]>0){
+        				outstring+=(pi[c][j]+",");
+        			}}
+        			
+        			//weighted mu
+        			outstring+="\nweighted mu\n";
+        			double weightedMu=0;
+        			for(int j=0;j<numComponents;j++){if (pi[c][j]>0){
+        				for (int bt=0; bt< numBindingType[c]; bt++){
+        					for (int s=0; s< 2; s++){ if(tau[c][j][bt][s]>0){
+        						weightedMu += ((double) mu[c][j][bt][s])*tau[c][j][bt][s];
+        					}}}
+        				int wmu = (int) Math.round(weightedMu);
+        				outstring+= wmu+",";
+        			}}
+        			
+        			//mu
+        			outstring+="\nmu\n";
+        			for(int j=0;j<numComponents;j++) {if (pi[c][j]>0){
+        				for (int bt=0; bt<numBindingType[c]; bt++)								
+        					for (int s=0; s< 2;s++)	//For each subtype strand
+        						outstring+=(tau[c][j][bt][s]+",");
+        			}}
+        			// tau
+        			outstring+="\ntau\n";
+        			for(int j=0;j<numComponents;j++){if (pi[c][j]>0){
+        			for (int bt=0; bt<numBindingType[c]; bt++)								 
+        					for (int s=0; s< 2;s++)	//For each subtype strand
+        						outstring+=(tau[c][j][bt][s]+",");	
+        			}}
+        			// motif prior
+        			outstring+="\nforwardk\n";			
+        			for (int bt=0; bt<numBindingType[c]; bt++){
+        				for(int x=0; x<rWidth; x++){
+    						int pos = x+trimLeft;
+    						outstring+=(forMotifPrior[c][bt][pos]+",");
+        				}
+        			}
+        			outstring+="\nreversek\n";			
+        			for (int bt=0; bt<numBindingType[c]; bt++){
+        				for(int x=0; x<rWidth; x++){
+    						int pos = x+trimLeft;
+    						outstring+=(revMotifPrior[c][bt][pos]+",");
+        				}
+        			}
+        			w.write(outstring+"\n");
+        			w.close();
+            	}
+            }
 
             //Is current state equivalent to the last?
             if(((numConditions>1 && t>config.POSPRIOR_ITER) || (numConditions==1 && t>config.ALPHA_ANNEALING_ITER)) && 
@@ -857,14 +930,7 @@ public class BindingEM {
             									double[][][][][] responsibilities) {
 		for(ExperimentCondition cond : manager.getConditions()){
 			int c = cond.getIndex();			
-			for(int j=0;j<bindComponents.get(c).size();j++){
-				
-				boolean printRegion=false;				
-        		Region top1Reb1 = new Region(bindComponents.get(c).get(j).getCoord().getGenome(), "15", 912642, 912652);
-        		Region top2Reb1 = new Region(bindComponents.get(c).get(j).getCoord().getGenome(), "15", 1091277, 1091287); 
-        		Region top3Reb1 = new Region(bindComponents.get(c).get(j).getCoord().getGenome(), "15", 832607, 832617); 
-//        		if (top1Reb1.contains(bindComponents.get(c).get(j).getCoord()) || top2Reb1.contains(bindComponents.get(c).get(j).getCoord()) || top3Reb1.contains(bindComponents.get(c).get(j).getCoord()))
-//        			printRegion = true;	 
+			for(int j=0;j<bindComponents.get(c).size();j++){ 
 				
 				BindingSubComponents comp = bindComponents.get(c).get(j);
 				int jr = comp.getIndex();		
@@ -907,49 +973,6 @@ public class BindingEM {
 					// Set overall read profiles
 					comp.setReadProfile(rep.getIndex(), profile_plus, '+');
 					comp.setReadProfile(rep.getIndex(), profile_minus, '-');
-					
-					if (printRegion){
-						System.out.println("====Printing responsibilities ====");
-						StrandedPoint spoint = new StrandedPoint(bindComponents.get(c).get(j).getCoord().getGenome(), bindComponents.get(c).get(j).getCoord().getChrom(), bindComponents.get(c).get(j).getPosition(), '+'); 
-						System.out.println(bindComponents.get(c).get(j).getCoord().toString());
-						System.out.println("#total resp for watson");
-						for (int i=0; i < profile_plus.length; i++)
-							System.out.print(","+profile_plus[i]);
-						System.out.println("#total resp for crick");
-						for (int i=0; i < profile_plus.length; i++)
-							System.out.print(","+profile_minus[i]);
-						for (int bt=0; bt< numBindingType[c]; bt++){
-							System.out.println("binding type "+bt);
-							System.out.println("#watson");
-							for (int i=0; i < sub_profile_plus[bt][0].length; i++)
-								System.out.print(","+sub_profile_plus[bt][0][i]);
-							System.out.println("#crick");
-							for (int i=0; i < sub_profile_minus[bt][1].length; i++)
-								System.out.print(","+sub_profile_minus[bt][0][i]);
-						}
-						System.out.println("printing actual tag landscape");
-						List<StrandedPoint> plist = new ArrayList<StrandedPoint>();
-		        		plist.add(spoint);
-		        		CompositeTagDistribution maker = new CompositeTagDistribution(plist, manager, config.MAX_BINDINGMODEL_WIDTH, true);
-		        		double[] watsonTags =maker.getPointWatson(spoint, cond);
-		        		double[] crickTags = maker.getPointCrick(spoint, cond);
-		        		// reverse watson and crick tags
-		        		double[] rWatsonTags = new double[config.MAX_BINDINGMODEL_WIDTH];
-		        		double[] rCrickTags = new double[config.MAX_BINDINGMODEL_WIDTH];
-		        		for (int i=0; i< config.MAX_BINDINGMODEL_WIDTH; i++){
-		        			rWatsonTags[i] = crickTags[config.MAX_BINDINGMODEL_WIDTH-i-1];
-		        			rCrickTags[i] = watsonTags[config.MAX_BINDINGMODEL_WIDTH-i-1];
-		        		}
-		        		if (printRegion){
-		        			System.out.println("actual tag landscape");
-		        			System.out.println("#watson");
-		        			for (int i=0; i< watsonTags.length; i++)
-		        				System.out.print(watsonTags[i]+",");
-		        			System.out.println("\n"+"#crick");
-		        			for (int i=0; i< crickTags.length; i++)
-		        				System.out.print(crickTags[i]+",");
-		        		}					
-					}
 		    	}
 			}
 		}
