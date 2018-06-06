@@ -914,8 +914,9 @@ public class BindingMixture {
          *  
 		 * @param w
 		 * @return Pair of component lists (noise components and binding components) indexed by condition
+		 * @throws FileNotFoundException 
 		 */
-		private Pair<List<NoiseComponent>, List<List<BindingSubComponents>>> analyzeWindowEM(Region w){
+		private Pair<List<NoiseComponent>, List<List<BindingSubComponents>>> analyzeWindowEM(Region w) throws FileNotFoundException{
 			BindingEM EM = new BindingEM(config, manager, bindingManager, conditionBackgrounds, potRegFilter.getPotentialRegions().size());
 			MultiGPSBindingEM multiGPSEM = new MultiGPSBindingEM(config, manager, bindingManager, conditionBackgrounds, potRegFilter.getPotentialRegions().size());
 			
