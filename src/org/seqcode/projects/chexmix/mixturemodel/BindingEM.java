@@ -831,7 +831,7 @@ public class BindingEM {
             	int rstart = currRegion.getStart()+trimLeft, rend = currRegion.getEnd()-trimRight; 
     			float rWidth = (float)(rend-rstart);
             	for (int c=0; c < numConditions;c++){
-            		String filename = outName +"_cond"+c+".png";
+            		String filename = outName +"_cond"+c+".txt";
         			File f = new File(filename);
         			PrintWriter w = new PrintWriter(f);
         			String outstring="";
