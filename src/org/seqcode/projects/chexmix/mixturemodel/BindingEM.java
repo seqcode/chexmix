@@ -859,7 +859,7 @@ public class BindingEM {
         			for(int j=0;j<numComponents;j++) {if (pi[c][j]>0){
         				for (int bt=0; bt<numBindingType[c]; bt++)								
         					for (int s=0; s< 2;s++)	//For each subtype strand
-        						outstring+=(tau[c][j][bt][s]+",");
+        						outstring+=(mu[c][j][bt][s]+",");
         			}}
         			// tau
         			outstring+="\ntau\n";
