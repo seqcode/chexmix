@@ -833,8 +833,8 @@ public class BindingEM {
             	for (int c=0; c < numConditions;c++){
             		String filename = outName +"_cond"+c+".txt";
         			File f = new File(filename);
-        			PrintWriter w = new PrintWriter(f);
-        			String outstring="";
+        			PrintWriter w = new PrintWriter(f);        			
+        			String outstring="rstart,"+rstart+"\trend,"+rend;
         			
         			//pi
         			outstring+="pi\n";
