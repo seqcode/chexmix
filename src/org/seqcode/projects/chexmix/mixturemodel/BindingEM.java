@@ -837,7 +837,7 @@ public class BindingEM {
         			String outstring="rstart,"+rstart+"\trend,"+rend;
         			
         			//pi
-        			outstring+="pi\n";
+        			outstring+="\npi\n";
         			for(int j=0;j<numComponents;j++){if (pi[c][j]>0){
         				outstring+=(pi[c][j]+",");
         			}}
