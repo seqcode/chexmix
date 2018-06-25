@@ -105,6 +105,7 @@ __Running ChExMix__:
   * --epsilonscale \<value\>: Epsilon scaling factor (default=0.2). The epsilon parameter control a balance between motif and read distribution in subtype assignment. Increasing this parameter will increase the contribution of motif and decreases the contribution of read distribution.
   * --mlconfignotshared: Flag to not share component configs in the ML step
   * --peakf \<file\>: File of peaks to initialize component positions
+  * --motfile \<file\>: File of motifs in transfac format to initialize subtype motifs
   * --__exclude__ \<file\>: File containing a set of regions to ignore during ChExMix training. It’s a good idea to exclude the mitochondrial genome and other ‘blacklisted’ regions that contain artifactual accumulations of reads in both ChIP-exo and control experiments. ChExMix will waste time trying to model binding events in these regions, even though they will not typically appear significantly enriched over the control (and thus will not be reported to the user). See the format of an exclude region file [here](http://lugh.bmb.psu.edu/software/multigps/support/mm9_excludes.txt) (example for mm9).
 
 __Finding ChExMix subtypes__:
