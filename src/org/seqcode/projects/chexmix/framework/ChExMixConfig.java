@@ -61,8 +61,8 @@ public class ChExMixConfig {
 	protected double motifMinROC = 0.70; //Motif prior is used only if the ROC is greater than this .	
 	protected double extendWindow = 500; //Range extension around gff points
 	protected int bmAnalysisWindowMax=10000;
-	protected int minComponentsForBMUpdate = 100;
-	protected int minRefsForBMUpdate = 50;
+	protected int minComponentsForBMUpdate = 50;
+	protected int minRefsForBMUpdate = 25;
 	protected double minSubtypeFraction = 0.05; // A subtype needs to be associated with at least this fraction of binding events to be supported 
 	protected double minComponentReadFactorForBM = 3; //Components must have (this factor times the condition alpha) number of reads assigned before being included in BM update
 	protected boolean updateBM=true; //Set to false to turn off binding model update
