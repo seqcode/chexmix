@@ -97,7 +97,7 @@ __Running ChExMix__:
 
   * --round \<int\>: Max. model update rounds (default=3).
   * --nomodelupdate: Flag to turn off binding model updates.
-  * --minmodelupdateevents \<int\>: Minimum number of events to support an update (default=100)
+  * --minmodelupdateevents \<int\>: Minimum number of events to support an update (default=50)
   * --prlogconf \<value\>: Poisson log threshold for potential region scanning (default=-6)
   * --fixedalpha \<int\>: Impose this alpha (default: set automatically). The alpha parameter is a sparse prior on binding events in the ChExMix model. It can be interpreted as a minimum number of reads that each binding event must be responsible for in the model. 
   * --alphascale \<value\>: Alpha scaling factor (default=1.0). Increasing this parameter results in stricter binding event calls.
@@ -120,7 +120,7 @@ __Finding ChExMix subtypes__:
   * --memenmotifs \<int\>: Number of motifs MEME should find in each condition (default=3)
   * --memeargs \<args\>: Additional args for MEME (default:  -dna -mod zoops -revcomp -nostatus)
   * --minroc \<value\>: Minimum motif ROC value (default=0.7)
-  * --minmodelupdaterefs \<int\>: Minimum number of motif reference to support an subtype distribution update (default=50)
+  * --minmodelupdaterefs \<int\>: Minimum number of motif reference to support an subtype distribution update (default=25)
  
  2. Using ChIP-exo tag distributions:
 
