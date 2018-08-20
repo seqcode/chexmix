@@ -32,7 +32,7 @@ import org.seqcode.gseutils.Args;
 import org.seqcode.motifs.FreqMatrixImport;
 
 /**
- * XOGPSConfig: 
+ * ChExMixConfig: 
  * 		Maintains all constants needed by ChExMix. 
  *     
  * @author Naomi Yamada
