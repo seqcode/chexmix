@@ -5,7 +5,9 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.DateFormat;
@@ -321,9 +323,34 @@ public class EventsPostAnalysis {
 			}
 			
 			//Build up the HTML file
+			String htmlString="";
+			BufferedReader br = new BufferedReader(new FileReader("Template.html"));
+			try {
+			    StringBuilder sb = new StringBuilder();
+			    String line = br.readLine();
+
+			    while (line != null) {
+			        sb.append(line);
+			        sb.append(System.lineSeparator());
+			        line = br.readLine();
+			    }
+			    htmlString = sb.toString();
+			} finally {
+			    br.close();
+			}
+
+			String title = "New Page";
+			String body = "This is Body";
+			htmlString = htmlString.replace("$title", title);
+			htmlString = htmlString.replace("$body", body);
+			FileWriter htmlout = new FileWriter(htmlfilename);
+			htmlout.write(htmlString);
+			htmlout.close();
+			
 			
 			//Header and run information 
-	    	FileWriter fout = new FileWriter(htmlfilename);
+	    	FileWriter fout = new FileWriter(htmlfilename+"2");
+	    	
 	    	fout.write("<html>\n" +
 	    			"\t<head><title>ChExMix results ("+config.getOutBase()+")</title></head>\n" +
 	    			"\t<style type='text/css'>/* <![CDATA[ */ table, th{border-color: #600;border-style: solid;} td{border-color: #600;border-style: solid;} table{border-width: 0 0 1px 1px; border-spacing: 0;border-collapse: collapse;} th{margin: 0;padding: 4px;border-width: 1px 1px 0 0;} td{margin: 0;padding: 4px;border-width: 1px 1px 0 0;} /* ]]> */</style>\n" +
@@ -379,8 +406,7 @@ public class EventsPostAnalysis {
 				int condNumSubtype = bindingManager.getNumBindingType(cond);
 				if (condNumSubtype > maxNumSubtypes){maxNumSubtypes=condNumSubtype;}	
 			}
-//			fout.write("\t<h2>Binding event subtype images</h2>\n" +
-//	    			"\t<table>\n");
+
 			fout.write("\t<p></p>\n"+
 					"\t<table>\n");
 			fout.write("\t\t<tr>" +
