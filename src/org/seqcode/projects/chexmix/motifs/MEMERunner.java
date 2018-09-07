@@ -72,6 +72,16 @@ public class MEMERunner {
 			
 			//Call MEME
 			String MEMEcmd = MEMEpath+"meme ";
+			Process proc;
+			if(config.getMaxThreads()==1 || config.getMEMEnonparallel()){
+				proc = Runtime.getRuntime().exec(MEMEcmd+" "+seqFilename+" "+MEMEargs +" -o "+memeOutDir);
+				
+			}else{
+				proc = Runtime.getRuntime().exec(MEMEcmd+" "+seqFilename+" "+MEMEargs +" -p "+config.getMaxThreads()+" -o "+memeOutDir);
+				
+			}
+			
+			
 			Process proc = Runtime.getRuntime().exec(MEMEcmd+" "+seqFilename+" "+MEMEargs +" -p "+config.getMaxThreads()+" -o "+memeOutDir);
 			// any error message? 
 			StreamGobbler errorGobbler = new 

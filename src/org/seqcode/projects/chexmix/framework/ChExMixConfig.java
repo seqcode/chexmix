@@ -80,6 +80,7 @@ public class ChExMixConfig {
 	protected boolean doReadFilter=false;	// Turn on per base read filter in case of highly duplicated experiment
 	protected String MEMEpath="";
 	protected String MEMEargs=" -dna -mod zoops -revcomp -nostatus ";    //Do not try using -p here; it leads to MEME runtime errors
+	protected boolean MEMEnonparallel=false; //flag to enforce use of non-parallel version
 	public int MEMEminw=7;
 	public int MEMEmaxw=18;
 	protected MarkovBackgroundModel markovBackMode; // Markov background model file
@@ -275,6 +276,8 @@ public class ChExMixConfig {
 				//MEME nmotifs option
 				int MEMEnmotifs = Args.parseInteger(args,"memenmotifs", 3);
 				MEMEargs = MEMEargs + " -nmotifs "+MEMEnmotifs + " -minw "+MEMEminw+" -maxw "+MEMEmaxw;
+				//Enforce non-parallel MEME
+				MEMEnonparallel = Args.parseFlags(args).contains("meme1proc");
 				
 				// Markove background model
 				String backfile = Args.parseString(args, "back", null);				
@@ -397,6 +400,7 @@ public class ChExMixConfig {
 	public int getClusterWindowSize(){return clusteringWindow;}
 	public int getNumClusteringComps(){return numClusteringComps;}
 	public double getMarkovBackSeqRmThres(){return MarkovBackSeqRmThres;}
+	public boolean getMEMEnonparallel(){return MEMEnonparallel;}
 	
 	
 	/**
