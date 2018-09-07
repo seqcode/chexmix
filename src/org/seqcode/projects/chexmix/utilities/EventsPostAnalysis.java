@@ -1,6 +1,10 @@
 package org.seqcode.projects.chexmix.utilities;
 
+import java.awt.AlphaComposite;
 import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -10,6 +14,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+
+import javax.imageio.ImageIO;
 
 import org.seqcode.data.io.RegionFileUtilities;
 import org.seqcode.data.motifdb.WeightMatrix;
@@ -252,7 +258,26 @@ public class EventsPostAnalysis {
 			for (ExperimentCondition pcond : manager.getConditions()){				
 				String pngPath=config.getOutputImagesDir()+File.separator+config.getOutBase()+"_"+pcond.getName()+".events_"+cond.getName()+"_";
 				try {
-					Process proc = Runtime.getRuntime().exec("composite -dissolve 60,100 -transparent-color white "+pngPath+"+_lines.png "+pngPath+"-_lines.png "+pngPath+"heatmap.png");
+					
+				//	Process proc = Runtime.getRuntime().exec("composite -dissolve 60,100 -transparent-color white "+pngPath+"+_lines.png "+pngPath+"-_lines.png "+pngPath+"heatmap.png");
+					
+					// load source images
+					BufferedImage posImage = ImageIO.read(new File(pngPath, "+_lines.png"));
+					BufferedImage negImage = ImageIO.read(new File(pngPath, "-_lines.png"));
+
+					// create the new image, canvas size is the max. of both image sizes
+					BufferedImage combined = new BufferedImage(posImage.getWidth(), posImage.getHeight(), BufferedImage.TYPE_INT_ARGB);
+
+					// paint both images, preserving the alpha channels
+					Graphics g = combined.getGraphics();
+					g.drawImage(negImage, 0, 0, null);
+					g.drawImage(posImage, 0, 0, null);
+					
+					((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) 0.6));
+
+					// Save as new image
+					ImageIO.write(combined, "PNG", new File(pngPath, "heatmap.png"));
+					
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();

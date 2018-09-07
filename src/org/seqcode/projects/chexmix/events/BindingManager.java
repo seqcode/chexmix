@@ -265,6 +265,20 @@ public class BindingManager {
 					}	
 					fout.close();
 					
+					//Print events in BED
+					if (config.getPrintBED()){
+						String bedfilename = filePrefix+"_"+condName+".bed";
+						fout = new FileWriter(bedfilename);
+						fout.write(BindingEvent.conditionBEDHeadString(cond)+"\n");
+						for (BindingEvent e: events){
+							double Q = e.getCondSigVCtrlP(cond);{
+							if(e.isFoundInCondition(cond) && Q <=qMinThres)
+					    		fout.write(e.getConditionBED(cond)+"\n");									
+							}						
+						}
+						fout.close();
+					}				
+					
 					//Print aligned points
 					List<List<StrandedPoint>> subtypePoints = new ArrayList<List<StrandedPoint>>();
 					List<List<Region>> potReg = new ArrayList<List<Region>>();

@@ -194,7 +194,7 @@ public class ChExMix {
 	 */
 	public void runMixtureModel() throws Exception {
 		
-		System.err.println("Initialzing mixture model");
+		System.err.println("Initializing mixture model");
 		mixtureModel = new BindingMixture(gconfig, econfig, evconfig, gpsconfig,xlconfig,shapeconfig, manager, bindingManager, potentialFilter);
 		
 		int round = 0;
