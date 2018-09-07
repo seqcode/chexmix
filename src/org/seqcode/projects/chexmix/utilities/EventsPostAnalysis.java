@@ -322,9 +322,11 @@ public class EventsPostAnalysis {
 				}
 			}
 			
-			//Build up the HTML file
 			String htmlString="";
-			BufferedReader br = new BufferedReader(new FileReader("Template.html"));
+			
+			File currFile = new File(getClass().getClassLoader().getResource("Template.html").getFile());
+			
+			BufferedReader br = new BufferedReader(new FileReader(currFile));
 			try {
 			    StringBuilder sb = new StringBuilder();
 			    String line = br.readLine();
@@ -347,6 +349,7 @@ public class EventsPostAnalysis {
 			htmlout.write(htmlString);
 			htmlout.close();
 			
+			//Build up the HTML file
 			
 			//Header and run information 
 	    	FileWriter fout = new FileWriter(htmlfilename+"2");
