@@ -39,7 +39,7 @@ public class OutputFormatter {
 				TagProbabilityDensity m = models.get(rep).get(i);
 				String filename = config.getOutputImagesDir()+File.separator+config.getOutBase()+"_"+replicateName +"_"+i+ "_Read_Distributions.png";
 				File f = new File(filename);
-				int w = 500; //changed from 1000 to 500
+				int w = 1000; //changed from 1000 to 500
 				int h = 600;
 				int margin= 50;
 			    BufferedImage im = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
@@ -53,8 +53,8 @@ public class OutputFormatter {
 			    g2.drawLine(w/2, margin, w/2, h-margin);	// y-axis    
 			    g.setFont(new Font("Arial",Font.PLAIN,16));
 			    for (int p=-2;p<=2;p++){
-			    	g2.drawLine(w/2+p*200, h-margin-10, w/2+p*200, h-margin);	// tick  
-			    	g2.drawString(""+p*200, w/2+p*200-5, h-margin+22);			// tick label
+			    	g2.drawLine(w/2+p*400, h-margin-10, w/2+p*400, h-margin);	// tick  
+			    	g2.drawString(""+p*400, w/2+p*400-5, h-margin+22);			// tick label
 			    }
 			    
 			    double[] wpoints = m.getWatsonProbabilities();

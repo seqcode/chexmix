@@ -24,7 +24,6 @@ import org.seqcode.data.motifdb.WeightMatrix;
 import org.seqcode.deepseq.experiments.ControlledExperiment;
 import org.seqcode.deepseq.experiments.ExperimentCondition;
 import org.seqcode.deepseq.experiments.ExperimentManager;
-import org.seqcode.deepseq.experiments.ExptConfig;
 import org.seqcode.genome.GenomeConfig;
 import org.seqcode.genome.location.StrandedPoint;
 import org.seqcode.genome.location.StrandedRegion;
@@ -339,7 +338,7 @@ public class EventsPostAnalysis {
 	    	fout.write("\t\t<link rel='stylesheet' href='https://use.fontawesome.com/releases/v5.3.1/css/all.css' integrity='sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU' crossorigin='anonymous'>\n");
 	    	//Custom styles
 	    	fout.write("\t\t<style>\n"+
-	    	    	"\t\tbody{\n\t\t\tfont-family: 'Roboto', Arial;\t\t\n}\n"+
+	    	    	"\t\tbody{\n\t\t\tfont-family: 'Roboto', Arial;\t\t\n\t\t}\n"+
 	    	    	"\t\t.myimg{\n\t\t\tmax-height:400px;\n\t\t\tmax-width: 250px;\n\t\t}\n"+
 	    	    	"\t\ti{\n\t\t\tfont-size:20px;\n\t\t}\n"+    	  
 	    	    	"\t\t.card-header{\n\t\t\tbackground-color: #EBF5FB;\n\t\t}\n"+
@@ -371,7 +370,7 @@ public class EventsPostAnalysis {
 	    	fout.write("\t\t\t\t\t\t</tr>\n");
 	    	for(ControlledExperiment rep : manager.getReplicates()){
 				String tmpscale = rep.hasControl()?String.format("%.3f",rep.getControlScaling()):"NA";
-	    		fout.write("\t\t\t\t\t\t<tr>" +
+	    		fout.write("\t\t\t\t\t\t<tr>\n" +
 		    			"\t\t\t\t\t\t\t<td>"+rep.getCondName()+" "+rep.getRepName()+"</td>\n" +
 	    				"\t\t\t\t\t\t\t<td>"+rep.getSignal().getHitCount()+"</td>\n" +
 	    				"\t\t\t\t\t\t\t<td>"+tmpscale+"</td>\n" +
@@ -411,33 +410,33 @@ public class EventsPostAnalysis {
 					"\t\t\t\t<div class='card-body'>\n"+
 					"\t\t\t\t\t<table class='table table-bordered'>\n"+
 					"\t\t\t\t\t\t<tr>\n"+
-	    			"t\t\t\t\t\t\t<th>Condition</th>\n" +
-	    			"t\t\t\t\t\t\t<th>Heatmap</th>\n");
+	    			"\t\t\t\t\t\t\t<th>Condition</th>\n" +
+	    			"\t\t\t\t\t\t\t<th>Heatmap</th>\n");
 			if(config.getFindingMotifs())
-				fout.write("t\t\t\t\t\t\t<th>Sequence plot</th>\n");
+				fout.write("\t\t\t\t\t\t\t<th>Sequence plot</th>\n");
 			for (int i=0; i < maxNumSubtypes; i++)
-				fout.write("t\t\t\t\t\t\t<th>Subtype "+i+"</th>\n");
-			fout.write("t\t\t\t\t\t</tr>\n");
+				fout.write("\t\t\t\t\t\t\t<th>Subtype "+i+"</th>\n");
+			fout.write("\t\t\t\t\t\t</tr>\n");
 			
 			for(ExperimentCondition cond : manager.getConditions()){
 				String heatmapFileName = "images/"+config.getOutBase()+"_"+cond.getName()+".events_"+cond.getName()+"_"+"heatmap.png";
 				String seqcolorplot = "images/"+config.getOutBase()+"_"+cond.getName()+"_seq.png";
-	    		fout.write("t\t\t\t\t\t<tr>" +
-		    			"t\t\t\t\t\t\t<td rowspan=3>"+cond.getName()+"</td>\n" +
-		    			"t\t\t\t\t\t\t<td rowspan=3><a href='#' onclick='return fullpopitup(\""+heatmapFileName+"\")'><img class='myimg mx-auto d-block' src='"+heatmapFileName+"'></a></td>\n");
+	    		fout.write("\t\t\t\t\t\t<tr>" +
+		    			"\t\t\t\t\t\t\t<td rowspan=3>"+cond.getName()+"</td>\n" +
+		    			"\t\t\t\t\t\t\t<td rowspan=3><a href='#' onclick='return fullpopitup(\""+heatmapFileName+"\")'><img class='myimg mx-auto d-block' src='"+heatmapFileName+"'></a></td>\n");
 				if(config.getFindingMotifs()){
-					fout.write("t\t\t\t\t\t\t<td rowspan=3><a href='#' onclick='return fullpopitup(\""+seqcolorplot+"\")'><img class='myimg mx-auto d-block' src='"+seqcolorplot+"'></a></td>\n");
+					fout.write("\t\t\t\t\t\t\t<td rowspan=3><a href='#' onclick='return fullpopitup(\""+seqcolorplot+"\")'><img class='myimg mx-auto d-block' src='"+seqcolorplot+"'></a></td>\n");
 				}
 	    		String replicateName = cond.getName()+"-"+cond.getReplicates().get(0).getRepName();
 	    		for (int i=0; i < maxNumSubtypes; i++){
 	    			if (i < bindingManager.getNumBindingType(cond)){
 	    				String distribFilename = "images/"+config.getOutBase()+"_"+replicateName+"_"+i+"_Read_Distributions.png";
-	    				fout.write("t\t\t\t\t\t\t<td><a href='#' onclick='return fullpopitup(\""+distribFilename+"\")'><img class='myimg mx-auto d-block' src='"+distribFilename+"'></a></td>\n");
+	    				fout.write("\t\t\t\t\t\t\t<td><a href='#' onclick='return fullpopitup(\""+distribFilename+"\")'><img class='myimg mx-auto d-block' src='"+distribFilename+"'></a></td>\n");
 	    			}else{
-	    				fout.write("t\t\t\t\t\t\t<td>NA</td>\n");
+	    				fout.write("\t\t\t\t\t\t\t<td>NA</td>\n");
 	    			}					
-	    		}fout.write("t\t\t\t\t\t</tr>\n");
-	    		fout.write("t\t\t\t\t\t<tr>");
+	    		}fout.write("\t\t\t\t\t\t</tr>\n");
+	    		fout.write("\t\t\t\t\t\t<tr>");
 	    		
 	    		if(config.getFindingMotifs()){
 	    			int mc=0;
@@ -445,36 +444,36 @@ public class EventsPostAnalysis {
 	    			if(!motifImageNames.get(cond).isEmpty()){
 	    				for (BindingSubtype subtype :bindingManager.getBindingSubtype(cond)){
 	    					if (subtype.hasMotif()){
-	    						fout.write("t\t\t\t\t\t<td><img src='"+motifImageNames.get(cond).get(mc)+"'height='70' width='250'><a href='#' onclick='return motifpopitup(\""+motifRCImageNames.get(cond).get(mc)+"\")'>rc</a></td>\n");
+	    						fout.write("\t\t\t\t\t\t<td><img src='"+motifImageNames.get(cond).get(mc)+"'height='70' width='250'><a href='#' onclick='return motifpopitup(\""+motifRCImageNames.get(cond).get(mc)+"\")'>rc</a></td>\n");
 	    						mc++;
 	    					}else{
-	    						fout.write("t\t\t\t\t\t<td>NA</td>\n");
+	    						fout.write("\t\t\t\t\t\t<td>NA</td>\n");
 	    					}
 	    					colc++;
 	    				}
 	    				for (int j=colc; j<maxNumSubtypes;j++)
-    						fout.write("t\t\t\t\t\t<td>NA</td>\n");
+    						fout.write("\t\t\t\t\t\t<td>NA</td>\n");
 	    			}else{
 	    				for (int i=0; i < maxNumSubtypes; i++)
-			    			fout.write("t\t\t\t\t\t<td>NA</td>\n");
+			    			fout.write("\t\t\t\t\t\t<td>NA</td>\n");
 	    			}
 	    		}else{
 	    			for (int i=0; i < maxNumSubtypes; i++)
-		    			fout.write("t\t\t\t\t\t<td>NA</td>\n");
-	    		}fout.write("t\t\t\t\t\t</tr>\n");
+		    			fout.write("\t\t\t\t\t\t<td>NA</td>\n");
+	    		}fout.write("\t\t\t\t\t\t</tr>\n");
 	    		
 	    		// add number of subtype specific sites
 	    		int[] subtypeCounts=bindingManager.countSubtypeEventsInCondition(cond, evconfig.getQMinThres());
 	    		int colc=0;
 	    		for (int i=0; i< bindingManager.getNumBindingType(cond);i++){
-	    			fout.write("t\t\t\t\t\t<td>"+subtypeCounts[i]+" events</td>\n");
+	    			fout.write("\t\t\t\t\t\t<td>"+subtypeCounts[i]+" events</td>\n");
 	    			colc++;
 	    		}
 	    		for (int j=colc; j<maxNumSubtypes;j++)
-					fout.write("t\t\t\t\t\t<td>NA</td>\n");
-	    		fout.write("t\t\t\t\t\t</tr>\n");
+					fout.write("\t\t\t\t\t\t<td>NA</td>\n");
+	    		fout.write("\t\t\t\t\t\t</tr>\n");
 	    		
-			}fout.write("t\t\t\t\t</table>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t\t<br>\n");
+			}fout.write("\t\t\t\t\t</table>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t\t<br>\n");
 			
 			
 			//File list of extras (histograms, etc)
