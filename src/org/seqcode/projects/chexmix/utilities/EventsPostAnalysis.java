@@ -267,7 +267,7 @@ public class EventsPostAnalysis {
 					BufferedImage negImage = ImageIO.read(new File(pngPath+"-_lines.png"));
 
 					// create the new image, canvas size is the max. of both image sizes
-					BufferedImage combined = new BufferedImage(posImage.getWidth(), posImage.getHeight(), BufferedImage.TYPE_INT_ARGB);
+					BufferedImage combined = new BufferedImage(Math.min(posImage.getWidth(), 250), Math.min(posImage.getHeight(), 1000), BufferedImage.TYPE_INT_ARGB);
 
 					// paint both images, preserving the alpha channels
 					Graphics g = combined.getGraphics();
@@ -277,7 +277,7 @@ public class EventsPostAnalysis {
 					((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) 0.6));
 
 					// Save as new image
-					ImageIO.write(combined, "PNG", new File(pngPath, "heatmap.png"));
+					ImageIO.write(combined, "PNG", new File(pngPath+"heatmap.png"));
 					
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
