@@ -263,8 +263,8 @@ public class EventsPostAnalysis {
 				//	Process proc = Runtime.getRuntime().exec("composite -dissolve 60,100 -transparent-color white "+pngPath+"+_lines.png "+pngPath+"-_lines.png "+pngPath+"heatmap.png");
 					
 					// load source images
-					BufferedImage posImage = ImageIO.read(new File(pngPath, "+_lines.png"));
-					BufferedImage negImage = ImageIO.read(new File(pngPath, "-_lines.png"));
+					BufferedImage posImage = ImageIO.read(new File(pngPath+"+_lines.png"));
+					BufferedImage negImage = ImageIO.read(new File(pngPath+"-_lines.png"));
 
 					// create the new image, canvas size is the max. of both image sizes
 					BufferedImage combined = new BufferedImage(posImage.getWidth(), posImage.getHeight(), BufferedImage.TYPE_INT_ARGB);
