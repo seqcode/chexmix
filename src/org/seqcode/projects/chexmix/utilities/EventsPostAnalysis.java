@@ -322,124 +322,122 @@ public class EventsPostAnalysis {
 				}
 			}
 			
-			String htmlString="";
-			
-			File currFile = new File(getClass().getClassLoader().getResource("Template.html").getFile());
-			
-			BufferedReader br = new BufferedReader(new FileReader(currFile));
-			try {
-			    StringBuilder sb = new StringBuilder();
-			    String line = br.readLine();
-
-			    while (line != null) {
-			        sb.append(line);
-			        sb.append(System.lineSeparator());
-			        line = br.readLine();
-			    }
-			    htmlString = sb.toString();
-			} finally {
-			    br.close();
-			}
-
-			String title = "New Page";
-			String body = "This is Body";
-			htmlString = htmlString.replace("$title", title);
-			htmlString = htmlString.replace("$body", body);
-			FileWriter htmlout = new FileWriter(htmlfilename);
-			htmlout.write(htmlString);
-			htmlout.close();
-			
 			//Build up the HTML file
 			
 			//Header and run information 
-	    	FileWriter fout = new FileWriter(htmlfilename+"2");
+	    	FileWriter fout = new FileWriter(htmlfilename);
 	    	
-	    	fout.write("<html>\n" +
-	    			"\t<head><title>ChExMix results ("+config.getOutBase()+")</title></head>\n" +
-	    			"\t<style type='text/css'>/* <![CDATA[ */ table, th{border-color: #600;border-style: solid;} td{border-color: #600;border-style: solid;} table{border-width: 0 0 1px 1px; border-spacing: 0;border-collapse: collapse;} th{margin: 0;padding: 4px;border-width: 1px 1px 0 0;} td{margin: 0;padding: 4px;border-width: 1px 1px 0 0;} /* ]]> */</style>\n" +
-	    			"\t<script language='javascript' type='text/javascript'><!--\nfunction motifpopitup(url) {	newwindow=window.open(url,'name','height=75');	if (window.focus) {newwindow.focus()}	return false;}// --></script>\n" +
-	    			"\t<script language='javascript' type='text/javascript'><!--\nfunction fullpopitup(url) {	newwindow=window.open(url,'name');	if (window.focus) {newwindow.focus()}	return false;}// --></script>\n" +
-	    			"\t<body>\n" +
-	    			"\t<h1>ChExMix results ("+config.getOutBase()+")</h1>\n" +
-	    			"");
+	    	fout.write("<!doctype html>\n<html lang='en'>\n\t<head>\n");
+	    	//Required meta tags
+	    	fout.write("\t\t<meta charset='utf-8'>\n"+
+	    			"\t\t<meta name='viewport' content='width=device-width, initial-scale=1, shrink-to-fit=no'>\n");
+	    	//Bootstrap CSS
+	    	fout.write("\t\t<link rel='stylesheet' href='https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css' integrity='sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO' crossorigin='anonymous'>\n");
+	    	//google fonts
+	    	fout.write("\t\t<link href='https://fonts.googleapis.com/css?family=Roboto' rel='stylesheet'>\n");
+	    	//font awesome
+	    	fout.write("\t\t<link rel='stylesheet' href='https://use.fontawesome.com/releases/v5.3.1/css/all.css' integrity='sha384-mzrmE5qonljUremFsqc01SB46JvROS7bZs3IO2EmfFsd15uHvIt+Y8vEf7N7fWAU' crossorigin='anonymous'>\n");
+	    	//Custom styles
+	    	fout.write("\t\t<style>\n"+
+	    	    	"\t\tbody{\n\t\t\tfont-family: 'Roboto', Arial;\t\t\n}\n"+
+	    	    	"\t\t.myimg{\n\t\t\tmax-height:400px;\n\t\t\tmax-width: 250px;\n\t\t}\n"+
+	    	    	"\t\ti{\n\t\t\tfont-size:20px;\n\t\t}\n"+    	  
+	    	    	"\t\t.card-header{\n\t\t\tbackground-color: #EBF5FB;\n\t\t}\n"+
+	    	    	"\t\t</style>\n"+
+	    	    	"\t\t<title>ChExMix</title>\n\t</head>\n\t<body>\n"+
+	    			"\t\t<div class='container'>\n");
+	    	//heading and command section
+	    	fout.write("\t\t\t<br><h2>ChExMix Results</h2><br>\n"+
+	    			"\t\t\t<div class='command' id='commandRun'>\n\t\t\t<div class='card'>\n"+
+	    			"\t\t\t\t<div class='card-header' id='headingOne'>\n"+
+	    			"\t\t\t\t\t<button class='btn btn-link collapsed text-dark' type='button' data-toggle='collapse' data-target='#collapseTwo' aria-expanded='false' aria-controls='collapseTwo'>\n"+
+	    			"\t\t\t\t\t\t<h5 class='mb-0'> Command</h5>\n\t\t\t\t\t</button>\n\t\t\t\t\t<i class='fas fa-sort-down float-right'></i>\n"+
+	    			"\t\t\t\t\t</div>\n\t\t\t\t\t<div id='collapseTwo' class='collapse' aria-labelledby='headingOne' data-parent='#commandRun'>\n");
 	    	DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 	    	Date date = new Date();
-	    	fout.write("\t<p>ChExMix version "+config.version+" run completed on: "+dateFormat.format(date));
-	    	fout.write(" with arguments:\n "+config.getArgs()+"\n</p>\n");
-	   
+	    	fout.write("\t\t\t\t<div class='card-body'>\n\t\t\t\t\tChExMix version "+config.version+" run completed on: "+dateFormat.format(date));
+	    	fout.write(" with arguments:\n "+config.getArgs()+"\n\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t\t</div>\n\t\t\t<br>\n");	   
 	    	
 	    	//Input data read counts and read distribs (per replicate)
-	    	fout.write("\t<h2>Input data</h2>\n" +
-	    			"\t<table>\n");
-	    	fout.write("\t\t<tr>" +
-	    			"\t\t<th>Replicate</th>\n" +
-	    			"\t\t<th>ReadCount</th>\n" +
-	    			"\t\t<th>CtrlScaling</th>\n" +
-	    			"\t\t<th>SignalFraction</th>\n");
-	    	fout.write("\t\t</tr>\n");
+	    	fout.write("\t\t\t<div class='card'>\n" +
+	    			"\t\t\t\t<h5 class='card-header'>Input data</h5>\n"+
+	    			"\t\t\t\t<div class='card-body'>\n"+
+	    			"\t\t\t\t\t<table class='table table-bordered'>\n");
+	    	fout.write("\t\t\t\t\t\t<tr>\n"+
+	    			"\t\t\t\t\t\t\t<th>Replicate</th>\n" +
+	    			"\t\t\t\t\t\t\t<th>ReadCount</th>\n" +
+	    			"\t\t\t\t\t\t\t<th>CtrlScaling</th>\n" +
+	    			"\t\t\t\t\t\t\t<th>SignalFraction</th>\n");
+	    	fout.write("\t\t\t\t\t\t</tr>\n");
 	    	for(ControlledExperiment rep : manager.getReplicates()){
 				String tmpscale = rep.hasControl()?String.format("%.3f",rep.getControlScaling()):"NA";
-	    		fout.write("\t\t<tr>" +
-		    			"\t\t<td>"+rep.getCondName()+" "+rep.getRepName()+"</td>\n" +
-	    				"\t\t<td>"+rep.getSignal().getHitCount()+"</td>\n" +
-	    				"\t\t<td>"+tmpscale+"</td>\n" +
-	    				"\t\t<td>"+String.format("%.3f",rep.getSignalVsNoiseFraction())+"</td>\n");
-	    		fout.write("\t\t</tr>\n");
-			}fout.write("\t</table>\n");
+	    		fout.write("\t\t\t\t\t\t<tr>" +
+		    			"\t\t\t\t\t\t\t<td>"+rep.getCondName()+" "+rep.getRepName()+"</td>\n" +
+	    				"\t\t\t\t\t\t\t<td>"+rep.getSignal().getHitCount()+"</td>\n" +
+	    				"\t\t\t\t\t\t\t<td>"+tmpscale+"</td>\n" +
+	    				"\t\t\t\t\t\t\t<td>"+String.format("%.3f",rep.getSignalVsNoiseFraction())+"</td>\n");
+	    		fout.write("\t\t\t\t\t\t</tr>\n");
+			}fout.write("\t\t\t\t\t</table>\n");
+			fout.write("\t\t\t\t</div>\n\t\t\t</div>\n\t\t\t<br>\n");
 			
 			//Binding subtype information (per condition)
-	    	fout.write("\t<h2>Binding event subtypes</h2>\n" +
-	    			"\t<table>\n");
-	    	fout.write("\t\t<tr>" +
-	    			"\t\t<th>Condition</th>\n" +
-	    			"\t\t<th>Events</th>\n" +
-	    			"\t\t<th>File</th>\n");
-	    	fout.write("\t\t</tr>\n");
+			fout.write("\t\t\t<div class='card'>\n"+
+					"\t\t\t\t<h5 class='card-header'>Binding event subtypes</h5>\n"+
+					"\t\t\t\t<div class='card-body'>\n");
+	    	fout.write("\t\t\t\t\t<table class='table table-bordered'>\n"+
+	    			"\t\t\t\t\t\t<tr>\n" +
+	    			"\t\t\t\t\t\t\t<th>Condition</th>\n" +
+	    			"\t\t\t\t\t\t\t<th>Events</th>\n" +
+	    			"\t\t\t\t\t\t\t<th>File</th>\n");
+	    	fout.write("\t\t\t\t\t\t</tr>\n");
 	    	for(ExperimentCondition cond : manager.getConditions()){
 	    		String subtypeEventFileName = config.getOutBase()+"_"+cond.getName()+".subtype.events";
-	    		fout.write("\t\t<tr>" +
-		    			"\t\t<td>"+cond.getName()+"</td>\n" +
-	    				"\t\t<td>"+bindingManager.countEventsInCondition(cond, evconfig.getQMinThres())+"</td>\n" +
-		    			"\t\t<td><a href='"+subtypeEventFileName+"'>"+subtypeEventFileName+"</a></td>\n");
-		    	fout.write("\t\t</tr>\n");
-			}fout.write("\t</table>\n");
+	    		fout.write("\t\t\t\t\t\t<tr>\n" +
+		    			"\t\t\t\t\t\t\t<td>"+cond.getName()+"</td>\n" +
+	    				"\t\t\t\t\t\t\t<td>"+bindingManager.countEventsInCondition(cond, evconfig.getQMinThres())+"</td>\n" +
+		    			"\t\t\t\t\t\t\t<td><a href='"+subtypeEventFileName+"'>"+subtypeEventFileName+"</a></td>\n");
+		    	fout.write("\t\t\t\t\t\t</tr>\n");
+			}fout.write("\t\t\t\t\t</table>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t\t<br>\n");
 			
+			// Heatmap and Motif information
 			int maxNumSubtypes=0;
 			for(ExperimentCondition cond : manager.getConditions()){
 				int condNumSubtype = bindingManager.getNumBindingType(cond);
 				if (condNumSubtype > maxNumSubtypes){maxNumSubtypes=condNumSubtype;}	
 			}
-
-			fout.write("\t<p></p>\n"+
-					"\t<table>\n");
-			fout.write("\t\t<tr>" +
-	    			"\t\t<th>Condition</th>\n" +
-	    			"\t\t<th>Heatmap</th>\n");
+			
+			fout.write("\t\t\t<div class='card'>\n"+
+					"\t\t\t\t<h5 class='card-header'>Heatmap & Motif Information</h5>\n"+
+					"\t\t\t\t<div class='card-body'>\n"+
+					"\t\t\t\t\t<table class='table table-bordered'>\n"+
+					"\t\t\t\t\t\t<tr>\n"+
+	    			"t\t\t\t\t\t\t<th>Condition</th>\n" +
+	    			"t\t\t\t\t\t\t<th>Heatmap</th>\n");
 			if(config.getFindingMotifs())
-				fout.write("\t\t<th>Sequence plot</th>\n");
+				fout.write("t\t\t\t\t\t\t<th>Sequence plot</th>\n");
 			for (int i=0; i < maxNumSubtypes; i++)
-				fout.write("\t\t<th>Subtype "+i+"</th>\n");
-			fout.write("\t\t</tr>\n");
+				fout.write("t\t\t\t\t\t\t<th>Subtype "+i+"</th>\n");
+			fout.write("t\t\t\t\t\t</tr>\n");
 			
 			for(ExperimentCondition cond : manager.getConditions()){
 				String heatmapFileName = "images/"+config.getOutBase()+"_"+cond.getName()+".events_"+cond.getName()+"_"+"heatmap.png";
 				String seqcolorplot = "images/"+config.getOutBase()+"_"+cond.getName()+"_seq.png";
-	    		fout.write("\t\t<tr>" +
-		    			"\t\t<td rowspan=3>"+cond.getName()+"</td>\n" +
-		    			"\t\t<td rowspan=3><a href='#' onclick='return fullpopitup(\""+heatmapFileName+"\")'><img src='"+heatmapFileName+"' height='400' width='150'></a></td>\n");
+	    		fout.write("t\t\t\t\t\t<tr>" +
+		    			"t\t\t\t\t\t\t<td rowspan=3>"+cond.getName()+"</td>\n" +
+		    			"t\t\t\t\t\t\t<td rowspan=3><a href='#' onclick='return fullpopitup(\""+heatmapFileName+"\")'><img class='myimg mx-auto d-block' src='"+heatmapFileName+"'></a></td>\n");
 				if(config.getFindingMotifs()){
-					fout.write("\t\t<td rowspan=3><a href='#' onclick='return fullpopitup(\""+seqcolorplot+"\")'><img src='"+seqcolorplot+"' height='400' width='100'></a></td>\n");
+					fout.write("t\t\t\t\t\t\t<td rowspan=3><a href='#' onclick='return fullpopitup(\""+seqcolorplot+"\")'><img class='myimg mx-auto d-block' src='"+seqcolorplot+"'></a></td>\n");
 				}
 	    		String replicateName = cond.getName()+"-"+cond.getReplicates().get(0).getRepName();
 	    		for (int i=0; i < maxNumSubtypes; i++){
 	    			if (i < bindingManager.getNumBindingType(cond)){
 	    				String distribFilename = "images/"+config.getOutBase()+"_"+replicateName+"_"+i+"_Read_Distributions.png";
-	    				fout.write("\t\t<td><a href='#' onclick='return fullpopitup(\""+distribFilename+"\")'><img src='"+distribFilename+"' height='300'></a></td>\n");
+	    				fout.write("t\t\t\t\t\t\t<td><a href='#' onclick='return fullpopitup(\""+distribFilename+"\")'><img class='myimg mx-auto d-block' src='"+distribFilename+"'></a></td>\n");
 	    			}else{
-	    				fout.write("\t\t<td>NA</td>\n");
+	    				fout.write("t\t\t\t\t\t\t<td>NA</td>\n");
 	    			}					
-	    		}fout.write("\t\t</tr>\n");
-	    		fout.write("\t\t<tr>");
+	    		}fout.write("t\t\t\t\t\t</tr>\n");
+	    		fout.write("t\t\t\t\t\t<tr>");
 	    		
 	    		if(config.getFindingMotifs()){
 	    			int mc=0;
@@ -447,53 +445,71 @@ public class EventsPostAnalysis {
 	    			if(!motifImageNames.get(cond).isEmpty()){
 	    				for (BindingSubtype subtype :bindingManager.getBindingSubtype(cond)){
 	    					if (subtype.hasMotif()){
-	    						fout.write("\t\t<td><img src='"+motifImageNames.get(cond).get(mc)+"'height='70' width='250'><a href='#' onclick='return motifpopitup(\""+motifRCImageNames.get(cond).get(mc)+"\")'>rc</a></td>\n");
+	    						fout.write("t\t\t\t\t\t<td><img src='"+motifImageNames.get(cond).get(mc)+"'height='70' width='250'><a href='#' onclick='return motifpopitup(\""+motifRCImageNames.get(cond).get(mc)+"\")'>rc</a></td>\n");
 	    						mc++;
 	    					}else{
-	    						fout.write("\t\t<td>NA</td>\n");
+	    						fout.write("t\t\t\t\t\t<td>NA</td>\n");
 	    					}
 	    					colc++;
 	    				}
 	    				for (int j=colc; j<maxNumSubtypes;j++)
-    						fout.write("\t\t<td>NA</td>\n");
+    						fout.write("t\t\t\t\t\t<td>NA</td>\n");
 	    			}else{
 	    				for (int i=0; i < maxNumSubtypes; i++)
-			    			fout.write("\t\t<td>NA</td>\n");
+			    			fout.write("t\t\t\t\t\t<td>NA</td>\n");
 	    			}
 	    		}else{
 	    			for (int i=0; i < maxNumSubtypes; i++)
-		    			fout.write("\t\t<td>NA</td>\n");
-	    		}fout.write("\t\t</tr>\n");
+		    			fout.write("t\t\t\t\t\t<td>NA</td>\n");
+	    		}fout.write("t\t\t\t\t\t</tr>\n");
 	    		
 	    		// add number of subtype specific sites
 	    		int[] subtypeCounts=bindingManager.countSubtypeEventsInCondition(cond, evconfig.getQMinThres());
 	    		int colc=0;
 	    		for (int i=0; i< bindingManager.getNumBindingType(cond);i++){
-	    			fout.write("\t\t<td>"+subtypeCounts[i]+" events</td>\n");
+	    			fout.write("t\t\t\t\t\t<td>"+subtypeCounts[i]+" events</td>\n");
 	    			colc++;
 	    		}
 	    		for (int j=colc; j<maxNumSubtypes;j++)
-					fout.write("\t\t<td>NA</td>\n");
-	    		fout.write("\t\t</tr>\n");
+					fout.write("t\t\t\t\t\t<td>NA</td>\n");
+	    		fout.write("t\t\t\t\t\t</tr>\n");
 	    		
-			}fout.write("\t</table>\n");
+			}fout.write("t\t\t\t\t</table>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t\t<br>\n");
 			
 			
 			//File list of extras (histograms, etc)
-			fout.write("\t<h2>Miscellaneous files</h2>\n");
+			fout.write("\t\t\t<div class='card-body'>");
+			fout.write("\t\t\t\t<h4>Miscellaneous files</h4>\n");
 			if(config.getFindingMotifs()){
 				for(ExperimentCondition cond : manager.getConditions())
-					fout.write("\t<p><a href='intermediate-results/"+config.getOutBase()+"."+cond.getName()+".transfac'>"+cond.getName()+" subtype motifs.</a></p>\n");
-				fout.write("\t<p> Try inputting these motifs into <a href='http://www.benoslab.pitt.edu/stamp/'>STAMP</a> for validation.</p>\n");
+					fout.write("\t\t\t\t<p><a href='intermediate-results/"+config.getOutBase()+"."+cond.getName()+".transfac'>"+cond.getName()+" subtype motifs.</a></p>\n");
+				fout.write("\t\t\t\t<p> Try inputting these motifs into <a href='http://www.benoslab.pitt.edu/stamp/'>STAMP</a> for validation.</p>\n");
 			}
-			fout.write("\t<p><a href='intermediate-results/"+config.getOutBase()+".intraCondPeakDistances.histo.txt'>Peak-peak distance histograms (same condition)</a></p>\n");
+			fout.write("\t\t\t\t<p><a href='intermediate-results/"+config.getOutBase()+".intraCondPeakDistances.histo.txt'>Peak-peak distance histograms (same condition)</a></p>\n");
 			if(manager.getNumConditions()>1)
-				fout.write("\t<p><a href='intermediate-results/"+config.getOutBase()+".interCondPeakDistances.histo.txt'>Peak-peak distance histograms (between conditions)</a></p>\n");
+				fout.write("\t\t\t\t<p><a href='intermediate-results/"+config.getOutBase()+".interCondPeakDistances.histo.txt'>Peak-peak distance histograms (between conditions)</a></p>\n");
 			if(config.getFindingMotifs())
-				fout.write("\t<p><a href='intermediate-results/"+config.getOutBase()+".peaks2motifs.histo.txt'>Peak-motif distance histograms</a></p>\n");
+				fout.write("\t\t\t\t<p><a href='intermediate-results/"+config.getOutBase()+".peaks2motifs.histo.txt'>Peak-motif distance histograms</a></p>\n");
+	    	fout.write("\t\t\t</div>\n\t\t");
 	    	
-	    	
-	    	fout.write("\t</body>\n</html>\n");
+	    	//custom javascript functions
+	        fout.write("\t\t<script language='javascript' type='text/javascript'>\n"+	    	
+	        		"\t\t\tfunction fullpopitup(url) {\n"+
+	        		"\t\t\t\tnewwindow = window.open(url, 'name');\n"+
+	        		"\t\t\t\tif (window.focus) { newwindow.focus() }\n"+
+	        		"\t\t\t\treturn false;\n\t\t\t}\n"+
+	    			
+	        		"\t\t\tfunction motifpopitup(url) {\n"+
+	        		"\t\t\t\tnewwindow = window.open(url, 'name', 'height=75');\n"+
+	        		"\t\t\t\tif (window.focus) { newwindow.focus() }\n"+
+	        		"\t\t\t\treturn false;\n"+
+	        		"\t\t\t}\n\t\t</script>\n");
+	        //Optional JavaScript
+	        //jQuery first, then Popper.js, then Bootstrap JS
+	        fout.write("\t\t<script src='https://code.jquery.com/jquery-3.3.1.slim.min.js' integrity='sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo' crossorigin='anonymous'></script>\n");
+	        fout.write("\t\t<script src='https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.3/umd/popper.min.js' integrity='sha384-ZMP7rVo3mIykV+2+9J3UJ46jBk0WLaUAdn689aCwoqbBJiSnjAK/l8WvCWPIPm49' crossorigin='anonymous'></script>\n");
+	        fout.write("\t\t<script src='https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js' integrity='sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy' crossorigin='anonymous'></script>\n");	    	
+	    	fout.write("\t\t</body>\n</html>\n");
 	    	fout.close();
 
 	    	
