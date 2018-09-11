@@ -402,7 +402,8 @@ public class EventsPostAnalysis {
 	    				"\t\t\t\t\t\t\t<td>"+bindingManager.countEventsInCondition(cond, evconfig.getQMinThres())+"</td>\n" +
 		    			"\t\t\t\t\t\t\t<td><a href='"+subtypeEventFileName+"'>"+subtypeEventFileName+"</a></td>\n");
 		    	fout.write("\t\t\t\t\t\t</tr>\n");
-			}fout.write("\t\t\t\t\t</table>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t\t<br>\n");
+//			}fout.write("\t\t\t\t\t</table>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t\t<br>\n");
+			}fout.write("\t\t\t\t\t</table>\n\n");
 			
 			// Heatmap and Motif information
 			int maxNumSubtypes=0;
@@ -411,10 +412,10 @@ public class EventsPostAnalysis {
 				if (condNumSubtype > maxNumSubtypes){maxNumSubtypes=condNumSubtype;}	
 			}
 			
-			fout.write("\t\t\t<div class='card'>\n"+
-					"\t\t\t\t<h5 class='card-header'>Heatmap & Motif Information</h5>\n"+
-					"\t\t\t\t<div class='card-body'>\n"+
-					"\t\t\t\t\t<table class='table table-bordered'>\n"+
+//			fout.write("\t\t\t<div class='card'>\n"+
+//					"\t\t\t\t<h5 class='card-header'>Heatmap & Motif Information</h5>\n"+
+//					"\t\t\t\t<div class='card-body'>\n");			
+			fout.write("\t\t\t\t\t<table class='table table-bordered'>\n"+
 					"\t\t\t\t\t\t<tr>\n"+
 	    			"\t\t\t\t\t\t\t<th>Condition</th>\n" +
 	    			"\t\t\t\t\t\t\t<th>Heatmap</th>\n");
