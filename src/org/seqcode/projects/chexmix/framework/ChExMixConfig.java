@@ -73,7 +73,6 @@ public class ChExMixConfig {
 	protected List<Region> regionsToIgnore = new ArrayList<Region>(); //List of regions that will be ignored during EM training (i.e. known towers, etc)
 	protected List<Point> initialPos=null;	//List of points loaded from peak file and used to place binding components.
 	protected List<StrandedRegion> motifRegions = new ArrayList<StrandedRegion>(); //List of regions to construct cross-linking point histograms (for testing)
-	protected boolean MLSharedComponentConfiguration = true; //For ML assignment: use a component configuration shared across all conditions or have condition-specific configs.
 	protected boolean findMotifs = true; //Run motif-finding for motif prior
 	protected boolean motif_posprior=true; //You can have motif-finding without using the motif-prior
 	protected boolean clusterReadDistributions = true; //Cluster read distributions
@@ -293,9 +292,6 @@ public class ChExMixConfig {
 				
 				//Extra output
 				verbose = Args.parseFlags(args).contains("verbose") ? true : false;
-				//Shared component config in ML step
-				//MLSharedComponentConfiguration = Args.parseFlags(args).contains("mlsharedconfig") ? true : false;
-				MLSharedComponentConfiguration = Args.parseFlags(args).contains("mlconfignotshared") ? false : true;
 								
 				//Initial clustering points
 				String fname=null;
@@ -379,7 +375,6 @@ public class ChExMixConfig {
 	public int getMinModelUpdateRounds(){return minModelUpdateRounds;}
 	public int getMaxModelUpdateRounds(){return maxModelUpdateRounds;}
 	public double getModelConvergenceKL(){return modelConvergenceKL;}
-	public boolean getMLSharedComponentConfiguration(){return MLSharedComponentConfiguration;}
 	public boolean getFindingMotifs(){return findMotifs;}
 	public boolean useMotifPrior(){return motif_posprior;}
 	public boolean getClusteringReads(){return clusterReadDistributions;}

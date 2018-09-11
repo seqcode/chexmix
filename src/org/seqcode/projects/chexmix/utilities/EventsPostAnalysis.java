@@ -403,7 +403,7 @@ public class EventsPostAnalysis {
 		    			"\t\t\t\t\t\t\t<td><a href='"+subtypeEventFileName+"'>"+subtypeEventFileName+"</a></td>\n");
 		    	fout.write("\t\t\t\t\t\t</tr>\n");
 //			}fout.write("\t\t\t\t\t</table>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t\t<br>\n");
-			}fout.write("\t\t\t\t\t</table>\n\n");
+			}fout.write("\t\t\t\t\t</table>\n\t\t\t\t\t<br>\n");
 			
 			// Heatmap and Motif information
 			int maxNumSubtypes=0;
@@ -438,12 +438,12 @@ public class EventsPostAnalysis {
 	    		for (int i=0; i < maxNumSubtypes; i++){
 	    			if (i < bindingManager.getNumBindingType(cond)){
 	    				String distribFilename = "images/"+config.getOutBase()+"_"+replicateName+"_"+i+"_Read_Distributions.png";
-	    				fout.write("\t\t\t\t\t\t\t<td><a href='#' onclick='return fullpopitup(\""+distribFilename+"\")'><img class='myimg mx-auto d-block' src='"+distribFilename+"'></a></td>\n");
+	    				fout.write("\t\t\t\t\t\t\t<td><a href='#' onclick='return fullpopitup(\""+distribFilename+"\")'><img class='myimg mx-auto d-block' src='"+distribFilename+"' height='300'></a></td>\n");
 	    			}else{
 	    				fout.write("\t\t\t\t\t\t\t<td>NA</td>\n");
 	    			}					
 	    		}fout.write("\t\t\t\t\t\t</tr>\n");
-	    		fout.write("\t\t\t\t\t\t<tr>");
+	    		fout.write("\t\t\t\t\t\t<tr>\n");
 	    		
 	    		if(config.getFindingMotifs()){
 	    			int mc=0;
