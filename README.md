@@ -119,6 +119,7 @@ __Finding ChExMix subtypes__:
   * --memenmotifs \<int\>: Number of motifs MEME should find in each condition (default=3)
   * --memeargs \<args\>: Additional args for MEME (default:  -dna -mod zoops -revcomp -nostatus)
   * --minroc \<value\>: Minimum motif ROC value (default=0.7)
+  * --seqrmthres \<value\>: Filter out sequences with motifs below this threshold for recursively finding motifs (default=0.1)
   * --minmodelupdaterefs \<int\>: Minimum number of motif reference to support an subtype distribution update (default=25)
  
  2. Using ChIP-exo tag distributions:
