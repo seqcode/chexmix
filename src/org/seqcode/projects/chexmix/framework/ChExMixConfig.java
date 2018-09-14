@@ -94,6 +94,7 @@ public class ChExMixConfig {
 	protected int clusteringWindow = 150;
 	protected int numClusteringComps = 500;	// Number of components to perform AP clustering
 	protected double MarkovBackSeqRmThres = 0.1; // Markov background threshold for removing sequences
+	protected int modelRange = 50;	// Window size to extract tag counts
     
 	//Constants
 	public final double LOG2 = Math.log(2);
@@ -225,8 +226,10 @@ public class ChExMixConfig {
 				initComponentSpacing = Args.parseInteger(args,"compspacing",initComponentSpacing);
 				//Preference value for AP clustering
 				preferenceValue = Args.parseDouble(args, "pref", preferenceValue);
-				// Number of components to perform AP clustering
+				//Number of components to perform AP clustering
 				numClusteringComps = Args.parseInteger(args,"numcomps",numClusteringComps);
+				//Window size for extracting tag counts
+				modelRange = Args.parseInteger(args,"mrange",modelRange);
 				
 				if(ap.hasKey("plotregions"))
 					regionsToPlot = RegionFileUtilities.loadRegionsFromFile(Args.parseString(args, "plotregions", null), gen, -1);
@@ -396,6 +399,7 @@ public class ChExMixConfig {
 	public int getNumClusteringComps(){return numClusteringComps;}
 	public double getMarkovBackSeqRmThres(){return MarkovBackSeqRmThres;}
 	public boolean getMEMEnonparallel(){return MEMEnonparallel;}
+	public int getModelRange(){return modelRange;}
 	
 	
 	/**

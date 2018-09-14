@@ -143,9 +143,6 @@ public class ChExMix {
 		
 		// Testing only
 		printInitialDistribution();
-				
-		for(ExperimentCondition cond : manager.getConditions())
-			bindingManager.updateMaxInfluenceRange(cond, true);
 		
 		//Find potential binding regions
 		System.err.println("Finding potential binding regions.");
@@ -218,7 +215,7 @@ public class ChExMix {
         bindingManager.estimateSignalVsNoiseFractions(bindingManager.getBindingEvents());
         //Statistical analysis: Enrichment over controls 
         EnrichmentSignificance testerR0 = new EnrichmentSignificance(evconfig, manager, bindingManager, evconfig.getMultiGPSMinEventFoldChange(), econfig.getMappableGenomeLength());
-        testerR0.execute();
+        testerR0.execute(gpsconfig.getModelRange());
         
         mixtureModel.setActiveComponents(bindingManager.getComponentsFromEnrichedEvents(potentialFilter.getPotentialRegions()));
         

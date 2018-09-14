@@ -26,7 +26,7 @@ import org.seqcode.projects.chexmix.mixturemodel.BindingSubComponents;
  * These data structures used to be under the relevant experiment components, but we moved them here to 
  * allow experiment loading to be independent.  
  * 
- * @author mahony
+ * @author naomi yamada
  *
  */
 public class BindingManager {
@@ -39,7 +39,6 @@ public class BindingManager {
 	protected Map<ExperimentCondition, List<Boolean>> motifReverseStrands;
 	protected Map<ExperimentCondition, Integer> numBindingType;
 	protected Map<ControlledExperiment, BindingModel> unstrandedModel;
-	protected Map<ExperimentCondition, Integer> maxInfluenceRange;
 	protected Map<ExperimentCondition, Double> alpha;
 	protected Map<ExperimentCondition, List<List<StrandedPoint>>> alignedEventPoints;
 	protected Map<ExperimentCondition, List<BindingSubtype>> potentialBindingSubtypes;
@@ -51,7 +50,6 @@ public class BindingManager {
 		conditionEvents = new HashMap<ExperimentCondition, List <BindingEvent>>();
 		bindingSubtypes = new HashMap<ExperimentCondition, List<BindingSubtype>>();
 		motifReverseStrands = new HashMap<ExperimentCondition, List<Boolean>>();
-		maxInfluenceRange = new HashMap<ExperimentCondition, Integer>();
 		alpha = new HashMap<ExperimentCondition, Double>();
 		numBindingType = new HashMap<ExperimentCondition, Integer>();
 		unstrandedModel = new HashMap<ControlledExperiment, BindingModel>();
@@ -61,7 +59,6 @@ public class BindingManager {
 			conditionEvents.put(cond, new ArrayList<BindingEvent>());
 			bindingSubtypes.put(cond, new ArrayList<BindingSubtype>());
 			numBindingType.put(cond, 1);
-			maxInfluenceRange.put(cond,0);
 			alpha.put(cond, 0.0);
 			alignedEventPoints.put(cond, new ArrayList<List<StrandedPoint>>());
 			potentialBindingSubtypes.put(cond, new ArrayList<BindingSubtype>());
@@ -74,7 +71,6 @@ public class BindingManager {
 	public List<Boolean> getReverseMotifs(ExperimentCondition ec){return motifReverseStrands.get(ec);}
 	public Integer getNumBindingType(ExperimentCondition ec){return numBindingType.get(ec);}
 	public BindingModel getUnstrandedBindingModel(ControlledExperiment ce){return unstrandedModel.get(ce);}
-	public Integer getMaxInfluenceRange(ExperimentCondition ec){return maxInfluenceRange.get(ec);}
 	public Double getAlpha(ExperimentCondition ec){return alpha.get(ec);}
 	public List<List<StrandedPoint>> getAlignedEventPoints(ExperimentCondition ec){return alignedEventPoints.get(ec);}
 	public List<BindingSubtype> getPotentialBindingSubtypes(ExperimentCondition ec){return potentialBindingSubtypes.get(ec);}
@@ -88,23 +84,6 @@ public class BindingManager {
 	public void setAlignedEventPoints(ExperimentCondition ec, List<List<StrandedPoint>> points){alignedEventPoints.put(ec, points);}
 	public void addPotentialBindingSubtypes(ExperimentCondition ec, List<BindingSubtype> subtypes){potentialBindingSubtypes.get(ec).addAll(subtypes);}
 	public void clearPotentialBindingSubtypes(ExperimentCondition ec){ potentialBindingSubtypes.put(ec, new ArrayList<BindingSubtype>());}
-
-	public void updateMaxInfluenceRange(ExperimentCondition ec, boolean firstround){
-		int max=0; 
-		if (firstround && config.getDefaultBindingModel()==null){		
-			for(ControlledExperiment rep : ec.getReplicates())
-				if (getUnstrandedBindingModel(rep).getInfluenceRange()>max)
-					max=getUnstrandedBindingModel(rep).getInfluenceRange();
-		}else{
-			int min=400;	//force the influence range to be smaller than 400 bp
-			for ( BindingSubtype subtype : getBindingSubtype(ec)){
-				TagProbabilityDensity density =subtype.getBindingModel(0);
-				if (density.getInfluenceRange()< min)
-					min=density.getInfluenceRange();		
-			}
-			max=min;
-		}maxInfluenceRange.put(ec, max);
-	}
 	
 	public void updateNumBindingTypes(){
 		int[] numBindingTypes = new int[manager.getNumConditions()];

@@ -254,7 +254,7 @@ public class MotifPlatform {
 		//Choose which components to include
 		for(Region r : activeComponents.keySet()){
 			for (ExperimentCondition cond : manager.getConditions()){
-				float edge = Math.max(bindingManager.getMaxInfluenceRange(cond)/2, config.MOTIF_FINDING_SEQWINDOW/2);
+				float edge = Math.max(config.getModelRange()/2, config.MOTIF_FINDING_SEQWINDOW/2);
 				List<BindingSubComponents> peaks = new ArrayList<BindingSubComponents>();
 				for(BindingSubComponents bc : activeComponents.get(r).get(cond.getIndex())){
 					//Component must not be at the edge of the region for sequence region cache

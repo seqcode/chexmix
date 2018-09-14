@@ -104,9 +104,9 @@ public class BindingMixture {
 		
 		for(ExperimentCondition cond : manager.getConditions()){
 			conditionBackgrounds.put(cond, new BackgroundCollection());
-			conditionBackgrounds.get(cond).addBackgroundModel(new PoissonBackgroundModel(-1, config.getPRLogConf(), cond.getTotalSignalCount()*(1-cond.getTotalSignalVsNoiseFrac()), config.getGenome().getGenomeLength(), econfig.getMappableGenomeProp(), bindingManager.getMaxInfluenceRange(cond), '.', 1, true));
+			conditionBackgrounds.get(cond).addBackgroundModel(new PoissonBackgroundModel(-1, config.getSigLogConf(), cond.getTotalSignalCount()*(1-cond.getTotalSignalVsNoiseFrac()), config.getGenome().getGenomeLength(), econfig.getMappableGenomeProp(), config.getModelRange(), '.', 1, true));
 			double alf = config.getFixedAlpha()>0 ? config.getFixedAlpha() : (double)conditionBackgrounds.get(cond).getMaxThreshold('.');
-			System.err.println("Alpha "+cond.getName()+"\tRange="+bindingManager.getMaxInfluenceRange(cond)+"\t"+alf);
+			System.err.println("Alpha "+cond.getName()+"\tRange="+config.getModelRange()+"\t"+alf);
 			bindingManager.setAlpha(cond,alf);
 		}
 		
@@ -288,7 +288,7 @@ public class BindingMixture {
 	    			for(Region r : activeComponents.keySet()){
 	    				for(BindingSubComponents bc : activeComponents.get(r).get(cond.getIndex())){
 	    					//1) Component must not be at the edge of the region 
-	    					if((bc.getPosition()-r.getStart()>bindingManager.getMaxInfluenceRange(cond)/2) && (r.getEnd()-bc.getPosition()>bindingManager.getMaxInfluenceRange(cond)/2)){
+	    					if((bc.getPosition()-r.getStart()>config.getModelRange()/2) && (r.getEnd()-bc.getPosition()>config.getModelRange()/2)){
 	    						//2) Arbitrary minimum read support for BM components
 	    						if(bc.getSumResponsibility()>(config.getMinComponentReadFactorForBM()*currAlpha))
 	    							currComps.add(bc);
@@ -450,7 +450,7 @@ public class BindingMixture {
     		for(Region r : activeComponents.keySet()){
     			for(BindingSubComponents bc : activeComponents.get(r).get(cond.getIndex())){
     				//1) Component must not be at the edge of the region 
-    				if((bc.getPosition()-r.getStart()>bindingManager.getMaxInfluenceRange(cond)/2) && (r.getEnd()-bc.getPosition()>bindingManager.getMaxInfluenceRange(cond)/2)){
+    				if((bc.getPosition()-r.getStart()>config.getModelRange()/2) && (r.getEnd()-bc.getPosition()>config.getModelRange()/2)){
     					//2) Arbitrary minimum read support for BM components
     					if(bc.getSumResponsibility()>(config.getMinComponentReadFactorForBM()*currAlpha)){
     						currComps.get(bc.getMaxType()).add(bc);
@@ -600,7 +600,6 @@ public class BindingMixture {
 					System.out.println("Models are consolidated from "+numTypes+" to "+currSubtypes.size());
 				}
 				bindingManager.setBindingSubtypes(cond, currSubtypes);	
-				bindingManager.updateMaxInfluenceRange(cond,false);	
 				bindingManager.clearPotentialBindingSubtypes(cond);
 			}
 		}
@@ -633,9 +632,9 @@ public class BindingMixture {
     public void updateAlphas(){
     	for(ExperimentCondition cond : manager.getConditions()){
 			conditionBackgrounds.put(cond, new BackgroundCollection());
-			conditionBackgrounds.get(cond).addBackgroundModel(new PoissonBackgroundModel(-1, config.getSigLogConf(), cond.getTotalSignalCount()*(1-cond.getTotalSignalVsNoiseFrac()), config.getGenome().getGenomeLength(), econfig.getMappableGenomeProp(), bindingManager.getMaxInfluenceRange(cond), '.', 1, true));
+			conditionBackgrounds.get(cond).addBackgroundModel(new PoissonBackgroundModel(-1, config.getSigLogConf(), cond.getTotalSignalCount()*(1-cond.getTotalSignalVsNoiseFrac()), config.getGenome().getGenomeLength(), econfig.getMappableGenomeProp(), config.getModelRange(), '.', 1, true));
 			double alf = config.getFixedAlpha()>0 ? config.getFixedAlpha() : (double)conditionBackgrounds.get(cond).getMaxThreshold('.');
-			System.err.println("Alpha "+cond.getName()+"\tRange="+bindingManager.getMaxInfluenceRange(cond)+"\t"+alf);
+			System.err.println("Alpha "+cond.getName()+"\tRange="+config.getModelRange()+"\t"+alf);
 			bindingManager.setAlpha(cond,alf);
 		}
     }

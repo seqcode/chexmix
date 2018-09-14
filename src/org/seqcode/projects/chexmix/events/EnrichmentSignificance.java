@@ -77,7 +77,7 @@ public class EnrichmentSignificance {
 				}
 				
 				//P-value, signal vs control
-				double sigCtrlP = evaluateSignificance(c1Sig, ctrlCountScaled, cf.getCondTotalSigHitsFromReps(c1), modelRange==-1 ? bindingManager.getMaxInfluenceRange(c1):modelRange);
+				double sigCtrlP = evaluateSignificance(c1Sig, ctrlCountScaled, cf.getCondTotalSigHitsFromReps(c1), modelRange);
 				cf.setCondSigVCtrlFold(c1, sigCtrlFold);
 				cf.setCondSigVCtrlP(c1, sigCtrlP);
 				

@@ -484,7 +484,7 @@ public class EventsPostAnalysis {
 			
 			
 			//File list of extras (histograms, etc)
-			fout.write("\t\t\t<div class='card-body'>");
+			fout.write("\t\t\t<div class='card-body'>\n");
 			fout.write("\t\t\t\t<h4>Miscellaneous files</h4>\n");
 			if(config.getFindingMotifs()){
 				for(ExperimentCondition cond : manager.getConditions())

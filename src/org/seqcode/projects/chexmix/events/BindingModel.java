@@ -196,7 +196,7 @@ public class BindingModel {
 		bgProb = minProb/1000;
 		logBgProb = Math.log(bgProb)/LOG2;
 
-		updateInfluenceRange();
+//		updateInfluenceRange();
 	}
 	
 	protected void smooth(int splineStepSize, int avgStepSize){

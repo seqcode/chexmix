@@ -734,9 +734,7 @@ public class PotentialRegionFilter {
 				bman.setUnstrandedBindingModel(rep, new BindingModel(BindingModel.defaultChipExoEmpiricalDistribution));
 				repBindingModels.put(rep, new ArrayList<BindingModel>());
 				repBindingModels.get(rep).add(bman.getUnstrandedBindingModel(rep));
-			}
-			for(ExperimentCondition cond : manager.getConditions())
-				bman.updateMaxInfluenceRange(cond,true);		
+			}		
 						
 			System.err.println("Conditions:\t"+manager.getConditions().size());
 			for(ExperimentCondition c : manager.getConditions()){
