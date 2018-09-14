@@ -394,18 +394,6 @@ public class BindingMixture {
 			List<List<List<StrandedPoint>>> clustPoints = new ArrayList<List<List<StrandedPoint>>>();
 			for (ExperimentCondition cond : manager.getConditions())
 				clustPoints.add(initClustPoints);
-		
-			/**
-			// Find motif within clusters
-			if (config.getFindingMotifs()){
-				try {
-					clustPoints=motifFinder.findClusterMotifs(clustPoints, trainingRound);
-				} catch (ParseException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-			**/
 			
 			// Make binding subtype
 			for (ExperimentCondition cond : manager.getConditions()){
@@ -418,7 +406,6 @@ public class BindingMixture {
 				bindingManager.addPotentialBindingSubtypes(cond, subtypes);
 			}
 		}
-		
 	}
 	
 	

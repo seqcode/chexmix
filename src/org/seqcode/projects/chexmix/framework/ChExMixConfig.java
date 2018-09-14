@@ -254,7 +254,7 @@ public class ChExMixConfig {
 					System.err.println("No genome sequence data was provided with --seq, so motif-finding and the motif prior are switched off.");
 				}
 				//Turn off read distribution clustering
-				clusterReadDistributions = Args.parseFlags(args).contains("noclustering") ? false : true; 
+				clusterReadDistributions = (Args.parseFlags(args).contains("noclustering")||!updateBM) ? false : true; 
 				
 				//Turn off adding franking components
 				addFlankingComponent = Args.parseFlags(args).contains("noflanking") ? false : true; 
