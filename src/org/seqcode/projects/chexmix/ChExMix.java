@@ -109,7 +109,11 @@ public class ChExMix {
 				tagProbDensities.add(new TagProbabilityDensity(pbFile));				
 			}		
 		}else{	//make default model using default unstranded model
-			List<Pair<Integer,Double>> watsonModel= BindingModel.defaultChipExoEmpiricalDistribution;
+			List<Pair<Integer,Double>> watsonModel= null;
+			if(evconfig.getDefaultBindingModel()!=null)
+				watsonModel=evconfig.getDefaultBindingModel().getEmpiricalDistribution();
+			else
+				watsonModel= BindingModel.defaultChipExoEmpiricalDistribution;
 			List<Pair<Integer,Double>> crickModel = new ArrayList<Pair<Integer,Double>>();
 			List<Integer> pos = new ArrayList<Integer>();
 			List<Double> prob = new ArrayList<Double>();
