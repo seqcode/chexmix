@@ -69,26 +69,17 @@ public class PotentialRegionFilter {
 		config = c; 
 		econfig = econ;
 		gen = config.getGenome();
+		maxBinWidth = c.getModelRange();
 		//Initialize background models
 		for(ExperimentCondition cond : manager.getConditions()){
 			conditionBackgrounds.put(cond, new BackgroundCollection());
-			int maxIR = 0; boolean hasControls=true; 
-			for(ControlledExperiment rep : cond.getReplicates()){
-				BindingModel initModel = bindingManager.getUnstrandedBindingModel(rep);
-				if (initModel.getInfluenceRange() > maxIR)
-					maxIR = initModel.getInfluenceRange();
-				hasControls = hasControls && rep.hasControl();
-			}
-						
-			float binWidth = maxIR;
-    		if(binWidth>maxBinWidth){maxBinWidth=binWidth;}
     			
     		//global threshold
-    		conditionBackgrounds.get(cond).addBackgroundModel(new PoissonBackgroundModel(-1, config.getPRLogConf(), cond.getTotalSignalCount(), config.getGenome().getGenomeLength(), econfig.getMappableGenomeProp(), binWidth, '.', 1, true));
+    		conditionBackgrounds.get(cond).addBackgroundModel(new PoissonBackgroundModel(-1, config.getPRLogConf(), cond.getTotalSignalCount(), config.getGenome().getGenomeLength(), econfig.getMappableGenomeProp(), maxBinWidth, '.', 1, true));
     		//local windows won't work since we are testing per condition and we don't have a way to scale signal vs controls at the condition level (at least at this stage of execution)
     		
     		double thres = conditionBackgrounds.get(cond).getGenomicModelThreshold();
-    		System.err.println("PotentialRegionFilter: genomic threshold for "+cond.getName()+" with bin width "+binWidth+" = "+thres);
+    		System.err.println("PotentialRegionFilter: genomic threshold for "+cond.getName()+" with bin width "+maxBinWidth+" = "+thres);
     			
     		//Initialize counts
     		potRegCountsSigChannel.put(cond, 0.0);
