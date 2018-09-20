@@ -244,20 +244,6 @@ public class BindingManager {
 					}	
 					fout.close();
 					
-					//Print events in BED
-					if (config.getPrintBED()){
-						String bedfilename = filePrefix+"_"+condName+".bed";
-						fout = new FileWriter(bedfilename);
-						fout.write(BindingEvent.conditionBEDHeadString(cond)+"\n");
-						for (BindingEvent e: events){
-							double Q = e.getCondSigVCtrlP(cond);{
-							if(e.isFoundInCondition(cond) && Q <=qMinThres)
-					    		fout.write(e.getConditionBED(cond)+"\n");									
-							}						
-						}
-						fout.close();
-					}				
-					
 					//Print aligned points
 					List<List<StrandedPoint>> subtypePoints = new ArrayList<List<StrandedPoint>>();
 					List<List<Region>> potReg = new ArrayList<List<Region>>();
@@ -323,6 +309,30 @@ public class BindingManager {
 				e.printStackTrace();
 			}
 		}
+    	
+    	// Bed file is produced even when there is no event found
+    	for(ExperimentCondition cond : manager.getConditions()){
+    		//Print events in BED
+    		if (config.getPrintBED()){
+    			String condName = cond.getName(); 
+    			condName = condName.replaceAll("/", "-");
+    			String bedfilename = filePrefix+"_"+condName+".bed";
+    			try {
+    				FileWriter fout = new FileWriter(bedfilename);
+    				fout.write(BindingEvent.conditionBEDHeadString(cond)+"\n");
+    				for (BindingEvent e: events){
+    					double Q = e.getCondSigVCtrlP(cond);{
+    						if(e.isFoundInCondition(cond) && Q <=qMinThres)
+    							fout.write(e.getConditionBED(cond)+"\n");									
+    					}						
+    				}
+    				fout.close();
+    			} catch (IOException e1) {
+    				// TODO Auto-generated catch block
+    				e1.printStackTrace();
+    			}
+    		}
+    	}
     }
  
     /**

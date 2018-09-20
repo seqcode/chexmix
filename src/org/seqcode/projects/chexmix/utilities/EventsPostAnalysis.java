@@ -250,45 +250,48 @@ public class EventsPostAnalysis {
 		//6) Make heatmap
 		for (ExperimentCondition cond : manager.getConditions()){
 			String pointArgs = " --peaks "+config.getOutputParentDir()+File.separator+config.getOutBase()+"_"+cond.getName()+".subtype.aligned.events";
-			// Run for each strand
-			System.out.println(config.getMetaMakerArgs()+pointArgs+" --strand + --color blue --noborder --out "+cond.getName()+".events");
 			
-			runMetaMaker(config.getMetaMakerArgs()+pointArgs+" --strand + --color blue --noborder --out "+cond.getName()+".events");
-			runMetaMaker(config.getMetaMakerArgs()+pointArgs+" --strand - --color red --noborder --out "+cond.getName()+".events");
+			if(events.size()>0){			
+				// Run for each strand
+				System.out.println(config.getMetaMakerArgs()+pointArgs+" --strand + --color blue --noborder --out "+cond.getName()+".events");			
+			
+				runMetaMaker(config.getMetaMakerArgs()+pointArgs+" --strand + --color blue --noborder --out "+cond.getName()+".events");
+				runMetaMaker(config.getMetaMakerArgs()+pointArgs+" --strand - --color red --noborder --out "+cond.getName()+".events");
 					
-			// Combine plots
-			for (ExperimentCondition pcond : manager.getConditions()){				
-				String pngPath=config.getOutputImagesDir()+File.separator+config.getOutBase()+"_"+pcond.getName()+".events_"+cond.getName()+"_";
-				try {
+				// Combine plots
+				for (ExperimentCondition pcond : manager.getConditions()){				
+					String pngPath=config.getOutputImagesDir()+File.separator+config.getOutBase()+"_"+pcond.getName()+".events_"+cond.getName()+"_";
+					try {
 					
-				//	Process proc = Runtime.getRuntime().exec("composite -dissolve 60,100 -transparent-color white "+pngPath+"+_lines.png "+pngPath+"-_lines.png "+pngPath+"heatmap.png");
+						//	Process proc = Runtime.getRuntime().exec("composite -dissolve 60,100 -transparent-color white "+pngPath+"+_lines.png "+pngPath+"-_lines.png "+pngPath+"heatmap.png");
 					
-					// load source images
-					File posHeatmap = new File(pngPath+"+_lines.png");
-					File negHeatmap = new File(pngPath+"-_lines.png");
-					BufferedImage posImage = ImageIO.read(posHeatmap);
-					BufferedImage negImage = ImageIO.read(negHeatmap);
+						// load source images
+						File posHeatmap = new File(pngPath+"+_lines.png");
+						File negHeatmap = new File(pngPath+"-_lines.png");
+						BufferedImage posImage = ImageIO.read(posHeatmap);
+						BufferedImage negImage = ImageIO.read(negHeatmap);
 
-					// create the new image, canvas size is the max. of both image sizes
-					BufferedImage combined = new BufferedImage(Math.min(posImage.getWidth(), 250), Math.min(posImage.getHeight(), 1000), BufferedImage.TYPE_INT_ARGB);
+						// create the new image, canvas size is the max. of both image sizes
+						BufferedImage combined = new BufferedImage(Math.min(posImage.getWidth(), 250), Math.min(posImage.getHeight(), 1000), BufferedImage.TYPE_INT_ARGB);
 
-					// paint both images, preserving the alpha channels
-					Graphics g = combined.getGraphics();
-					g.drawImage(negImage, 0, 0, null);
-					g.drawImage(posImage, 0, 0, null);
+						// paint both images, preserving the alpha channels
+						Graphics g = combined.getGraphics();
+						g.drawImage(negImage, 0, 0, null);
+						g.drawImage(posImage, 0, 0, null);
 					
-					((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) 0.6));
+						((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) 0.6));
 
-					// Save as new image
-					ImageIO.write(combined, "PNG", new File(pngPath+"heatmap.png"));
+						// Save as new image
+						ImageIO.write(combined, "PNG", new File(pngPath+"heatmap.png"));
 					
-					// delete source images
-					posHeatmap.delete();
-					negHeatmap.delete();
+						// delete source images
+						posHeatmap.delete();
+						negHeatmap.delete();
 					
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 				}
 			}
 		}				
