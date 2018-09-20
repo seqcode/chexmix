@@ -68,9 +68,11 @@ public class MetaMaker {
 							MetaProfileHandler handler = nonframe.getHandler();
 							if(mconfig.peakFiles.size()==1){
 								System.out.println("Single set mode...");
-								String peakFile = mconfig.peakFiles.get(0);
-								Vector<Point> points = nonframe.getUtils().loadPoints(new File(peakFile));
-								handler.addPoints(points);
+								File peakFile = new File(mconfig.peakFiles.get(0));
+								if (peakFile.exists()){
+									Vector<Point> points = nonframe.getUtils().loadPoints(peakFile);
+									handler.addPoints(points);
+								}
 							}else{
 								System.out.println("All TSS mode...");
 								Iterator<Point> points = nonframe.getUtils().loadTSSs("refGene");

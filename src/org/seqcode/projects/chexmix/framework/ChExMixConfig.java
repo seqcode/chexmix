@@ -94,7 +94,7 @@ public class ChExMixConfig {
 	protected int clusteringWindow = 150;
 	protected int numClusteringComps = 500;	// Number of components to perform AP clustering
 	protected double MarkovBackSeqRmThres = 0.1; // Markov background threshold for removing sequences
-	protected int modelRange = 50;	// Window size to extract tag counts
+	protected int modelRange = 100;	// Window size to extract tag counts
     
 	//Constants
 	public final double LOG2 = Math.log(2);
