@@ -393,7 +393,8 @@ public class ChExMix {
 				"\t--mlconfignotshared [flag to not share component configs in the ML step]\n" +
 				"\t--exclude <file of regions to ignore>\n" +
 				"\t--peakf <file of peaks to initialize component positions>\n" +
-				"\t--motfile <file of motifs in transfac format to initialize subtype motifs>\n" +
+				"\t--motfile <file of motifs in transfac format to initialize subtype motifs>\n" +				
+				"\t--galaxyhtml [flag to produce a html output appropreate for galaxy]\n" +
 				" Finding ChExMix subtypes using motif:\n"+
 				"\t--memepath <path to the meme bin dir (default: meme is in $PATH)>\n" +
 				"\t--nomotifs [flag to turn off motif-finding & motif priors]\n" +
@@ -404,6 +405,7 @@ public class ChExMix {
 				"\t--memeargs <additional args for MEME (default=  -dna -mod zoops -revcomp -nostatus)>\n"+
 				"\t--minroc <minimum motif ROC value (default=0.7)>\n"+
 				"\t--minmodelupdaterefs <minimum number of motif reference to support an subtype distribution update (default=50)>\n"+
+				"\t--seqrmthres <Filter out sequences with motifs below this threshold for recursively finding motifs (default=0.1)>\n" +
 				" Finding ChExMix subtypes using read distribution clustering:\n"+
 				"\t--noclustering [flag to turn off read distribution clustering]\n" +
 				"\t--pref <preference value for read distribution clustering (default=-0.1)>\n"+
