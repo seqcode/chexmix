@@ -391,7 +391,7 @@ public class ChExMix {
 				"\t--epsilonscale <epsilon scaling factor (default=0.2)>\n" +
 				"\t--fixedalpha <impose this alpha (default: set automatically)>\n" +
 				"\t--mlconfignotshared [flag to not share component configs in the ML step]\n" +
-				"\t--exclude <file of regions to ignore>\n" +
+				"\t--exclude <file of regions to ignore> OR --excludebed <file of regions to ignore in bed format>\n" +
 				"\t--peakf <file of peaks to initialize component positions>\n" +
 				"\t--motfile <file of motifs in transfac format to initialize subtype motifs>\n" +				
 				"\t--galaxyhtml [flag to produce a html output appropreate for galaxy]\n" +
