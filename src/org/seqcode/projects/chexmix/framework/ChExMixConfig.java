@@ -238,7 +238,7 @@ public class ChExMixConfig {
 				if(ap.hasKey("exclude"))
 					regionsToIgnore = RegionFileUtilities.loadRegionsFromFile(Args.parseString(args, "exclude", null), gen, -1);
 				else if (ap.hasKey("excludebed"))
-					regionsToIgnore = RegionFileUtilities.loadRegionsFromBEDFile(gen, Args.parseString(args, "exclude", null), -1);
+					regionsToIgnore = RegionFileUtilities.loadRegionsFromBEDFile(gen, Args.parseString(args, "excludebed", null), -1);
 				//Initial peak file
 				if (ap.hasKey("peakf"))
 					initialPos = RegionFileUtilities.loadPeaksFromPeakFile(gen, Args.parseString(args, "peakf", null));
