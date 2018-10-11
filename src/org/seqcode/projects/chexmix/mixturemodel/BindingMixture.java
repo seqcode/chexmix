@@ -522,73 +522,79 @@ public class BindingMixture {
 	}
 	
 	public void consolidateBindingModels(){
-		// Merge similar binding models
-		for (ExperimentCondition cond : manager.getConditions()){	
-			List<BindingSubtype> currSubtypes = bindingManager.getPotentialBindingSubtypes(cond);
-			if (!currSubtypes.isEmpty()){
-			int numTypes = currSubtypes.size();
-			System.out.println("number of binding subtype is "+numTypes);
-				if (numTypes > 1){
-					double[][] klScores = new double[numTypes][numTypes];
-					for (int i=0; i < numTypes ; i++)
-						for (int j=0; j < numTypes; j++)
-							klScores[i][j]=0;
-					for (int a=0; a < numTypes; a++)
-						for (int b=1; b < numTypes; b++)
-							klScores[a][b]=getMinKLDivergenceScore(currSubtypes.get(a).getBindingModel(0),currSubtypes.get(b).getBindingModel(0));
-					// Identify similar binding model one by one
-					List<Integer> model2remove = new ArrayList<Integer>();
-					boolean checkSimilarity=true;
-					do{
-						double minScore=Double.MAX_VALUE;
-						int indexA=0; int indexB=0;
-						for (int i=0; i < numTypes; i++){
-							for (int j=i+1; j < numTypes; j++){
-								if (!model2remove.contains(i) && !model2remove.contains(j)){
-									if (klScores[i][j] < minScore ){
-										minScore =klScores[i][j];
-										indexA=i; indexB=j;								
-									}}}}
-						if (minScore <config.KL_DIVERGENCE_BM_THRES){
-							BindingSubtype subA = currSubtypes.get(indexA);
-							BindingSubtype subB = currSubtypes.get(indexB);
-							if (subA.hasMotif() && subB.hasMotif()){
-								double maxscore = motifFinder.motifAlignMaxScore(subA.getFreqMatrix(), subB.getFreqMatrix());
-								System.out.println("max score is "+maxscore/config.getMinMotifLength());
-								if (maxscore/config.getMinMotifLength() > config.MOTIF_PCC_THRES){
+		
+		// Do not consolidate binding models if initial motifs are provided
+		if (config.getInitialMotifs()==null){
+			// Merge similar binding models
+			for (ExperimentCondition cond : manager.getConditions()){	
+				List<BindingSubtype> currSubtypes = bindingManager.getPotentialBindingSubtypes(cond);
+				if (!currSubtypes.isEmpty()){
+					int numTypes = currSubtypes.size();
+					System.out.println("number of binding subtype is "+numTypes);
+					if (numTypes > 1){
+						double[][] klScores = new double[numTypes][numTypes];
+						for (int i=0; i < numTypes ; i++)
+							for (int j=0; j < numTypes; j++)
+								klScores[i][j]=0;
+						for (int a=0; a < numTypes; a++)
+							for (int b=1; b < numTypes; b++)
+								klScores[a][b]=getMinKLDivergenceScore(currSubtypes.get(a).getBindingModel(0),currSubtypes.get(b).getBindingModel(0));
+						// Identify similar binding model one by one
+						List<Integer> model2remove = new ArrayList<Integer>();
+						boolean checkSimilarity=true;
+						do{
+							double minScore=Double.MAX_VALUE;
+							int indexA=0; int indexB=0;
+							for (int i=0; i < numTypes; i++){
+								for (int j=i+1; j < numTypes; j++){
+									if (!model2remove.contains(i) && !model2remove.contains(j)){
+										if (klScores[i][j] < minScore ){
+											minScore =klScores[i][j];
+											indexA=i; indexB=j;								
+										}}}}
+							if (minScore <config.KL_DIVERGENCE_BM_THRES){
+								BindingSubtype subA = currSubtypes.get(indexA);
+								BindingSubtype subB = currSubtypes.get(indexB);
+								if (subA.hasMotif() && subB.hasMotif()){
+									double maxscore = motifFinder.motifAlignMaxScore(subA.getFreqMatrix(), subB.getFreqMatrix());
+									System.out.println("max score is "+maxscore/config.getMinMotifLength());
+									if (maxscore/config.getMinMotifLength() > config.MOTIF_PCC_THRES){
+										if (subA.getNumEvents() < subB.getNumEvents())
+											model2remove.add(indexA);
+										else
+											model2remove.add(indexB);						
+									}else{
+										klScores[indexA][indexB]=Double.MAX_VALUE;
+									}
+								}else if (subA.hasMotif()){ // only subtype A has motif
+									model2remove.add(indexB);
+								}else if (subB.hasMotif()){ // only subtype B has motif
+									model2remove.add(indexA);
+								}else{						// subtype A and subtype B do not have motif
 									if (subA.getNumEvents() < subB.getNumEvents())
 										model2remove.add(indexA);
 									else
-										model2remove.add(indexB);						
-								}else{
-									klScores[indexA][indexB]=Double.MAX_VALUE;
+										model2remove.add(indexB);	
 								}
-							}else if (subA.hasMotif()){ // only subtype A has motif
-								model2remove.add(indexB);
-							}else if (subB.hasMotif()){ // only subtype B has motif
-								model2remove.add(indexA);
-							}else{						// subtype A and subtype B do not have motif
-								if (subA.getNumEvents() < subB.getNumEvents())
-									model2remove.add(indexA);
-								else
-									model2remove.add(indexB);	
-							}
-						}else{
-							checkSimilarity=false;
-						}							
-					}while (checkSimilarity); // End of while loop
+							}else{
+								checkSimilarity=false;
+							}							
+						}while (checkSimilarity); // End of while loop
 				
-					System.out.println("models to be removed "+model2remove.toString());
-					List<BindingSubtype> subs2remove = new ArrayList<BindingSubtype>();
-					for (Integer i : model2remove){
-						subs2remove.add(currSubtypes.get(i));
+						System.out.println("models to be removed "+model2remove.toString());
+						List<BindingSubtype> subs2remove = new ArrayList<BindingSubtype>();
+						for (Integer i : model2remove){
+							subs2remove.add(currSubtypes.get(i));
+						}
+						currSubtypes.removeAll(subs2remove);
+						System.out.println("Models are consolidated from "+numTypes+" to "+currSubtypes.size());
 					}
-					currSubtypes.removeAll(subs2remove);
-					System.out.println("Models are consolidated from "+numTypes+" to "+currSubtypes.size());
+					bindingManager.setBindingSubtypes(cond, currSubtypes);	
+					bindingManager.clearPotentialBindingSubtypes(cond);
 				}
-				bindingManager.setBindingSubtypes(cond, currSubtypes);	
-				bindingManager.clearPotentialBindingSubtypes(cond);
 			}
+		}else{
+			System.out.println("Skipping the model consolidation step becuase initial motifs are provided.");
 		}
 	}
 	
