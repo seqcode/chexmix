@@ -529,7 +529,7 @@ public class BindingMixture {
 			if (!currSubtypes.isEmpty()){
 				int numTypes = currSubtypes.size();
 				System.out.println("number of binding subtype is "+numTypes);
-				if (numTypes > 1 && config.getInitialMotifs()!=null){	// only consolidate models if the initial motifs are not provided
+				if (numTypes > 1 && config.getInitialMotifs()==null){	// only consolidate models if the initial motifs are not provided
 					double[][] klScores = new double[numTypes][numTypes];
 					for (int i=0; i < numTypes ; i++)
 						for (int j=0; j < numTypes; j++)
