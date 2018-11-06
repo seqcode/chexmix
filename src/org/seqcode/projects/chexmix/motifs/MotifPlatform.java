@@ -1,8 +1,6 @@
 package org.seqcode.projects.chexmix.motifs;
 
 import java.io.File;
-import java.io.IOException;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -14,8 +12,6 @@ import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
-import org.seqcode.data.io.BackgroundModelIO;
-import org.seqcode.data.motifdb.CountsBackgroundModel;
 import org.seqcode.data.motifdb.MarkovBackgroundModel;
 import org.seqcode.data.motifdb.WeightMatrix;
 import org.seqcode.data.motifdb.WeightMatrixImport;
@@ -33,7 +29,6 @@ import org.seqcode.genome.sequence.SequenceUtils;
 import org.seqcode.gsebricks.verbs.location.ChromRegionIterator;
 import org.seqcode.gsebricks.verbs.motifs.WeightMatrixScoreProfile;
 import org.seqcode.gsebricks.verbs.motifs.WeightMatrixScorer;
-import org.seqcode.gseutils.NotFoundException;
 import org.seqcode.gseutils.Pair;
 import org.seqcode.math.stats.StatUtil;
 import org.seqcode.motifs.DrawMotifs;
@@ -274,7 +269,7 @@ public class MotifPlatform {
 		if (trainingRound<=2)
 			groupPeaks = groupPeaksByOverlap(allpeaks);
 		else
-			groupPeaks = groupPeaksBySubtypes(allpeaks);
+			groupPeaks = groupPeaksBySubtypes(allpeaks);		
 		
 		for (ExperimentCondition cond : manager.getConditions()){			
 			// List of motifs and motif references to return for each condition
@@ -497,7 +492,7 @@ public class MotifPlatform {
 							}}}	
 					if (overlapA.size() > config.getMinRefsForBMUpdate())
 						groupPeaks.get(manager.getIndexedCondition(i)).add(overlapA);
-					if (overlapA.size() > config.getMinRefsForBMUpdate())
+					if (overlapB.size() > config.getMinRefsForBMUpdate())
 						groupPeaks.get(manager.getIndexedCondition(j)).add(overlapB);			
 				}
 			}

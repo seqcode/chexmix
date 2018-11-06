@@ -60,7 +60,7 @@ public class ChExMixConfig {
 	protected double epsilonScalingFactor = 0.2; //Scale the condition and component-specific epsilon value by this factor
 	protected double motifMinROC = 0.70; //Motif prior is used only if the ROC is greater than this .	
 	protected double extendWindow = 500; //Range extension around gff points
-	protected int bmAnalysisWindowMax=10000;
+	protected int bmAnalysisWindowMax=5000;
 	protected int minComponentsForBMUpdate = 50;
 	protected int minRefsForBMUpdate = 25;
 	protected double minSubtypeFraction = 0.05; // A subtype needs to be associated with at least this fraction of binding events to be supported 
@@ -96,6 +96,7 @@ public class ChExMixConfig {
 	protected double MarkovBackSeqRmThres = 0.1; // Markov background threshold for removing sequences
 	protected int modelRange = 100;	// Window size to extract tag counts
 	protected boolean galaxyhtml=false; // Output simpler html file for galaxy 
+	protected boolean shareSubtypes=true;	// Share subtypes across experiments
     
 	//Constants
 	public final double LOG2 = Math.log(2);
@@ -301,6 +302,9 @@ public class ChExMixConfig {
 				
 				//Galaxy html output
 				galaxyhtml = Args.parseFlags(args).contains("galaxyhtml") ? true : false;
+				
+				//Not share subtype motifs across experiments
+				shareSubtypes = Args.parseFlags(args).contains("subtypenotshared") ? false : true;
 								
 				//Initial clustering points
 				String fname=null;
@@ -407,6 +411,7 @@ public class ChExMixConfig {
 	public boolean getMEMEnonparallel(){return MEMEnonparallel;}
 	public int getModelRange(){return modelRange;}
 	public boolean useGalaxyhtml(){return galaxyhtml;}
+	public boolean getShareSubtypes(){return shareSubtypes;}
 	
 	
 	/**
@@ -480,7 +485,6 @@ public class ChExMixConfig {
 				"\t--extwin <number of bp expansion centered around gff points (default: 500)]\n" +
 				"\t--nomodelupdate [flag to turn off binding model updates]\n" +
 				"\t--gausssmoothparam <Gaussian smoothing std dev (default="+gauss_smooth+">\n" +
-				"\t--mlconfignotshared [flag to not share component configs in the ML step]\n" +
 				"\t--exclude <file of regions to ignore>\n" +
 				"\t--plotregions <regions to print during EM training>\n" +
 				"\t--peakf <peak file used for component initialization>\n" +
