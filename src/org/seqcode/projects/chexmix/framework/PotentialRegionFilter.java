@@ -477,8 +477,22 @@ public class PotentialRegionFilter {
                     //currPotRegions is only used to count sig/noise reads in the current section. threadPotentials stores regions over the entire run.
                 }
                 //Add the final recorded region to the list
-                if(lastPotential!=null)
-    				threadPotentials.add(lastPotential);
+                if(lastPotential!=null){
+                	if(lastPotential.getWidth()<=config.getBMAnalysisWindowMax()){
+                		threadPotentials.add(lastPotential);
+                	}else{
+                		//Break up long windows
+                		List<List<StrandedBaseCount>> ipHits = new ArrayList<List<StrandedBaseCount>>();
+                		for(ExperimentCondition cond : manager.getConditions())
+                		    ipHits.add(new ArrayList<StrandedBaseCount>());
+                		for(ExperimentCondition cond : manager.getConditions())
+                			for(ControlledExperiment rep : cond.getReplicates())
+                				ipHits.get(cond.getIndex()).addAll(rep.getSignal().getBases(lastPotential));
+    					List<Region> parts = breakWindow(lastPotential, ipHits, config.getBMAnalysisWindowMax(), '.');
+    					for(Region p : parts)
+    						threadPotentials.add(p);
+                	}
+                }
                 threadPotentials = filterExcluded(threadPotentials);
             }
         	if(threadPotentials.size()>0){
