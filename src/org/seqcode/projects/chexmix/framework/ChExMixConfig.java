@@ -60,7 +60,7 @@ public class ChExMixConfig {
 	protected double epsilonScalingFactor = 0.2; //Scale the condition and component-specific epsilon value by this factor
 	protected double motifMinROC = 0.70; //Motif prior is used only if the ROC is greater than this .	
 	protected double extendWindow = 500; //Range extension around gff points
-	protected int bmAnalysisWindowMax=5000;
+	protected int bmAnalysisWindowMax=2000;
 	protected int minComponentsForBMUpdate = 50;
 	protected int minRefsForBMUpdate = 25;
 	protected double minSubtypeFraction = 0.05; // A subtype needs to be associated with at least this fraction of binding events to be supported 
