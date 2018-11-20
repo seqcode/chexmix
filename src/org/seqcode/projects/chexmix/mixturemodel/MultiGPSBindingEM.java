@@ -31,8 +31,10 @@ public class MultiGPSBindingEM {
 	protected List<NoiseComponent> noise;
 	protected int numComponents;  //Assumes the same number of active+inactive components in each condition
 	protected int numConditions;
+	protected int numReplicates;
 	protected int trainingRound=0; //Identifier for the overall training round, used only for file names
 	protected HashMap<ExperimentCondition, BackgroundCollection> conditionBackgrounds; //Background models per condition
+	protected HashMap<ControlledExperiment, BackgroundCollection> replicateBackgrounds; //Background models per condition
 	//	EM VARIABLES
 	// H function and responsibility have to account for all reads in region now, as they will be updated 
     // once the component positions change (i.e. we can't do the trick where we restrict to reads within 
@@ -51,6 +53,7 @@ public class MultiGPSBindingEM {
 	protected double[]     piNoise;		// pi : emission probabilities for noise components (fixed)
 	protected int[][]      mu;			// mu : positions of the binding components
 	protected double []    alphaMax;	// Maximum alpha
+	protected double []    repAlphaMax;	// Maximum alpha
 	protected BindingModel[] bindingModels; //Array of binding models for convenience
 	protected double[][][] lastRBind;	//Last responsibilities (monitor convergence)
 	protected double[][]   lastPi;		//Last Pi (monitor convergence)
@@ -68,12 +71,14 @@ public class MultiGPSBindingEM {
 	 * @param c
 	 * @param eMan
 	 */
-	public MultiGPSBindingEM(ChExMixConfig c, ExperimentManager eMan, BindingManager bMan, HashMap<ExperimentCondition, BackgroundCollection> condBacks, int numPotReg){
+	public MultiGPSBindingEM(ChExMixConfig c, ExperimentManager eMan, BindingManager bMan, HashMap<ExperimentCondition, BackgroundCollection> condBacks, HashMap<ControlledExperiment, BackgroundCollection> repBacks,int numPotReg){
 		config=c;
 		manager = eMan;
 		bindingManager = bMan;
 		conditionBackgrounds = condBacks;
+		replicateBackgrounds = repBacks;
 		numConditions = manager.getNumConditions();
+		numReplicates = manager.getReplicates().size();
 		numPotentialRegions = (double)numPotReg;
 	}
 	
@@ -114,8 +119,9 @@ public class MultiGPSBindingEM {
     	pi = new double[numConditions][numComponents];	// pi : emission probabilities for binding components
     	piNoise = new double[numConditions];		// pi : emission probabilities for noise components (fixed)
     	alphaMax = new double[numConditions];		//Maximum alpha
+    	repAlphaMax = new double[numReplicates];//Maximum alpha per replicate
         mu = new int[numConditions][numComponents];// mu : positions of the binding components
-        bindingModels = new BindingModel[manager.getReplicates().size()]; //Array of bindingModels for convenience
+        bindingModels = new BindingModel[numReplicates]; //Array of bindingModels for convenience
         plotEM = (plotSubRegion!=null && plotSubRegion.overlaps(w));
         //Monitor state convergence using the following last variables
         lastRBind = new double[numConditions][][];
@@ -133,6 +139,9 @@ public class MultiGPSBindingEM {
         	//Set maximum alphas
         	alphaMax[c] =  config.getFixedAlpha()>0 ? config.getFixedAlpha() : 
         			config.getAlphaScalingFactor() * (double)conditionBackgrounds.get(cond).getMaxThreshold('.');
+        	for (ControlledExperiment rep : cond.getReplicates())
+        		repAlphaMax[rep.getIndex()] = config.getFixedAlpha()>0 ? config.getFixedAlpha() : 
+        			config.getAlphaScalingFactor() * (double)replicateBackgrounds.get(rep).getMaxThreshold('.');
         	
         	//Load Reads (merge from all replicates)
         	List<StrandedBaseCount> bases = new ArrayList<StrandedBaseCount>();
@@ -271,6 +280,9 @@ public class MultiGPSBindingEM {
         double[] currAlpha = new double[numConditions];
         for(int c=0; c<numConditions; c++)
         	currAlpha[c] = 0;
+        double[] currRepAlpha = new double[numReplicates];
+        for (int r=0; r < numReplicates;r++)
+        	currRepAlpha[r] = 0;
         
         /**
     	////////////
@@ -415,18 +427,38 @@ public class MultiGPSBindingEM {
                 		pi[c][j]=Math.max(0, sumR[j]-currAlpha[c]); 
                 	}}
                 }else{
-                    // Eliminate worst binding component
-                    // Responsibilities will be redistributed in the E step
-                   	pi[c][minIndex]=0.0; sumR[minIndex]=0.0;
-                   	for(int i=0; i<numBases;i++)
-                   		rBind[c][minIndex][i] = 0;
-                   	//I discussed this bit with Chris, and we decided that the best thing to do is
-                   	//to re-estimate pi values for non-eliminated components using the current responsibility assignments
-                   	for(int j=0;j<numComp;j++){ 
-                   		if(j!=minIndex)
-                   			pi[c][j]=Math.max(0, sumR[j]); 
+                	// Check to see each replicate has resp lower than replicate alpha
+                	double[] repSumR=new double[numReplicates];
+                	for (int i=0; i < numBases; i++)
+                		repSumR[repIndices[c][i]] += rBind[c][minIndex][i]*hitCounts[c][i];
+                	boolean repSurvive =false;
+                	for (ControlledExperiment rep : manager.getIndexedCondition(c).getReplicates()){
+                		if (repSumR[rep.getIndex()] > currRepAlpha[rep.getIndex()]){
+                			repSurvive=true; break;
+                		}
                 	}
-                   	componentEliminated=true;
+                	if (repSurvive){
+                		// No component to be eliminated, update pi(j)
+                    	for(int j=0;j<numComp;j++){ if(pi[c][j]>0){
+                    		if (j!=minIndex)
+                    			pi[c][j]=Math.max(0, sumR[j]-currAlpha[c]); 
+                    		else
+                    			pi[c][j]=Math.max(Double.MIN_VALUE, sumR[j]-currAlpha[c]);
+                    	}}
+                	}else{               	
+                		// Eliminate worst binding component
+                		// Responsibilities will be redistributed in the E step
+                		pi[c][minIndex]=0.0; sumR[minIndex]=0.0;
+                		for(int i=0; i<numBases;i++)
+                			rBind[c][minIndex][i] = 0;
+                		//I discussed this bit with Chris, and we decided that the best thing to do is
+                		//to re-estimate pi values for non-eliminated components using the current responsibility assignments
+                		for(int j=0;j<numComp;j++){ 
+                			if(j!=minIndex)
+                				pi[c][j]=Math.max(0, sumR[j]); 
+                		}
+                		componentEliminated=true;
+                		}
                 }
                 //Normalize pi (accounting for piNoise)
                 double totalPi=0;
@@ -442,10 +474,15 @@ public class MultiGPSBindingEM {
             	/////////////
             	//Anneal alpha
             	//////////////
-        		if (t >config.EM_ML_ITER && t <= config.ALPHA_ANNEALING_ITER)
+        		if (t >config.EM_ML_ITER && t <= config.ALPHA_ANNEALING_ITER){
         			currAlpha[c] = alphaMax[c] * (t-config.EM_ML_ITER)/(config.ALPHA_ANNEALING_ITER-config.EM_ML_ITER);
-        		else if(t > config.ALPHA_ANNEALING_ITER)
+        			for (ControlledExperiment rep : manager.getIndexedCondition(c).getReplicates())
+        				currRepAlpha[rep.getIndex()] =repAlphaMax[rep.getIndex()]*(t-config.EM_ML_ITER)/(config.ALPHA_ANNEALING_ITER-config.EM_ML_ITER);
+        		}else if(t > config.ALPHA_ANNEALING_ITER){
         			currAlpha[c] = alphaMax[c];
+        			for (ControlledExperiment rep : manager.getIndexedCondition(c).getReplicates())
+        				currRepAlpha[rep.getIndex()] =repAlphaMax[rep.getIndex()];
+        		}     		
         	}
         	
         	//Non-zero components count
