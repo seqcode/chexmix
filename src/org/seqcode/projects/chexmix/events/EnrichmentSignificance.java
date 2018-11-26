@@ -81,6 +81,15 @@ public class EnrichmentSignificance {
 				cf.setCondSigVCtrlFold(c1, sigCtrlFold);
 				cf.setCondSigVCtrlP(c1, sigCtrlP);
 				
+				//P-value, signal vs control for each replicate
+				for(ControlledExperiment r : c1.getReplicates()){
+					double repFold = cf.getRepCtrlHits(r)>1 ? cf.getRepSigHits(r)/(cf.getRepCtrlHits(r)*r.getControlScaling()) : cf.getRepSigHits(r);
+					double repSigCtrlFold = repFold * repWeights[r.getIndex()];
+					double repSigCtrlP = evaluateSignificance(cf.getRepSigHits(r), cf.getRepCtrlHits(r), cf.getCondTotalSigHitsFromReps(c1), modelRange);
+					cf.setRepSigVCtrlFold(r, repSigCtrlFold);
+					cf.setRepSigVCtrlP(r, repSigCtrlP);
+				}
+				
 				//Log-likelihood p-value
 				if(config.CALC_EVENTS_LL){
 					cf.setLLp(c1, chisquare.cdf(cf.getLLd(c1)));
@@ -135,6 +144,8 @@ public class EnrichmentSignificance {
 			double rank =1.0;
 			for(BindingEvent cf : features){
 				cf.setCondSigVCtrlP(c, Math.min(1.0, cf.getCondSigVCtrlP(c)*(total/rank)));
+				for(ControlledExperiment r : c.getReplicates())
+					cf.setRepSigVCtrlP(r, Math.min(1.0, cf.getRepSigVCtrlP(r)*(total/rank)));
 				rank++;
 			}
 		}
@@ -151,6 +162,8 @@ public class EnrichmentSignificance {
 				double rank =1.0;
 				for(BindingEvent cf : features){
 					cf.setCondSigVCtrlP(c, Math.min(1.0, cf.getCondSigVCtrlP(c)*(total/rank)));
+					for(ControlledExperiment r : c.getReplicates())
+						cf.setRepSigVCtrlP(r, Math.min(1.0, cf.getRepSigVCtrlP(r)*(total/rank)));
 					rank++;
 				}
 			}

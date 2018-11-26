@@ -261,7 +261,7 @@ public class BindingEvent implements Comparable<BindingEvent>{
 				if(r.getControl()==null)
 					head = head + "#Replicate\t"+c.getName()+"\t"+r.getName()+"\t"+r.getIndex()+"\t"+r.getSignal().getHitCount()+"\t0\t1\t"+String.format("%.2f",r.getSignalVsNoiseFraction())+"\n";
 				else
-					head = head + "#Replicate\t"+c.getName()+"\t"+r.getName()+"\t"+r.getIndex()+"\t"+r.getSignal().getHitCount()+"\t"+r.getControl().getHitCount()+"\t"+String.format("%.2f",r.getControlScaling())+"\t"+String.format("%.3f",r.getSignalVsNoiseFraction())+"\n";
+					head = head + "#Replicate\t"+c.getName()+"\t"+r.getName()+"\t"+r.getIndex()+"\t"+r.getSignal().getHitCount()+"\t"+r.getControl().getHitCount()+"\t"+String.format("%.4f",r.getControlScaling())+"\t"+String.format("%.3f",r.getSignalVsNoiseFraction())+"\n";
 			}
 		}
 		

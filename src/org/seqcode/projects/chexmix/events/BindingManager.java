@@ -228,7 +228,15 @@ public class BindingManager {
 			    	for(BindingEvent e : events){
 			    		double Q = e.getCondSigVCtrlP(cond);
 			    		//Because of the ML step and component sharing, I think that an event could be assigned a significant number of reads without being "present" in the condition's EM model.
-			    		if(e.isFoundInCondition(cond) && Q <=qMinThres)
+			    		boolean reportEvent=false;
+			    		if(e.isFoundInCondition(cond)){
+			    			for (ControlledExperiment rep : cond.getReplicates()){
+			    				double repQ = e.getRepSigVCtrlP(rep);
+			    				if (repQ <=qMinThres)
+			    					reportEvent=true;
+			    			}
+			    		}
+			    		if (reportEvent)
 			    			fout.write(e.getConditionString(cond)+"\n");
 			    	}
 					fout.close();
@@ -245,7 +253,15 @@ public class BindingManager {
 					for(BindingEvent e : events){
 						double Q = e.getCondSigVCtrlP(cond);
 						//Because of the ML step and component sharing, I think that an event could be assigned a significant number of reads without being "present" in the condition's EM model.
-						if(e.isFoundInCondition(cond) && Q <=qMinThres)
+						boolean reportEvent=false;
+			    		if(e.isFoundInCondition(cond)){
+			    			for (ControlledExperiment rep : cond.getReplicates()){
+			    				double repQ = e.getRepSigVCtrlP(rep);
+			    				if (repQ <=qMinThres)
+			    					reportEvent=true;
+			    			}
+			    		}
+			    		if (reportEvent)
 							fout.write(e.getSubtypeString(cond)+"\n");
 					}	
 					fout.close();
@@ -262,7 +278,15 @@ public class BindingManager {
 					for(BindingEvent e : events){
 						double Q = e.getCondSigVCtrlP(cond);
 						//Because of the ML step and component sharing, I think that an event could be assigned a significant number of reads without being "present" in the condition's EM model.
-						if(e.isFoundInCondition(cond) && Q <=qMinThres){
+						boolean reportEvent=false;
+			    		if(e.isFoundInCondition(cond)){
+			    			for (ControlledExperiment rep : cond.getReplicates()){
+			    				double repQ = e.getRepSigVCtrlP(rep);
+			    				if (repQ <=qMinThres)
+			    					reportEvent=true;
+			    			}
+			    		}
+			    		if (reportEvent){
 							Pair<Integer, StrandedPoint>p=e.getMaxSubtypePoint(cond);
 							subtypePoints.get(p.car()).add(p.cdr());
 							potReg.get(p.car()).add(e.getContainingRegion());
@@ -328,7 +352,15 @@ public class BindingManager {
     				fout.write(BindingEvent.conditionBEDHeadString(cond)+"\n");
     				for (BindingEvent e: events){
     					double Q = e.getCondSigVCtrlP(cond);{
-    						if(e.isFoundInCondition(cond) && Q <=qMinThres)
+    						boolean reportEvent=false;
+    			    		if(e.isFoundInCondition(cond)){
+    			    			for (ControlledExperiment rep : cond.getReplicates()){
+    			    				double repQ = e.getRepSigVCtrlP(rep);
+    			    				if (repQ <=qMinThres)
+    			    					reportEvent=true;
+    			    			}
+    			    		}
+    			    		if (reportEvent)
     							fout.write(e.getConditionBED(cond)+"\n");									
     					}						
     				}
