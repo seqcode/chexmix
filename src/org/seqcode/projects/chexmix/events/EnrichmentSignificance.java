@@ -85,7 +85,7 @@ public class EnrichmentSignificance {
 				for(ControlledExperiment r : c1.getReplicates()){
 					double repFold = cf.getRepCtrlHits(r)>1 ? cf.getRepSigHits(r)/(cf.getRepCtrlHits(r)*r.getControlScaling()) : cf.getRepSigHits(r);
 					double repSigCtrlFold = repFold * repWeights[r.getIndex()];
-					double repSigCtrlP = evaluateSignificance(cf.getRepSigHits(r), cf.getRepCtrlHits(r), cf.getCondTotalSigHitsFromReps(c1), modelRange);
+					double repSigCtrlP = evaluateSignificance(cf.getRepSigHits(r), cf.getRepCtrlHits(r), r.getSignal().getHitCount(), modelRange);
 					cf.setRepSigVCtrlFold(r, repSigCtrlFold);
 					cf.setRepSigVCtrlP(r, repSigCtrlP);
 				}
@@ -148,6 +148,19 @@ public class EnrichmentSignificance {
 					cf.setRepSigVCtrlP(r, Math.min(1.0, cf.getRepSigVCtrlP(r)*(total/rank)));
 				rank++;
 			}
+			
+			/**
+			for(ControlledExperiment r : c.getReplicates()){
+				Collections.sort(features, new Comparator<BindingEvent>(){
+		            public int compare(BindingEvent o1, BindingEvent o2) {return o1.compareByRepSigCtrlPvalue(o2, r);}
+		        });
+				double rRank =1.0;
+				for(BindingEvent cf : features){
+					cf.setRepSigVCtrlP(r, Math.min(1.0, cf.getRepSigVCtrlP(r)*(total/rRank)));
+					rRank++;
+				}
+			}
+			**/
 		}
 		
 		//LL p-value corrections by condition

@@ -194,6 +194,18 @@ public class BindingEvent implements Comparable<BindingEvent>{
 	}
 	
 	/**
+	 * Rank according to increasing replicate p-value (score) for the sorting condition, then by signal count for the sorting condition
+	 */
+	public int compareByRepSigCtrlPvalue(BindingEvent p, ControlledExperiment rep) {
+		if(this.getRepSigVCtrlP(rep)<p.getRepSigVCtrlP(rep)){return(-1);}
+		else if(this.getRepSigVCtrlP(rep)>p.getRepSigVCtrlP(rep)){return(1);}
+		else{
+			if(this.getRepSigHits(rep)>p.getRepSigHits(rep)){return(-1);}
+			else if(this.getRepSigHits(rep)<p.getRepSigHits(rep)){return(1);}
+		}return(0);	
+	}
+	
+	/**
 	 * Rank according to increasing p-value (score) for the pair of sorting conditions, then by signal count for the sorting condition
 	 */
 	public int compareByInterCondPvalue(BindingEvent p) {
