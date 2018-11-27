@@ -70,7 +70,6 @@ public class BindingMixture {
 	protected List<Region> testRegions;
 	protected HashMap<Region, List<List<BindingSubComponents>>> activeComponents; //Components active after a round of execute()
 	protected HashMap<ExperimentCondition, BackgroundCollection> conditionBackgrounds=new HashMap<ExperimentCondition, BackgroundCollection>(); //Genomic Background models for each condition -- used to set alpha values in sparse prior
-	protected HashMap<ControlledExperiment, BackgroundCollection> replicateBackgrounds=new HashMap<ControlledExperiment, BackgroundCollection>(); //Genomic Background models for each replicate -- used to set alpha values in sparse prior
 	protected List<BindingEvent> bindingEvents;
 	protected List<Region> regionsToPlot;
 	protected int trainingRound=0;
@@ -110,14 +109,6 @@ public class BindingMixture {
 			System.err.println("Alpha "+cond.getName()+"\tRange="+config.getModelRange()+"\t"+alf);
 			bindingManager.setAlpha(cond,alf);
 		}
-		
-		for(ControlledExperiment rep : manager.getReplicates()){
-			replicateBackgrounds.put(rep, new BackgroundCollection());
-			replicateBackgrounds.get(rep).addBackgroundModel(new PoissonBackgroundModel(-1, config.getSigLogConf(), rep.getSignal().getHitCount()*(1-rep.getSignalVsNoiseFraction()), config.getGenome().getGenomeLength(), econfig.getMappableGenomeProp(), config.getModelRange(), '.', 1, true));
-			double alf = config.getFixedAlpha()>0 ? config.getFixedAlpha() : (double)replicateBackgrounds.get(rep).getMaxThreshold('.');
-			System.err.println("Alpha "+rep.getName()+"\tRange="+config.getModelRange()+"\t"+alf);
-			bindingManager.setRepAlpha(rep,alf);
-		}		
 		
 		noisePerBase = new double[manager.getNumConditions()];
 		relativeCtrlNoise = new double[manager.getNumConditions()];
@@ -634,14 +625,6 @@ public class BindingMixture {
 			System.err.println("Alpha "+cond.getName()+"\tRange="+config.getModelRange()+"\t"+alf);
 			bindingManager.setAlpha(cond,alf);
 		}
-    	
-    	for(ControlledExperiment rep : manager.getReplicates()){
-			replicateBackgrounds.put(rep, new BackgroundCollection());
-			replicateBackgrounds.get(rep).addBackgroundModel(new PoissonBackgroundModel(-1, config.getSigLogConf(), rep.getSignal().getHitCount()*(1-rep.getSignalVsNoiseFraction()), config.getGenome().getGenomeLength(), econfig.getMappableGenomeProp(), config.getModelRange(), '.', 1, true));
-			double alf = config.getFixedAlpha()>0 ? config.getFixedAlpha() : (double)replicateBackgrounds.get(rep).getMaxThreshold('.');
-			System.err.println("Alpha "+rep.getName()+"\tRange="+config.getModelRange()+"\t"+alf);
-			bindingManager.setRepAlpha(rep,alf);
-		}
     }
     
     /**
@@ -921,8 +904,8 @@ public class BindingMixture {
 		 * @throws FileNotFoundException 
 		 */
 		private Pair<List<NoiseComponent>, List<List<BindingSubComponents>>> analyzeWindowEM(Region w) throws FileNotFoundException{
-			BindingEM EM = new BindingEM(config, manager, bindingManager, conditionBackgrounds,replicateBackgrounds, potRegFilter.getPotentialRegions().size());
-			MultiGPSBindingEM multiGPSEM = new MultiGPSBindingEM(config, manager, bindingManager, conditionBackgrounds, replicateBackgrounds, potRegFilter.getPotentialRegions().size());
+			BindingEM EM = new BindingEM(config, manager, bindingManager, conditionBackgrounds, potRegFilter.getPotentialRegions().size());
+			MultiGPSBindingEM multiGPSEM = new MultiGPSBindingEM(config, manager, bindingManager, conditionBackgrounds, potRegFilter.getPotentialRegions().size());
 			
 			List<List<BindingSubComponents>> bindingComponents=null;
 			List<NoiseComponent> noiseComponents=null;

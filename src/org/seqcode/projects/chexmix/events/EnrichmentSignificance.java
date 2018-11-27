@@ -144,11 +144,12 @@ public class EnrichmentSignificance {
 			double rank =1.0;
 			for(BindingEvent cf : features){
 				cf.setCondSigVCtrlP(c, Math.min(1.0, cf.getCondSigVCtrlP(c)*(total/rank)));
-//				for(ControlledExperiment r : c.getReplicates())
-//					cf.setRepSigVCtrlP(r, Math.min(1.0, cf.getRepSigVCtrlP(r)*(total/rank)));
+				for(ControlledExperiment r : c.getReplicates())
+					cf.setRepSigVCtrlP(r, Math.min(1.0, cf.getRepSigVCtrlP(r)*(total/rank)));
 				rank++;
 			}
 			
+			/** Update Benjamin Hochberg correction
 			for(ControlledExperiment r : c.getReplicates()){
 				Collections.sort(features, new Comparator<BindingEvent>(){
 		            public int compare(BindingEvent o1, BindingEvent o2) {return o1.compareByRepSigCtrlPvalue(o2, r);}
@@ -159,6 +160,7 @@ public class EnrichmentSignificance {
 					rRank++;
 				}
 			}
+			**/
 		}
 		
 		//LL p-value corrections by condition

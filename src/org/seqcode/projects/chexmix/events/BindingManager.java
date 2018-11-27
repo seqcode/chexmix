@@ -40,7 +40,6 @@ public class BindingManager {
 	protected Map<ExperimentCondition, Integer> numBindingType;
 	protected Map<ControlledExperiment, BindingModel> unstrandedModel;
 	protected Map<ExperimentCondition, Double> alpha;
-	protected Map<ControlledExperiment, Double> repAlpha;
 	protected Map<ExperimentCondition, List<List<StrandedPoint>>> alignedEventPoints;
 	protected Map<ExperimentCondition, List<BindingSubtype>> potentialBindingSubtypes;
 	
@@ -52,7 +51,6 @@ public class BindingManager {
 		bindingSubtypes = new HashMap<ExperimentCondition, List<BindingSubtype>>();
 		motifReverseStrands = new HashMap<ExperimentCondition, List<Boolean>>();
 		alpha = new HashMap<ExperimentCondition, Double>();
-		repAlpha = new HashMap<ControlledExperiment, Double>();
 		numBindingType = new HashMap<ExperimentCondition, Integer>();
 		unstrandedModel = new HashMap<ControlledExperiment, BindingModel>();
 		alignedEventPoints = new HashMap<ExperimentCondition, List<List<StrandedPoint>>>();
@@ -65,8 +63,6 @@ public class BindingManager {
 			alignedEventPoints.put(cond, new ArrayList<List<StrandedPoint>>());
 			potentialBindingSubtypes.put(cond, new ArrayList<BindingSubtype>());
 		}
-		for (ControlledExperiment rep : manager.getReplicates())
-			repAlpha.put(rep, 0.0);
 	}
 	
 	public List<BindingEvent> getBindingEvents(){return events;}
@@ -76,7 +72,6 @@ public class BindingManager {
 	public Integer getNumBindingType(ExperimentCondition ec){return numBindingType.get(ec);}
 	public BindingModel getUnstrandedBindingModel(ControlledExperiment ce){return unstrandedModel.get(ce);}
 	public Double getAlpha(ExperimentCondition ec){return alpha.get(ec);}
-	public Double getRepAlpha(ControlledExperiment rep){return repAlpha.get(rep);}
 	public List<List<StrandedPoint>> getAlignedEventPoints(ExperimentCondition ec){return alignedEventPoints.get(ec);}
 	public List<BindingSubtype> getPotentialBindingSubtypes(ExperimentCondition ec){return potentialBindingSubtypes.get(ec);}
 
@@ -85,7 +80,6 @@ public class BindingManager {
 	public void setBindingSubtypes(ExperimentCondition ec, List<BindingSubtype> sub){bindingSubtypes.put(ec, sub); numBindingType.put(ec, sub.size());}
 	public void setReverseStrand(ExperimentCondition ec, List<Boolean> reverse){motifReverseStrands.put(ec, reverse);}
 	public void setAlpha(ExperimentCondition ec, Double a){alpha.put(ec,a);}
-	public void setRepAlpha(ControlledExperiment rep, Double a){repAlpha.put(rep, a);}
 	public void setUnstrandedBindingModel(ControlledExperiment ce, BindingModel mod){unstrandedModel.put(ce, mod);}
 	public void setAlignedEventPoints(ExperimentCondition ec, List<List<StrandedPoint>> points){alignedEventPoints.put(ec, points);}
 	public void addPotentialBindingSubtypes(ExperimentCondition ec, List<BindingSubtype> subtypes){potentialBindingSubtypes.get(ec).addAll(subtypes);}
