@@ -85,7 +85,7 @@ public class EnrichmentSignificance {
 				for(ControlledExperiment r : c1.getReplicates()){
 					double repFold = cf.getRepCtrlHits(r)>1 ? cf.getRepSigHits(r)/(cf.getRepCtrlHits(r)*r.getControlScaling()) : cf.getRepSigHits(r);
 					double repSigCtrlFold = repFold * repWeights[r.getIndex()];
-					double repSigCtrlP = evaluateSignificance(cf.getRepSigHits(r), cf.getRepCtrlHits(r), r.getSignal().getHitCount(), modelRange);
+					double repSigCtrlP = evaluateSignificance(cf.getRepSigHits(r), cf.getRepCtrlHits(r)*r.getControlScaling(), r.getSignal().getHitCount(), modelRange);
 					cf.setRepSigVCtrlFold(r, repSigCtrlFold);
 					cf.setRepSigVCtrlP(r, repSigCtrlP);
 				}
