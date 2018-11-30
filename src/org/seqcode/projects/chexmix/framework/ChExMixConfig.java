@@ -266,7 +266,7 @@ public class ChExMixConfig {
 				// Positional prior weights
 				posPriorScaling = Args.parseInteger(args,"pospriorscale",posPriorScaling);
 				// Turn on per base read filtering
-				doReadFilter = (Args.parseFlags(args).contains("poissongausspb")|| Args.parseFlags(args).contains("fixedpb")) ? true : false;	
+				doReadFilter = Args.parseFlags(args).contains("readfilter") ? true : false;	
 				// Markov background threshold to remove sequences with a discovered motif
 				MarkovBackSeqRmThres = Args.parseDouble(args, "seqrmthres", MarkovBackSeqRmThres);
 				
