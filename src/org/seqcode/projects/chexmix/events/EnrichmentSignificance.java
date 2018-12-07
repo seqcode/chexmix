@@ -135,9 +135,8 @@ public class EnrichmentSignificance {
 		
 		//Signal-vs-Control corrections by condition
 		for(ExperimentCondition c : manager.getConditions()){
-			BindingEvent.setSortingCond(c);
+			BindingEvent.setSortingCond(c);		
 			
-			/**
 			Collections.sort(features, new Comparator<BindingEvent>(){
 	            public int compare(BindingEvent o1, BindingEvent o2) {return o1.compareBySigCtrlPvalue(o2);}
 	        });
@@ -148,7 +147,6 @@ public class EnrichmentSignificance {
 				cf.setCondSigVCtrlQ(c, Math.min(1.0, cf.getCondSigVCtrlP(c)*(total/rank)));
 				rank++;
 			}
-			**/
 			
 			for(ControlledExperiment r : c.getReplicates()){
 				Collections.sort(features, new Comparator<BindingEvent>(){
