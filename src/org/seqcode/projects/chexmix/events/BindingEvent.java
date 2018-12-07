@@ -373,9 +373,9 @@ public class BindingEvent implements Comparable<BindingEvent>{
 		for(ControlledExperiment r : experiments.getReplicates())
 			out = out+"\t"+String.format("%.0f", getRepSigHits(r)); 
 		for(ControlledExperiment r : experiments.getReplicates())
-			out = out+"\t"+String.format("%.0f", getRepSigVCtrlP(r));
+			out = out+"\t"+String.format("%.3f", getRepSigVCtrlP(r));
 		for(ControlledExperiment r : experiments.getReplicates())
-			out = out+"\t"+String.format("%.0f", getRepSigVCtrlQ(r));
+			out = out+"\t"+String.format("%.3f", getRepSigVCtrlQ(r));
 		
 		return out;
 	}

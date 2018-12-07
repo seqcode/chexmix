@@ -136,6 +136,8 @@ public class EnrichmentSignificance {
 		//Signal-vs-Control corrections by condition
 		for(ExperimentCondition c : manager.getConditions()){
 			BindingEvent.setSortingCond(c);
+			
+			/**
 			Collections.sort(features, new Comparator<BindingEvent>(){
 	            public int compare(BindingEvent o1, BindingEvent o2) {return o1.compareBySigCtrlPvalue(o2);}
 	        });
@@ -144,12 +146,10 @@ public class EnrichmentSignificance {
 			double rank =1.0;
 			for(BindingEvent cf : features){
 				cf.setCondSigVCtrlQ(c, Math.min(1.0, cf.getCondSigVCtrlP(c)*(total/rank)));
-				for(ControlledExperiment r : c.getReplicates())
-					cf.setRepSigVCtrlQ(r, Math.min(1.0, cf.getRepSigVCtrlP(r)*(total/rank)));
 				rank++;
 			}
+			**/
 			
-			/** Update Benjamin Hochberg correction
 			for(ControlledExperiment r : c.getReplicates()){
 				Collections.sort(features, new Comparator<BindingEvent>(){
 		            public int compare(BindingEvent o1, BindingEvent o2) {return o1.compareByRepSigCtrlPvalue(o2, r);}
@@ -160,7 +160,6 @@ public class EnrichmentSignificance {
 					rRank++;
 				}
 			}
-			**/
 		}
 		
 		//LL p-value corrections by condition
