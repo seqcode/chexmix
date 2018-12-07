@@ -143,9 +143,9 @@ public class EnrichmentSignificance {
 			
 			double rank =1.0;
 			for(BindingEvent cf : features){
-				cf.setCondSigVCtrlP(c, Math.min(1.0, cf.getCondSigVCtrlP(c)*(total/rank)));
+				cf.setCondSigVCtrlQ(c, Math.min(1.0, cf.getCondSigVCtrlP(c)*(total/rank)));
 				for(ControlledExperiment r : c.getReplicates())
-					cf.setRepSigVCtrlP(r, Math.min(1.0, cf.getRepSigVCtrlP(r)*(total/rank)));
+					cf.setRepSigVCtrlQ(r, Math.min(1.0, cf.getRepSigVCtrlP(r)*(total/rank)));
 				rank++;
 			}
 			
@@ -174,9 +174,9 @@ public class EnrichmentSignificance {
 				
 				double rank =1.0;
 				for(BindingEvent cf : features){
-					cf.setCondSigVCtrlP(c, Math.min(1.0, cf.getCondSigVCtrlP(c)*(total/rank)));
+					cf.setCondSigVCtrlQ(c, Math.min(1.0, cf.getCondSigVCtrlP(c)*(total/rank)));
 					for(ControlledExperiment r : c.getReplicates())
-						cf.setRepSigVCtrlP(r, Math.min(1.0, cf.getRepSigVCtrlP(r)*(total/rank)));
+						cf.setRepSigVCtrlQ(r, Math.min(1.0, cf.getRepSigVCtrlP(r)*(total/rank)));
 					rank++;
 				}
 			}

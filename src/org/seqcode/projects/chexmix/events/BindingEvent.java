@@ -45,10 +45,12 @@ public class BindingEvent implements Comparable<BindingEvent>{
 	protected double [] condCtrlHits;  //Control counts by condition  (not scaled)    [indexed by condition]
 	protected double [] condSigVCtrlFold;  //Signal vs Control fold by condition      [indexed by condition]
 	protected double [] condSigVCtrlP;  //Signal vs Control P-value by condition      [indexed by condition]
+	protected double [] condSigVCtrlQ;  //Signal vs Control Q-value by condition      [indexed by condition]
 	protected double [] repSigHits;  //Signal counts by replicate  (not scaled)     [indexed by replicate]
 	protected double [] repCtrlHits;  //Control counts by replicate  (not scaled)   [indexed by replicate]
 	protected double [] repSigVCtrlFold;  //Signal vs Control fold by replicate     [indexed by replicate]
 	protected double [] repSigVCtrlP;  //Signal vs Control P-value by replicate     [indexed by replicate]
+	protected double [] repSigVCtrlQ;  //Signal vs Control Q-value by replicate     [indexed by replicate]
 	protected double [][] interCondScMean;   //Signal vs signal scaled mean (logCPM from EdgeR), inter-condition  [indexed by condition & condition]
 	protected double [][] interCondFold;   //Signal vs signal fold difference  (logFold from EdgeR), inter-condition  [indexed by condition & condition]
 	protected double [][] interCondP;   //Signal vs signal P, inter-condition         [indexed by condition & condition]
@@ -74,6 +76,7 @@ public class BindingEvent implements Comparable<BindingEvent>{
 		condCtrlHits = new double [numC];
 		condSigVCtrlFold = new double [numC];
 		condSigVCtrlP = new double [numC];
+		condSigVCtrlQ = new double [numC];
 		interCondScMean = new double [numC][numC];
 		interCondFold = new double [numC][numC];
 		interCondP = new double [numC][numC];
@@ -81,20 +84,21 @@ public class BindingEvent implements Comparable<BindingEvent>{
 		repCtrlHits = new double [numR];
 		repSigVCtrlFold = new double [numR];
 		repSigVCtrlP = new double [numR];
+		repSigVCtrlQ = new double [numR];
 		interRepP = new double [numR][numR];
 		LLd = new double [numC];
 		LLp = new double [numC];
 		motifScores = new double[numC][][];
 		sequences = new String[numC][][];
 		for(int c=0; c<numC; c++){
-			foundInCond[c]=false; condSigHits[c]=0; condCtrlHits[c]=0; condSigVCtrlP[c]=1; condSigVCtrlFold[c]=1; 
+			foundInCond[c]=false; condSigHits[c]=0; condCtrlHits[c]=0; condSigVCtrlP[c]=1; condSigVCtrlQ[c]=1; condSigVCtrlFold[c]=1; 
 //			motifScores[c]=0; sequences[c]="--";
 			for(int d=0; d<numC; d++){
 				interCondScMean[c][d]=0; interCondFold[c][d]=1; interCondP[c][d]=1;
 			}
 		}
 		for(int r=0; r<numR; r++){
-			repSigHits[r]=0; repCtrlHits[r]=0; repSigVCtrlP[r]=1; repSigVCtrlFold[r]=1;
+			repSigHits[r]=0; repCtrlHits[r]=0; repSigVCtrlP[r]=1; repSigVCtrlQ[r]=1; repSigVCtrlFold[r]=1;
 		}
 		findMotif=gpsconfig.getFindingMotifs();
 	}
@@ -108,10 +112,12 @@ public class BindingEvent implements Comparable<BindingEvent>{
  	public double getCondSigHits(ExperimentCondition c){return(condSigHits[experiments.getConditionIndex(c)]);}
  	public double getCondCtrlHits(ExperimentCondition c){return(condCtrlHits[experiments.getConditionIndex(c)]);}
  	public double getCondSigVCtrlP(ExperimentCondition c){return(condSigVCtrlP[experiments.getConditionIndex(c)]);}
+ 	public double getCondSigVCtrlQ(ExperimentCondition c){return(condSigVCtrlQ[experiments.getConditionIndex(c)]);}
  	public double getCondSigVCtrlFold(ExperimentCondition c){return(condSigVCtrlFold[experiments.getConditionIndex(c)]);}
  	public double getRepSigHits(ControlledExperiment r){return(repSigHits[r.getIndex()]);}
  	public double getRepCtrlHits(ControlledExperiment r){return(repCtrlHits[r.getIndex()]);}
  	public double getRepSigVCtrlP(ControlledExperiment r){return(repSigVCtrlP[r.getIndex()]);}
+ 	public double getRepSigVCtrlQ(ControlledExperiment r){return(repSigVCtrlQ[r.getIndex()]);}
  	public double getRepSigVCtrlFold(ControlledExperiment r){return(repSigVCtrlFold[r.getIndex()]);}
  	public double getInterCondScMean(ExperimentCondition c1, ExperimentCondition c2){return(interCondScMean[experiments.getConditionIndex(c1)][experiments.getConditionIndex(c2)]);}
  	public double getInterCondFold(ExperimentCondition c1, ExperimentCondition c2){return(interCondFold[experiments.getConditionIndex(c1)][experiments.getConditionIndex(c2)]);}
@@ -168,12 +174,14 @@ public class BindingEvent implements Comparable<BindingEvent>{
 	public void setCondCtrlHits(ExperimentCondition c, double x){condCtrlHits[experiments.getConditionIndex(c)]=x;}
 	public void setCondSigVCtrlFold(ExperimentCondition c, double x){condSigVCtrlFold[experiments.getConditionIndex(c)]=x;}
 	public void setCondSigVCtrlP(ExperimentCondition c, double x){condSigVCtrlP[experiments.getConditionIndex(c)]=x;}
+	public void setCondSigVCtrlQ(ExperimentCondition c, double x){condSigVCtrlQ[experiments.getConditionIndex(c)]=x;}
 	public void setLLd(ExperimentCondition c, double l){LLd[experiments.getConditionIndex(c)]=l;}
 	public void setLLp(ExperimentCondition c, double p){LLp[experiments.getConditionIndex(c)]=p;}
 	public void setRepSigHits(ControlledExperiment r, double x){repSigHits[r.getIndex()]=x;}
 	public void setRepCtrlHits(ControlledExperiment r, double x){repCtrlHits[r.getIndex()]=x;}
 	public void setRepSigVCtrlFold(ControlledExperiment r, double x){repSigVCtrlFold[r.getIndex()]=x;}
 	public void setRepSigVCtrlP(ControlledExperiment r, double x){repSigVCtrlP[r.getIndex()]=x;}
+	public void setRepSigVCtrlQ(ControlledExperiment r, double x){repSigVCtrlQ[r.getIndex()]=x;}
 	public void setInterCondScMean(ExperimentCondition c1, ExperimentCondition c2, double x){interCondScMean[experiments.getConditionIndex(c1)][experiments.getConditionIndex(c2)]=x;}
 	public void setInterCondFold(ExperimentCondition c1, ExperimentCondition c2, double x){interCondFold[experiments.getConditionIndex(c1)][experiments.getConditionIndex(c2)]=x;}
 	public void setInterCondP(ExperimentCondition c1, ExperimentCondition c2, double x){interCondP[experiments.getConditionIndex(c1)][experiments.getConditionIndex(c2)]=x;}
@@ -348,6 +356,10 @@ public class BindingEvent implements Comparable<BindingEvent>{
 		String head = "Point";
 		for(ControlledExperiment r : experiments.getReplicates())
 			head = head +"\t"+r.getName();
+		for(ControlledExperiment r : experiments.getReplicates())
+			head = head +"\t"+r.getName()+"_log2P";
+		for(ControlledExperiment r : experiments.getReplicates())
+			head = head +"\t"+r.getName()+"_log2Q";
 			
 		return head;
 	}
@@ -360,6 +372,10 @@ public class BindingEvent implements Comparable<BindingEvent>{
 		
 		for(ControlledExperiment r : experiments.getReplicates())
 			out = out+"\t"+String.format("%.0f", getRepSigHits(r)); 
+		for(ControlledExperiment r : experiments.getReplicates())
+			out = out+"\t"+String.format("%.0f", getRepSigVCtrlP(r));
+		for(ControlledExperiment r : experiments.getReplicates())
+			out = out+"\t"+String.format("%.0f", getRepSigVCtrlQ(r));
 		
 		return out;
 	}
@@ -484,7 +500,7 @@ public class BindingEvent implements Comparable<BindingEvent>{
 	public String getConditionString(ExperimentCondition c) {
 		//String gene = nearestGene == null ? "NONE" : nearestGene.getName();
 		String out = point.getLocationString();	
-		double logP = Math.log(getCondSigVCtrlP(c))/config.LOG2;
+		double logP = Math.log(getCondSigVCtrlQ(c))/config.LOG2;
 		double logF = Math.log(getCondSigVCtrlFold(c))/config.LOG2;
 		//if(logP!=0.0)
 		//	logP*=-1;
@@ -519,7 +535,7 @@ public class BindingEvent implements Comparable<BindingEvent>{
 	 */
 	public String getSubtypeString(ExperimentCondition c){
 		String out = point.getLocationString();	
-		double logP = Math.log(getCondSigVCtrlP(c))/config.LOG2;
+		double logP = Math.log(getCondSigVCtrlQ(c))/config.LOG2;
 		double logF = Math.log(getCondSigVCtrlFold(c))/config.LOG2;
 		//if(logP!=0.0)
 		//	logP*=-1;
@@ -564,7 +580,7 @@ public class BindingEvent implements Comparable<BindingEvent>{
 	 */
 	public String getConditionBED(ExperimentCondition c){
 		if (point != null) {
-			double logP = Math.log(getCondSigVCtrlP(c))/config.LOG2;
+			double logP = Math.log(getCondSigVCtrlQ(c))/config.LOG2;
 			//BED score ranges from 0 to 1000
 			//Arbitrary conversion:
 			// score = 10 * -logP
