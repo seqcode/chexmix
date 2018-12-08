@@ -225,7 +225,7 @@ public class BindingManager {
 			    		boolean reportEvent=false;
 			    		if(e.isFoundInCondition(cond)){
 			    			for (ControlledExperiment rep : cond.getReplicates()){
-			    				double repQ = e.getRepSigVCtrlP(rep);
+			    				double repQ = e.getRepSigVCtrlQ(rep);
 			    				if (repQ <=qMinThres)
 			    					reportEvent=true;
 			    			}
@@ -250,7 +250,7 @@ public class BindingManager {
 						boolean reportEvent=false;
 			    		if(e.isFoundInCondition(cond)){
 			    			for (ControlledExperiment rep : cond.getReplicates()){
-			    				double repQ = e.getRepSigVCtrlP(rep);
+			    				double repQ = e.getRepSigVCtrlQ(rep);
 			    				if (repQ <=qMinThres)
 			    					reportEvent=true;
 			    			}
@@ -275,7 +275,7 @@ public class BindingManager {
 						boolean reportEvent=false;
 			    		if(e.isFoundInCondition(cond)){
 			    			for (ControlledExperiment rep : cond.getReplicates()){
-			    				double repQ = e.getRepSigVCtrlP(rep);
+			    				double repQ = e.getRepSigVCtrlQ(rep);
 			    				if (repQ <=qMinThres)
 			    					reportEvent=true;
 			    			}
@@ -349,7 +349,7 @@ public class BindingManager {
     						boolean reportEvent=false;
     			    		if(e.isFoundInCondition(cond)){
     			    			for (ControlledExperiment rep : cond.getReplicates()){
-    			    				double repQ = e.getRepSigVCtrlP(rep);
+    			    				double repQ = e.getRepSigVCtrlQ(rep);
     			    				if (repQ <=qMinThres)
     			    					reportEvent=true;
     			    			}

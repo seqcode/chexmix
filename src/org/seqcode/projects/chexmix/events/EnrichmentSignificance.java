@@ -154,7 +154,7 @@ public class EnrichmentSignificance {
 		        });
 				double rRank =1.0;
 				for(BindingEvent cf : features){
-					cf.setRepSigVCtrlP(r, Math.min(1.0, cf.getRepSigVCtrlP(r)*(total/rRank)));
+					cf.setRepSigVCtrlQ(r, Math.min(1.0, cf.getRepSigVCtrlP(r)*(total/rRank)));
 					rRank++;
 				}
 			}
