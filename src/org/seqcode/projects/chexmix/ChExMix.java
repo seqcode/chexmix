@@ -39,7 +39,7 @@ public class ChExMix {
 	protected GenomeConfig gconfig;
 	protected ExptConfig econfig;
 	protected EventsConfig evconfig;
-	protected ChExMixConfig gpsconfig;
+	protected ChExMixConfig chexconfig;
 	protected XLAnalysisConfig xlconfig;
 	protected ShapeAlignConfig shapeconfig;
 	protected BindingManager bindingManager;
@@ -56,13 +56,13 @@ public class ChExMix {
 		econfig = econ;
 		evconfig = evcon;
 		manager = eMan;
-		gpsconfig = c;
+		chexconfig = c;
 		xlconfig = xc;
 		xlconfig.makeXLAnalysisOutputDirs(true);
 		shapeconfig = sc;
-		gpsconfig.makeChExMixOutputDirs(true);
-		outFormatter = new OutputFormatter(gpsconfig);
-		bindingManager = new BindingManager(evconfig, manager);
+		chexconfig.makeChExMixOutputDirs(true);
+		outFormatter = new OutputFormatter(chexconfig);
+		bindingManager = new BindingManager(evconfig, manager, chexconfig.getReplicateConsistencyMode());
 		
 		//Initialize binding models & binding model record
 		repBindingModels = new HashMap<ControlledExperiment, List<TagProbabilityDensity>>();
@@ -72,13 +72,13 @@ public class ChExMix {
 		prevModels = new HashMap<ExperimentCondition, List<BindingSubtype>>();
 		
 		List<TagProbabilityDensity> tagProbDensities = new ArrayList<TagProbabilityDensity>();	
-		if (gpsconfig.getInitialClustPoints()!=null){
-			List<List<StrandedPoint>> initialClustPoints = gpsconfig.getInitialClustPoints();
+		if (chexconfig.getInitialClustPoints()!=null){
+			List<List<StrandedPoint>> initialClustPoints = chexconfig.getInitialClustPoints();
 			for (List<StrandedPoint> points : initialClustPoints){
 				List<StrandedPoint> compositePoints = new ArrayList<StrandedPoint>();
 				compositePoints.addAll(points);
 				//Build the composite distribution(s)
-				CompositeTagDistribution signalComposite = new CompositeTagDistribution(compositePoints, manager.getConditions().get(0), gpsconfig.MAX_BINDINGMODEL_WIDTH,true);
+				CompositeTagDistribution signalComposite = new CompositeTagDistribution(compositePoints, manager.getConditions().get(0), chexconfig.MAX_BINDINGMODEL_WIDTH,true);
 				TagProbabilityDensity currDensity=new TagProbabilityDensity(signalComposite.getWinSize()-1);
 
 				try {
@@ -92,18 +92,18 @@ public class ChExMix {
 		}else if (xlconfig.getModelFilename()!= null){
 			ProteinDNAInteractionModel model = ProteinDNAInteractionModel.loadFromFile(xlconfig, new File(xlconfig.getModelFilename()));
 			tagProbDensities.add(model.makeTagProbabilityDensityFromAllComponents());
-		}else if (gpsconfig.getDistribA()!=null){
-			File pFile = new File(gpsconfig.getDistribA());
+		}else if (chexconfig.getDistribA()!=null){
+			File pFile = new File(chexconfig.getDistribA());
 			if(!pFile.isFile()){
-				System.err.println("\nCannot find read distribution file: "+gpsconfig.getDistribA());
+				System.err.println("\nCannot find read distribution file: "+chexconfig.getDistribA());
 				System.exit(1);
 			}
 			tagProbDensities.add(new TagProbabilityDensity(pFile));
 			
-			if (gpsconfig.getDistribB()!=null){
-				File pbFile = new File(gpsconfig.getDistribB());
+			if (chexconfig.getDistribB()!=null){
+				File pbFile = new File(chexconfig.getDistribB());
 				if(!pFile.isFile()){
-					System.err.println("\nCannot find read distribution file: "+gpsconfig.getDistribB());
+					System.err.println("\nCannot find read distribution file: "+chexconfig.getDistribB());
 					System.exit(1);
 				}
 				tagProbDensities.add(new TagProbabilityDensity(pbFile));				
@@ -150,11 +150,11 @@ public class ChExMix {
 		
 		//Find potential binding regions
 		System.err.println("Finding potential binding regions.");
-		potentialFilter = new PotentialRegionFilter(evconfig, gpsconfig, econfig, manager, bindingManager);
+		potentialFilter = new PotentialRegionFilter(evconfig, chexconfig, econfig, manager, bindingManager);
 		
 		
 		List<Region> potentials = null;
-		if (gpsconfig.getInitialPos()!=null)
+		if (chexconfig.getInitialPos()!=null)
 			potentials = potentialFilter.executeInitialPositionFiler();
 		else
 			potentials = potentialFilter.execute();
@@ -171,7 +171,7 @@ public class ChExMix {
 	 */
 	public void printInitialDistribution(){
 		// write tag probability density of initial distribution
-		String distribFilename = gpsconfig.getOutputIntermediateDir()+File.separator+gpsconfig.getOutBase()+"_t"+0+"_initReadDistrib";
+		String distribFilename = chexconfig.getOutputIntermediateDir()+File.separator+chexconfig.getOutBase()+"_t"+0+"_initReadDistrib";
 		for (ExperimentCondition cond : manager.getConditions()){
 			int i=0;
 			for (BindingSubtype sub : bindingManager.getBindingSubtype(cond)){
@@ -196,7 +196,7 @@ public class ChExMix {
 	public void runMixtureModel() throws Exception {
 		
 		System.err.println("Initializing mixture model");
-		mixtureModel = new BindingMixture(gconfig, econfig, evconfig, gpsconfig,xlconfig,shapeconfig, manager, bindingManager, potentialFilter);
+		mixtureModel = new BindingMixture(gconfig, econfig, evconfig, chexconfig,xlconfig,shapeconfig, manager, bindingManager, potentialFilter);
 		
 		int round = 0;
 		boolean converged = false;
@@ -219,7 +219,7 @@ public class ChExMix {
         bindingManager.estimateSignalVsNoiseFractions(bindingManager.getBindingEvents());
         //Statistical analysis: Enrichment over controls 
         EnrichmentSignificance testerR0 = new EnrichmentSignificance(evconfig, manager, bindingManager, evconfig.getMultiGPSMinEventFoldChange(), econfig.getMappableGenomeLength());
-        testerR0.execute(gpsconfig.getModelRange());
+        testerR0.execute(chexconfig.getModelRange());
         
         mixtureModel.setActiveComponents(bindingManager.getComponentsFromEnrichedEvents(potentialFilter.getPotentialRegions()));
         
@@ -231,7 +231,7 @@ public class ChExMix {
             mixtureModel.updateBindingModelUsingMotifs();
             
             //Update binding models
-            String distribFilename = gpsconfig.getOutputIntermediateDir()+File.separator+gpsconfig.getOutBase()+"_t"+round;
+            String distribFilename = chexconfig.getOutputIntermediateDir()+File.separator+chexconfig.getOutBase()+"_t"+round;
             if (round <= 1){
                 mixtureModel.doReadDistributionClustering();
             }else{
@@ -258,7 +258,7 @@ public class ChExMix {
             round++;
             
             //Check for convergence
-            if(round>gpsconfig.getMaxModelUpdateRounds())
+            if(round>chexconfig.getMaxModelUpdateRounds())
             	converged=true;
 
         }  
@@ -283,23 +283,27 @@ public class ChExMix {
         System.err.println("\n============================= Post-processing ==============================");
         
         //Align motifs to get relative offsets
-        if(gpsconfig.getFindingMotifs())
+        if(chexconfig.getFindingMotifs())
         	mixtureModel.getMotifFinder().alignMotifs();
         
-        //Statistical analysis: Enrichment over controls 
+        //Statistical analysis: enrichment over controls 
         EnrichmentSignificance tester = new EnrichmentSignificance(evconfig, manager, bindingManager, evconfig.getMinEventFoldChange(), econfig.getMappableGenomeLength());
 		tester.execute();
         
 		//Write the replicate counts to a file (needed before EdgeR differential enrichment)
-		bindingManager.writeReplicateCounts(gpsconfig.getOutputParentDir()+File.separator+gpsconfig.getOutBase()+".replicates.counts");
+		bindingManager.writeReplicateCounts(chexconfig.getOutputParentDir()+File.separator+chexconfig.getOutBase()+".replicates.counts");
         
-        // Print final events to files
-		bindingManager.writeBindingEventFiles(gpsconfig.getOutputParentDir()+File.separator+gpsconfig.getOutBase(), evconfig.getQMinThres(), evconfig.getRunDiffTests(), evconfig.getDiffPMinThres());
-        System.err.println("Binding event detection finished!\nBinding events are printed to files in "+gpsconfig.getOutputParentDir()+" beginning with: "+gpsconfig.getOutName());
+		// Print per-replicate events to files (replicate consistency mode only)
+		if(chexconfig.getReplicateConsistencyMode())
+			bindingManager.writePerReplicateBindingEventFiles(chexconfig.getOutputParentDir()+File.separator+chexconfig.getOutBase(), evconfig.getQMinThres(), evconfig.getRunDiffTests(), evconfig.getDiffPMinThres());
+        
+		// Print final events to files
+		bindingManager.writeBindingEventFiles(chexconfig.getOutputParentDir()+File.separator+chexconfig.getOutBase(), evconfig.getQMinThres(), evconfig.getRunDiffTests(), evconfig.getDiffPMinThres());
+        System.err.println("Binding event detection finished!\nBinding events are printed to files in "+chexconfig.getOutputParentDir()+" beginning with: "+chexconfig.getOutName());
         
         
         //Post-analysis of peaks
-        EventsPostAnalysis postAnalyzer = new EventsPostAnalysis(gconfig,evconfig, gpsconfig, manager, bindingManager, bindingManager.getBindingEvents(), mixtureModel.getMotifFinder());
+        EventsPostAnalysis postAnalyzer = new EventsPostAnalysis(gconfig,evconfig, chexconfig, manager, bindingManager, bindingManager.getBindingEvents(), mixtureModel.getMotifFinder());
         postAnalyzer.execute(400);
         
     }
@@ -393,7 +397,8 @@ public class ChExMix {
 				"\t--mlconfignotshared [flag to not share component configs in the ML step]\n" +
 				"\t--exclude <file of regions to ignore> OR --excludebed <file of regions to ignore in bed format>\n" +
 				"\t--peakf <file of peaks to initialize component positions>\n" +
-				"\t--motfile <file of motifs in transfac format to initialize subtype motifs>\n" +				
+				"\t--motfile <file of motifs in transfac format to initialize subtype motifs>\n" +
+				"\t--norepcon [flag to turn off replicate consistency mode (reproduces binding event reporting behavior in v0.2 and below)]\n" +				
 				"\t--galaxyhtml [flag to produce a html output appropreate for galaxy]\n" +
 				" Finding ChExMix subtypes using motif:\n"+
 				"\t--memepath <path to the meme bin dir (default: meme is in $PATH)>\n" +

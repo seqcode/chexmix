@@ -42,10 +42,12 @@ public class BindingManager {
 	protected Map<ExperimentCondition, Double> alpha;
 	protected Map<ExperimentCondition, List<List<StrandedPoint>>> alignedEventPoints;
 	protected Map<ExperimentCondition, List<BindingSubtype>> potentialBindingSubtypes;
+	protected boolean replicateConsistencyMode;
 	
-	public BindingManager(EventsConfig con, ExperimentManager exptman){
+	public BindingManager(EventsConfig con, ExperimentManager exptman, boolean replicateConsistencyMode){
 		config = con;
 		manager = exptman;
+		this.replicateConsistencyMode = replicateConsistencyMode;
 		events  = new ArrayList<BindingEvent>();
 		conditionEvents = new HashMap<ExperimentCondition, List <BindingEvent>>();
 		bindingSubtypes = new HashMap<ExperimentCondition, List<BindingSubtype>>();
@@ -191,6 +193,7 @@ public class BindingManager {
 		}
 		return count;
 	}
+	
     /**
      * Print all binding events to files
      */
@@ -220,16 +223,23 @@ public class BindingManager {
 					fout = new FileWriter(filename);
 					fout.write(BindingEvent.conditionHeadString(cond)+"\n");
 			    	for(BindingEvent e : events){
-			    		double Q = e.getCondSigVCtrlP(cond);
-			    		//Because of the ML step and component sharing, I think that an event could be assigned a significant number of reads without being "present" in the condition's EM model.
+			    		double Q; 
 			    		boolean reportEvent=false;
-			    		if(e.isFoundInCondition(cond)){
-			    			for (ControlledExperiment rep : cond.getReplicates()){
-			    				double repQ = e.getRepSigVCtrlQ(rep);
-			    				if (repQ <=qMinThres)
-			    					reportEvent=true;
-			    			}
-			    		}
+			    		
+			    		if(replicateConsistencyMode){
+			    			if(e.isFoundInCondition(cond) && e.isReplicated()){
+			    				for (ControlledExperiment rep : cond.getReplicates()){
+				    				Q = e.getRepSigVCtrlQ(rep);
+				    				if (Q <=qMinThres)
+				    					reportEvent=true;
+				    			}
+				    		}
+			    		}else{
+			    			Q= e.getCondSigVCtrlP(cond);
+			    			if(e.isFoundInCondition(cond) && Q <=qMinThres)
+			    				reportEvent=true;
+				    	} 
+			    		
 			    		if (reportEvent)
 			    			fout.write(e.getConditionString(cond)+"\n");
 			    	}
@@ -245,16 +255,23 @@ public class BindingManager {
 					fout = new FileWriter(filename);
 					fout.write(BindingEvent.conditionSubtypeHeadString(cond)+"\n");
 					for(BindingEvent e : events){
-						double Q = e.getCondSigVCtrlP(cond);
-						//Because of the ML step and component sharing, I think that an event could be assigned a significant number of reads without being "present" in the condition's EM model.
-						boolean reportEvent=false;
-			    		if(e.isFoundInCondition(cond)){
-			    			for (ControlledExperiment rep : cond.getReplicates()){
-			    				double repQ = e.getRepSigVCtrlQ(rep);
-			    				if (repQ <=qMinThres)
-			    					reportEvent=true;
-			    			}
-			    		}
+						double Q; 
+			    		boolean reportEvent=false;
+			    		
+			    		if(replicateConsistencyMode){
+			    			if(e.isFoundInCondition(cond) && e.isReplicated()){
+			    				for (ControlledExperiment rep : cond.getReplicates()){
+				    				Q = e.getRepSigVCtrlQ(rep);
+				    				if (Q <=qMinThres)
+				    					reportEvent=true;
+				    			}
+				    		}
+			    		}else{
+			    			Q= e.getCondSigVCtrlP(cond);
+			    			if(e.isFoundInCondition(cond) && Q <=qMinThres)
+			    				reportEvent=true;
+				    	}
+			    		
 			    		if (reportEvent)
 							fout.write(e.getSubtypeString(cond)+"\n");
 					}	
@@ -270,16 +287,23 @@ public class BindingManager {
 						alignedPoints.add(new ArrayList<StrandedPoint>());
 					}
 					for(BindingEvent e : events){
-						double Q = e.getCondSigVCtrlP(cond);
-						//Because of the ML step and component sharing, I think that an event could be assigned a significant number of reads without being "present" in the condition's EM model.
-						boolean reportEvent=false;
-			    		if(e.isFoundInCondition(cond)){
-			    			for (ControlledExperiment rep : cond.getReplicates()){
-			    				double repQ = e.getRepSigVCtrlQ(rep);
-			    				if (repQ <=qMinThres)
-			    					reportEvent=true;
-			    			}
-			    		}
+						double Q; 
+			    		boolean reportEvent=false;
+			    		
+			    		if(replicateConsistencyMode){
+			    			if(e.isFoundInCondition(cond) && e.isReplicated()){
+			    				for (ControlledExperiment rep : cond.getReplicates()){
+				    				Q = e.getRepSigVCtrlQ(rep);
+				    				if (Q <=qMinThres)
+				    					reportEvent=true;
+				    			}
+				    		}
+			    		}else{
+			    			Q= e.getCondSigVCtrlP(cond);
+			    			if(e.isFoundInCondition(cond) && Q <=qMinThres)
+			    				reportEvent=true;
+				    	}
+			    		
 			    		if (reportEvent){
 							Pair<Integer, StrandedPoint>p=e.getMaxSubtypePoint(cond);
 							subtypePoints.get(p.car()).add(p.cdr());
@@ -345,18 +369,17 @@ public class BindingManager {
     				FileWriter fout = new FileWriter(bedfilename);
     				fout.write(BindingEvent.conditionBEDHeadString(cond)+"\n");
     				for (BindingEvent e: events){
-    					double Q = e.getCondSigVCtrlP(cond);{
-    						boolean reportEvent=false;
-    			    		if(e.isFoundInCondition(cond)){
-    			    			for (ControlledExperiment rep : cond.getReplicates()){
-    			    				double repQ = e.getRepSigVCtrlQ(rep);
-    			    				if (repQ <=qMinThres)
-    			    					reportEvent=true;
-    			    			}
-    			    		}
-    			    		if (reportEvent)
-    							fout.write(e.getConditionBED(cond)+"\n");									
-    					}						
+    					double Q = e.getCondSigVCtrlP(cond);
+    					boolean reportEvent=false;
+    					if(e.isFoundInCondition(cond)){
+    						for (ControlledExperiment rep : cond.getReplicates()){
+    							double repQ = e.getRepSigVCtrlQ(rep);
+    							if (repQ <=qMinThres)
+    								reportEvent=true;
+    						}
+    					}
+    					if (reportEvent)
+    						fout.write(e.getConditionBED(cond)+"\n");					
     				}
     				fout.close();
     			} catch (IOException e1) {
@@ -384,7 +407,85 @@ public class BindingManager {
 			}
 		}
     }
-    
+
+    /**
+     * Print per-replicate binding events to files
+     */
+    public void writePerReplicateBindingEventFiles(String filePrefix, double qMinThres, boolean runDiffTests, double diffPMinThres){
+    	if(events.size()>0){
+    		String filename;
+    		FileWriter fout;
+	    	try {
+	    		
+	    		//Per-replicate event files
+	    		for(ExperimentCondition cond : manager.getConditions()){
+	    			for(ControlledExperiment rep : cond.getReplicates()){
+		    			//Sort on the current condition
+		    			BindingEvent.setSortingCond(cond);
+		    			Collections.sort(events, new Comparator<BindingEvent>(){
+		    	            public int compare(BindingEvent o1, BindingEvent o2) {return o1.compareByRepSigCtrlPvalue(o2, rep);}
+		    	        });
+		    			//Print events
+		    			String condName = cond.getName(); 
+		    			condName = condName.replaceAll("/", "-");
+		    			String repName = rep.getName();
+		    			repName = repName.replaceAll("/", "-");
+		    			filename = filePrefix+"_"+condName+"_"+repName+".events";
+						fout = new FileWriter(filename);
+						fout.write(BindingEvent.conditionHeadString(cond)+"\n");
+				    	for(BindingEvent e : events){
+				    		boolean reportEvent=false;
+				    		if(e.isFoundInCondition(cond)){
+				    			double repQ = e.getRepSigVCtrlQ(rep);
+				    			if (repQ <=qMinThres)
+				    				reportEvent=true;
+				    		}
+				    		if (reportEvent)
+				    			fout.write(e.getConditionString(cond)+"\n");
+				    	}
+						fout.close();
+						
+	    			}
+	    		}
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+    	
+    	// Bed file is produced even when there is no event found
+    	for(ExperimentCondition cond : manager.getConditions()){
+    		//Print events in BED
+    		if (config.getPrintBED()){
+    			String condName = cond.getName(); 
+    			condName = condName.replaceAll("/", "-");
+    			String bedfilename = filePrefix+"_"+condName+".bed";
+    			try {
+    				FileWriter fout = new FileWriter(bedfilename);
+    				fout.write(BindingEvent.conditionBEDHeadString(cond)+"\n");
+    				for (BindingEvent e: events){
+    					double Q = e.getCondSigVCtrlP(cond);{
+    						boolean reportEvent=false;
+    			    		if(e.isFoundInCondition(cond)){
+    			    			for (ControlledExperiment rep : cond.getReplicates()){
+    			    				double repQ = e.getRepSigVCtrlQ(rep);
+    			    				if (repQ <=qMinThres)
+    			    					reportEvent=true;
+    			    			}
+    			    		}
+    			    		if (reportEvent)
+    							fout.write(e.getConditionBED(cond)+"\n");									
+    					}						
+    				}
+    				fout.close();
+    			} catch (IOException e1) {
+    				// TODO Auto-generated catch block
+    				e1.printStackTrace();
+    			}
+    		}
+    	}
+    }
+ 
+
     /**
      * Print all motifs to file
      */

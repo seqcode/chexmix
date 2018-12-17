@@ -95,6 +95,7 @@ public class ChExMixConfig {
 	protected int numClusteringComps = 500;	// Number of components to perform AP clustering
 	protected double MarkovBackSeqRmThres = 0.1; // Markov background threshold for removing sequences
 	protected int modelRange = 100;	// Window size to extract tag counts
+	protected boolean replicateConsistencyMode=true; // Mode in which events are reported if significant over background in >=1 replicate and not significantly different between replicates. Turn off to use condition level reporting thresholds (as in MultiGPS)  
 	protected boolean galaxyhtml=false; // Output simpler html file for galaxy 
 	protected boolean shareSubtypes=true;	// Share subtypes across experiments
     
@@ -285,7 +286,7 @@ public class ChExMixConfig {
 				//Enforce non-parallel MEME
 				MEMEnonparallel = Args.parseFlags(args).contains("meme1proc");
 				
-				// Markove background model
+				// Markov background model
 				String backfile = Args.parseString(args, "back", null);				
 				//Load the background model or make background model
 		        try{       
@@ -299,6 +300,9 @@ public class ChExMixConfig {
 				
 				//Extra output
 				verbose = Args.parseFlags(args).contains("verbose") ? true : false;
+				
+				//Replicate consistency mode
+				replicateConsistencyMode = Args.parseFlags(args).contains("norepcons") ? false: true;
 				
 				//Galaxy html output
 				galaxyhtml = Args.parseFlags(args).contains("galaxyhtml") ? true : false;
@@ -410,6 +414,7 @@ public class ChExMixConfig {
 	public double getMarkovBackSeqRmThres(){return MarkovBackSeqRmThres;}
 	public boolean getMEMEnonparallel(){return MEMEnonparallel;}
 	public int getModelRange(){return modelRange;}
+	public boolean getReplicateConsistencyMode(){return replicateConsistencyMode;}
 	public boolean useGalaxyhtml(){return galaxyhtml;}
 	public boolean getShareSubtypes(){return shareSubtypes;}
 	
