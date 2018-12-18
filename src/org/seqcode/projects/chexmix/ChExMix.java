@@ -84,7 +84,6 @@ public class ChExMix {
 				try {
 					currDensity.loadData(signalComposite.getCompositeWatson(), signalComposite.getCompositeCrick());
 				} catch (Exception e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				tagProbDensities.add(currDensity);
@@ -310,7 +309,7 @@ public class ChExMix {
 	
 	
 	/**
-	 * Main driver method for xogps
+	 * Main driver method for ChExMix
 	 * @param args
 	 * @throws Exception 
 	 */

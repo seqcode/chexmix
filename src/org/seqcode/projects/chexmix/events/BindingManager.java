@@ -227,12 +227,16 @@ public class BindingManager {
 			    		boolean reportEvent=false;
 			    		
 			    		if(replicateConsistencyMode){
-			    			if(e.isFoundInCondition(cond) && e.isReplicated()){
-			    				for (ControlledExperiment rep : cond.getReplicates()){
-				    				Q = e.getRepSigVCtrlQ(rep);
-				    				if (Q <=qMinThres)
-				    					reportEvent=true;
-				    			}
+			    			if(e.isFoundInCondition(cond) && e.isReplicated(cond)){
+			    				if(e.getCondSigVCtrlP(cond)<=qMinThres)
+			    					reportEvent=true;
+			    				else{
+				    				for (ControlledExperiment rep : cond.getReplicates()){
+					    				Q = e.getRepSigVCtrlQ(rep);
+					    				if (Q <=qMinThres)
+					    					reportEvent=true;
+					    			}
+			    				}
 				    		}
 			    		}else{
 			    			Q= e.getCondSigVCtrlP(cond);
@@ -259,12 +263,16 @@ public class BindingManager {
 			    		boolean reportEvent=false;
 			    		
 			    		if(replicateConsistencyMode){
-			    			if(e.isFoundInCondition(cond) && e.isReplicated()){
-			    				for (ControlledExperiment rep : cond.getReplicates()){
-				    				Q = e.getRepSigVCtrlQ(rep);
-				    				if (Q <=qMinThres)
-				    					reportEvent=true;
-				    			}
+			    			if(e.isFoundInCondition(cond) && e.isReplicated(cond)){
+			    				if(e.getCondSigVCtrlP(cond)<=qMinThres)
+			    					reportEvent=true;
+			    				else{
+				    				for (ControlledExperiment rep : cond.getReplicates()){
+					    				Q = e.getRepSigVCtrlQ(rep);
+					    				if (Q <=qMinThres)
+					    					reportEvent=true;
+					    			}
+			    				}
 				    		}
 			    		}else{
 			    			Q= e.getCondSigVCtrlP(cond);
@@ -291,12 +299,16 @@ public class BindingManager {
 			    		boolean reportEvent=false;
 			    		
 			    		if(replicateConsistencyMode){
-			    			if(e.isFoundInCondition(cond) && e.isReplicated()){
-			    				for (ControlledExperiment rep : cond.getReplicates()){
-				    				Q = e.getRepSigVCtrlQ(rep);
-				    				if (Q <=qMinThres)
-				    					reportEvent=true;
-				    			}
+			    			if(e.isFoundInCondition(cond) && e.isReplicated(cond)){
+			    				if(e.getCondSigVCtrlP(cond)<=qMinThres)
+			    					reportEvent=true;
+			    				else{
+				    				for (ControlledExperiment rep : cond.getReplicates()){
+					    				Q = e.getRepSigVCtrlQ(rep);
+					    				if (Q <=qMinThres)
+					    					reportEvent=true;
+					    			}
+			    				}
 				    		}
 			    		}else{
 			    			Q= e.getCondSigVCtrlP(cond);
@@ -428,9 +440,9 @@ public class BindingManager {
 		    			//Print events
 		    			String condName = cond.getName(); 
 		    			condName = condName.replaceAll("/", "-");
-		    			String repName = rep.getName();
+		    			String repName = rep.getRepName();
 		    			repName = repName.replaceAll("/", "-");
-		    			filename = filePrefix+"_"+condName+"_"+repName+".events";
+		    			filename = filePrefix+"_"+condName+"_"+repName+".repevents";
 						fout = new FileWriter(filename);
 						fout.write(BindingEvent.conditionHeadString(cond)+"\n");
 				    	for(BindingEvent e : events){
