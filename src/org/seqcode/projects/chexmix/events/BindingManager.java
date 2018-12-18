@@ -443,7 +443,7 @@ public class BindingManager {
 		    			repName = repName.replaceAll("/", "-");
 		    			filename = filePrefix+"_"+condName+"_"+repName+".repevents";
 						fout = new FileWriter(filename);
-						fout.write(BindingEvent.conditionHeadString(cond)+"\n");
+						fout.write(BindingEvent.replicateHeadString(rep)+"\n");
 				    	for(BindingEvent e : events){
 				    		boolean reportEvent=false;
 				    		if(e.isFoundInCondition(cond)){
@@ -452,7 +452,7 @@ public class BindingManager {
 				    				reportEvent=true;
 				    		}
 				    		if (reportEvent)
-				    			fout.write(e.getConditionString(cond)+"\n");
+				    			fout.write(e.getReplicateString(rep)+"\n");
 				    	}
 						fout.close();
 						
@@ -462,38 +462,6 @@ public class BindingManager {
 				e.printStackTrace();
 			}
 		}
-    	
-    	// Bed file is produced even when there is no event found
-    	for(ExperimentCondition cond : manager.getConditions()){
-    		//Print events in BED
-    		if (config.getPrintBED()){
-    			String condName = cond.getName(); 
-    			condName = condName.replaceAll("/", "-");
-    			String bedfilename = filePrefix+"_"+condName+".bed";
-    			try {
-    				FileWriter fout = new FileWriter(bedfilename);
-    				fout.write(BindingEvent.conditionBEDHeadString(cond)+"\n");
-    				for (BindingEvent e: events){
-    					double Q = e.getCondSigVCtrlP(cond);{
-    						boolean reportEvent=false;
-    			    		if(e.isFoundInCondition(cond)){
-    			    			for (ControlledExperiment rep : cond.getReplicates()){
-    			    				double repQ = e.getRepSigVCtrlQ(rep);
-    			    				if (repQ <=qMinThres)
-    			    					reportEvent=true;
-    			    			}
-    			    		}
-    			    		if (reportEvent)
-    							fout.write(e.getConditionBED(cond)+"\n");									
-    					}						
-    				}
-    				fout.close();
-    			} catch (IOException e1) {
-    				// TODO Auto-generated catch block
-    				e1.printStackTrace();
-    			}
-    		}
-    	}
     }
  
 

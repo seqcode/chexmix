@@ -288,7 +288,7 @@ public class ChExMix {
         
         //Statistical analysis: enrichment over controls 
         EnrichmentSignificance tester = new EnrichmentSignificance(evconfig, manager, bindingManager, evconfig.getMinEventFoldChange(), econfig.getMappableGenomeLength());
-		tester.execute();
+		tester.execute(chexconfig.getModelRange());
         
 		//Assess replication of binding events in each experiment
 		ReplicationTester replic = new ReplicationTester(evconfig, manager, bindingManager, evconfig.getMinEventFoldChange(),evconfig.getQMinThres());

@@ -77,7 +77,9 @@ public class EnrichmentSignificance {
 				}
 				
 				//P-value, signal vs control
-				double sigCtrlP = evaluateSignificance(c1Sig, ctrlCountScaled, cf.getCondTotalSigHitsFromReps(c1), modelRange);
+				double sigCtrlP = c1.getTotalControlCount()>=0 ? 
+						evaluateSignificanceBinomial(c1Sig, ctrlCountScaled, cf.getCondTotalSigHitsFromReps(c1)) :
+						evaluateSignificancePoisson(c1Sig, cf.getCondTotalSigHitsFromReps(c1), modelRange);
 				cf.setCondSigVCtrlFold(c1, sigCtrlFold);
 				cf.setCondSigVCtrlP(c1, sigCtrlP);
 				
@@ -85,7 +87,9 @@ public class EnrichmentSignificance {
 				for(ControlledExperiment r : c1.getReplicates()){
 					double repFold = cf.getRepCtrlHits(r)>1 ? cf.getRepSigHits(r)/(cf.getRepCtrlHits(r)*r.getControlScaling()) : cf.getRepSigHits(r);
 					double repSigCtrlFold = repFold * repWeights[r.getIndex()];
-					double repSigCtrlP = evaluateSignificance(cf.getRepSigHits(r), cf.getRepCtrlHits(r)*r.getControlScaling(), r.getSignal().getHitCount(), modelRange);
+					double repSigCtrlP = r.hasControl() ? 
+							evaluateSignificanceBinomial(cf.getRepSigHits(r), cf.getRepCtrlHits(r)*r.getControlScaling(), r.getSignal().getHitCount()) :
+							evaluateSignificancePoisson(cf.getRepSigHits(r), r.getSignal().getHitCount(), modelRange);
 					cf.setRepSigVCtrlFold(r, repSigCtrlFold);
 					cf.setRepSigVCtrlP(r, repSigCtrlP);
 				}
@@ -103,10 +107,10 @@ public class EnrichmentSignificance {
 
 	
 	/**
-	 * Evaluate the significance using Binomial and Poisson distributions
+	 * Evaluate the significance using Binomial 
 	 */
-	private double evaluateSignificance(double countA, double countB, double total, int modelWidth) {
-        double pValuePoisson, pValueBalance;
+	private double evaluateSignificanceBinomial(double countA, double countB, double total) {
+        double pValue;
 		
 		if(countA+countB<=0){
 			return(1);
@@ -114,19 +118,39 @@ public class EnrichmentSignificance {
 	        try{
 	
 	            binomial.setNandP((int)Math.ceil(countA + countB), 1.0 / (minFoldChange + 1));
-	            pValueBalance = binomial.cdf((int)Math.ceil(countB));
-	
-	            poisson.setMean(minFoldChange * Math.max(countB, total * (double)modelWidth / (double)genomeLength ));
-	            int cA = (int)Math.ceil(countA);
-	            pValuePoisson = 1 - poisson.cdf(cA) + poisson.pdf(cA);
+	            pValue = binomial.cdf((int)Math.ceil(countB));
 	            
 	        } catch(Exception err){
 	            err.printStackTrace();
 	            throw new RuntimeException(err.toString(), err);
 	        }
-	        return(Math.max(pValueBalance, pValuePoisson));
+	        return(pValue);
 		}
 	}
+
+	/**
+	 * Evaluate the significance using Poisson (only used when there are no controls) 
+	 */
+	private double evaluateSignificancePoisson(double countA, double total, int modelWidth) {
+        double pValue;
+		
+		if(countA<=0){
+			return(1);
+		}else{
+	        try{
+	
+	            poisson.setMean(minFoldChange * total * (double)modelWidth / (double)genomeLength );
+	            int cA = (int)Math.ceil(countA);
+	            pValue = 1 - poisson.cdf(cA) + poisson.pdf(cA);
+	            
+	        } catch(Exception err){
+	            err.printStackTrace();
+	            throw new RuntimeException(err.toString(), err);
+	        }
+	        return(pValue);
+		}
+	}
+
 	/**
 	 * Multiple hypothesis testing correction
 	 */

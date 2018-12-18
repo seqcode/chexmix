@@ -428,6 +428,27 @@ public class BindingEvent implements Comparable<BindingEvent>{
 	
 	/**
 	 * Returns a string suitable for use as the header of a table whose rows are 
+	 * the output of BindingEvent.getReplicateString().
+	 * (i.e. single condition files)
+	 */
+	public static String replicateHeadString(ControlledExperiment r){
+		String head="### ChExMix output\n";
+		
+		head = head + "#Replicate\tParentCond\tName\tIndex\tSigCount\tCtrlCount\tCtrlScaling\tSignalFraction\n";
+		if(r.getControl()==null)
+			head = head + "#Replicate\t"+r.getCondName()+"\t"+r.getName()+"\t"+r.getIndex()+"\t"+r.getSignal().getHitCount()+"\t0\t1\t"+String.format("%.3f",r.getSignalVsNoiseFraction())+"\n";
+		else
+			head = head + "#Replicate\t"+r.getCondName()+"\t"+r.getName()+"\t"+r.getIndex()+"\t"+r.getSignal().getHitCount()+"\t"+r.getControl().getHitCount()+"\t"+String.format("%.3f",r.getControlScaling())+"\t"+String.format("%.3f",r.getSignalVsNoiseFraction())+"\n";
+		
+		
+		head = head + "#\n#Point";
+		head = head +"\t"+r.getName()+"_Sig"+"\t"+r.getName()+"_Ctrl"+"\t"+r.getName()+"_log2Fold"+"\t"+r.getName()+"_log2P";
+		
+		return head;
+	}
+	
+	/**
+	 * Returns a string suitable for use as the header of a table whose rows are 
 	 * the output of BindingEvent.getConditionString().
 	 * (i.e. single condition files)
 	 */
@@ -533,6 +554,21 @@ public class BindingEvent implements Comparable<BindingEvent>{
 			else
 				out = out + "\t"+nearestGene.getName()+"\t"+distToGene;
 		//out = out+"\n";
+		return out;
+	}
+	
+	/**
+	 * Print info on a single replicate for this event
+	 */
+	public String getReplicateString(ControlledExperiment r) {
+		//String gene = nearestGene == null ? "NONE" : nearestGene.getName();
+		String out = point.getLocationString();	
+		double logP = Math.log(getRepSigVCtrlQ(r))/config.LOG2;
+		double logF = Math.log(getRepSigVCtrlFold(r))/config.LOG2;
+		//if(logP!=0.0)
+		//	logP*=-1;
+		out = out+"\t"+String.format("%.1f", getRepSigHits(r))+"\t"+String.format("%.1f", getRepCtrlHits(r))+"\t"+String.format("%.3f", logF)+"\t"+String.format("%.3f", logP); 
+		
 		return out;
 	}
 	

@@ -94,7 +94,7 @@ public class ChExMixConfig {
 	protected int clusteringWindow = 150;
 	protected int numClusteringComps = 500;	// Number of components to perform AP clustering
 	protected double MarkovBackSeqRmThres = 0.1; // Markov background threshold for removing sequences
-	protected int modelRange = 100;	// Window size to extract tag counts
+	protected int modelRange = 50;	// Window size to extract tag counts
 	protected boolean lenientMode=false; // Mode in which events are reported if significant over background in >=1 replicate *or* the condition as a whole.  
 	protected boolean galaxyhtml=false; // Output simpler html file for galaxy 
 	protected boolean shareSubtypes=true;	// Share subtypes across experiments
