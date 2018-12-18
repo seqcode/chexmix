@@ -18,6 +18,7 @@ import org.seqcode.projects.chexmix.events.BindingModel;
 import org.seqcode.projects.chexmix.events.BindingSubtype;
 import org.seqcode.projects.chexmix.events.EnrichmentSignificance;
 import org.seqcode.projects.chexmix.events.EventsConfig;
+import org.seqcode.projects.chexmix.events.ReplicationTester;
 import org.seqcode.projects.chexmix.framework.ChExMixConfig;
 import org.seqcode.projects.chexmix.framework.OutputFormatter;
 import org.seqcode.projects.chexmix.framework.PotentialRegionFilter;
@@ -62,7 +63,7 @@ public class ChExMix {
 		shapeconfig = sc;
 		chexconfig.makeChExMixOutputDirs(true);
 		outFormatter = new OutputFormatter(chexconfig);
-		bindingManager = new BindingManager(evconfig, manager, chexconfig.getReplicateConsistencyMode());
+		bindingManager = new BindingManager(evconfig, manager, chexconfig.isLenientMode());
 		
 		//Initialize binding models & binding model record
 		repBindingModels = new HashMap<ControlledExperiment, List<TagProbabilityDensity>>();
@@ -289,11 +290,16 @@ public class ChExMix {
         EnrichmentSignificance tester = new EnrichmentSignificance(evconfig, manager, bindingManager, evconfig.getMinEventFoldChange(), econfig.getMappableGenomeLength());
 		tester.execute();
         
+		//Assess replication of binding events in each experiment
+		ReplicationTester replic = new ReplicationTester(evconfig, manager, bindingManager, evconfig.getMinEventFoldChange(),evconfig.getQMinThres());
+		replic.execute();
+		replic.writeReplicationInfoFile(chexconfig.getOutputParentDir()+File.separator+chexconfig.getOutBase()+".all.replicationcodes.table");
+		
 		//Write the replicate counts to a file (needed before EdgeR differential enrichment)
 		bindingManager.writeReplicateCounts(chexconfig.getOutputParentDir()+File.separator+chexconfig.getOutBase()+".replicates.counts");
         
 		// Print per-replicate events to files (replicate consistency mode only)
-		if(chexconfig.getReplicateConsistencyMode())
+		if(chexconfig.isLenientMode())
 			bindingManager.writePerReplicateBindingEventFiles(chexconfig.getOutputParentDir()+File.separator+chexconfig.getOutBase(), evconfig.getQMinThres(), evconfig.getRunDiffTests(), evconfig.getDiffPMinThres());
         
 		// Print final events to files
@@ -397,7 +403,7 @@ public class ChExMix {
 				"\t--exclude <file of regions to ignore> OR --excludebed <file of regions to ignore in bed format>\n" +
 				"\t--peakf <file of peaks to initialize component positions>\n" +
 				"\t--motfile <file of motifs in transfac format to initialize subtype motifs>\n" +
-				"\t--norepcon [flag to turn off replicate consistency mode (reproduces binding event reporting behavior in v0.2 and below)]\n" +				
+				"\t--lenient [flag to report events as long as they pass significance threshold in any replicate]\n" +
 				"\t--galaxyhtml [flag to produce a html output appropreate for galaxy]\n" +
 				" Finding ChExMix subtypes using motif:\n"+
 				"\t--memepath <path to the meme bin dir (default: meme is in $PATH)>\n" +

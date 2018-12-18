@@ -58,7 +58,7 @@ public class BindingEvent implements Comparable<BindingEvent>{
 	protected double []   LLd; 			//Log-likelihood loss test statistic resulting from eliminating component [indexed by condition]
 	protected double []   LLp;			//P-value for LL [indexed by condition]
 	protected double [][][] motifScores;	//LL score for motif match at binding event
-	protected boolean replicated[]; //Flags used to record whether the binding event passed replication metrics in each condition
+	protected int replicated[]; //Indicators used to record whether the binding event passed replication in each condition
 	protected String sequences[][][];   //Sequences at binding event	
 	protected Gene nearestGene=null;
 	protected int distToGene=0;
@@ -91,10 +91,10 @@ public class BindingEvent implements Comparable<BindingEvent>{
 		LLp = new double [numC];
 		motifScores = new double[numC][][];
 		sequences = new String[numC][][];
-		replicated = new boolean[numC];
+		replicated = new int[numC];
 		for(int c=0; c<numC; c++){
 			foundInCond[c]=false; condSigHits[c]=0; condCtrlHits[c]=0; condSigVCtrlP[c]=1; condSigVCtrlQ[c]=1; condSigVCtrlFold[c]=1;
-			replicated[c] = true;
+			replicated[c] = 0;
 //			motifScores[c]=0; sequences[c]="--";
 			for(int d=0; d<numC; d++){
 				interCondScMean[c][d]=0; interCondFold[c][d]=1; interCondP[c][d]=1;
@@ -131,7 +131,8 @@ public class BindingEvent implements Comparable<BindingEvent>{
 	public double getLLd(ExperimentCondition c1){return(LLd[experiments.getConditionIndex(c1)]);}
 	public double getLLp(ExperimentCondition c1){return(LLp[experiments.getConditionIndex(c1)]);}
 	public double[][] getMotifScore(ExperimentCondition c1){return(motifScores[experiments.getConditionIndex(c1)]);}
-	public boolean isReplicated(ExperimentCondition c1){return replicated[experiments.getConditionIndex(c1)];}
+	public boolean isReplicated(ExperimentCondition c1){return replicated[experiments.getConditionIndex(c1)]>0;}
+	public int getReplicationCode(ExperimentCondition c1){return replicated[experiments.getConditionIndex(c1)];}
 	public String[][] getSequence(ExperimentCondition c1){return sequences[experiments.getConditionIndex(c1)];}
 	public String getFoundInConditionsString(){
 		String foundStr="";
@@ -191,7 +192,7 @@ public class BindingEvent implements Comparable<BindingEvent>{
 	public void setInterCondP(ExperimentCondition c1, ExperimentCondition c2, double x){interCondP[experiments.getConditionIndex(c1)][experiments.getConditionIndex(c2)]=x;}
 	public void setInterRepP(ControlledExperiment r1, ControlledExperiment r2, double x){interRepP[r1.getIndex()][r2.getIndex()]=x;}
 	public void setMotifScore(ExperimentCondition c1, double[][] s){motifScores[experiments.getConditionIndex(c1)] = s;}
-	public void setReplicated(ExperimentCondition c1, boolean r){replicated[experiments.getConditionIndex(c1)] = r;}
+	public void setReplicationCode(ExperimentCondition c1, int r){replicated[experiments.getConditionIndex(c1)] = r;}
 	public void setSequence(ExperimentCondition c1, String[][] seq){sequences[experiments.getConditionIndex(c1)]=seq;}
 	
 	/**

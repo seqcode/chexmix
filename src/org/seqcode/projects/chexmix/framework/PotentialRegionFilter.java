@@ -732,7 +732,7 @@ public class PotentialRegionFilter {
 			System.err.println(config.getArgsList());
 		}else{
 			ExperimentManager manager = new ExperimentManager(econfig);
-			BindingManager bman = new BindingManager(evconfig, manager, config.getReplicateConsistencyMode());
+			BindingManager bman = new BindingManager(evconfig, manager, config.isLenientMode());
 			//Initialize binding models & binding model record
 			Map<ControlledExperiment, List<BindingModel>> repBindingModels = new HashMap<ControlledExperiment, List<BindingModel>>();
 			for(ControlledExperiment rep : manager.getReplicates()){

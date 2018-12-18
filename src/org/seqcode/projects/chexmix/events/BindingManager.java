@@ -42,12 +42,12 @@ public class BindingManager {
 	protected Map<ExperimentCondition, Double> alpha;
 	protected Map<ExperimentCondition, List<List<StrandedPoint>>> alignedEventPoints;
 	protected Map<ExperimentCondition, List<BindingSubtype>> potentialBindingSubtypes;
-	protected boolean replicateConsistencyMode;
+	protected boolean lenientMode;
 	
-	public BindingManager(EventsConfig con, ExperimentManager exptman, boolean replicateConsistencyMode){
+	public BindingManager(EventsConfig con, ExperimentManager exptman, boolean lenient){
 		config = con;
 		manager = exptman;
-		this.replicateConsistencyMode = replicateConsistencyMode;
+		lenientMode = lenient;
 		events  = new ArrayList<BindingEvent>();
 		conditionEvents = new HashMap<ExperimentCondition, List <BindingEvent>>();
 		bindingSubtypes = new HashMap<ExperimentCondition, List<BindingSubtype>>();
@@ -226,8 +226,8 @@ public class BindingManager {
 			    		double Q; 
 			    		boolean reportEvent=false;
 			    		
-			    		if(replicateConsistencyMode){
-			    			if(e.isFoundInCondition(cond) && e.isReplicated(cond)){
+			    		if(lenientMode){
+			    			if(e.isFoundInCondition(cond)){
 			    				if(e.getCondSigVCtrlP(cond)<=qMinThres)
 			    					reportEvent=true;
 			    				else{
@@ -262,8 +262,8 @@ public class BindingManager {
 						double Q; 
 			    		boolean reportEvent=false;
 			    		
-			    		if(replicateConsistencyMode){
-			    			if(e.isFoundInCondition(cond) && e.isReplicated(cond)){
+			    		if(lenientMode){
+			    			if(e.isFoundInCondition(cond)){
 			    				if(e.getCondSigVCtrlP(cond)<=qMinThres)
 			    					reportEvent=true;
 			    				else{
@@ -298,8 +298,8 @@ public class BindingManager {
 						double Q; 
 			    		boolean reportEvent=false;
 			    		
-			    		if(replicateConsistencyMode){
-			    			if(e.isFoundInCondition(cond) && e.isReplicated(cond)){
+			    		if(lenientMode){
+			    			if(e.isFoundInCondition(cond)){
 			    				if(e.getCondSigVCtrlP(cond)<=qMinThres)
 			    					reportEvent=true;
 			    				else{
@@ -395,7 +395,6 @@ public class BindingManager {
     				}
     				fout.close();
     			} catch (IOException e1) {
-    				// TODO Auto-generated catch block
     				e1.printStackTrace();
     			}
     		}
