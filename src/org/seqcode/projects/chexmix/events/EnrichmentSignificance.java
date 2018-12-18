@@ -112,7 +112,7 @@ public class EnrichmentSignificance {
 	private double evaluateSignificanceBinomial(double countA, double countB, double total) {
         double pValue;
 		
-		if(countA+countB<=0){
+		if(countA+countB<=0 || (countA/countB)<=minFoldChange){
 			return(1);
 		}else{
 	        try{
