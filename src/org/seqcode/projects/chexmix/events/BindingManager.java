@@ -381,15 +381,27 @@ public class BindingManager {
     				FileWriter fout = new FileWriter(bedfilename);
     				fout.write(BindingEvent.conditionBEDHeadString(cond)+"\n");
     				for (BindingEvent e: events){
-    					double Q = e.getCondSigVCtrlP(cond);
-    					boolean reportEvent=false;
-    					if(e.isFoundInCondition(cond)){
-    						for (ControlledExperiment rep : cond.getReplicates()){
-    							double repQ = e.getRepSigVCtrlQ(rep);
-    							if (repQ <=qMinThres)
-    								reportEvent=true;
-    						}
-    					}
+    					double Q; 
+			    		boolean reportEvent=false;
+			    		
+			    		if(lenientMode){
+			    			if(e.isFoundInCondition(cond)){
+			    				if(e.getCondSigVCtrlP(cond)<=qMinThres)
+			    					reportEvent=true;
+			    				else{
+				    				for (ControlledExperiment rep : cond.getReplicates()){
+					    				Q = e.getRepSigVCtrlQ(rep);
+					    				if (Q <=qMinThres)
+					    					reportEvent=true;
+					    			}
+			    				}
+				    		}
+			    		}else{
+			    			Q= e.getCondSigVCtrlP(cond);
+			    			if(e.isFoundInCondition(cond) && Q <=qMinThres)
+			    				reportEvent=true;
+				    	}
+			    		
     					if (reportEvent)
     						fout.write(e.getConditionBED(cond)+"\n");					
     				}

@@ -271,18 +271,25 @@ public class EventsPostAnalysis {
 						BufferedImage posImage = ImageIO.read(posHeatmap);
 						BufferedImage negImage = ImageIO.read(negHeatmap);
 
-						// create the new image, canvas size is the max. of both image sizes
+						// create the new image, canvas size is at most 250x1000
 						BufferedImage combined = new BufferedImage(Math.min(posImage.getWidth(), 250), Math.min(posImage.getHeight(), 1000), BufferedImage.TYPE_INT_ARGB);
-
+						// also create a new full image, canvas size unchanged
+						BufferedImage combinedFull = new BufferedImage(posImage.getWidth(), posImage.getHeight(), BufferedImage.TYPE_INT_ARGB);
+						
 						// paint both images, preserving the alpha channels
 						Graphics g = combined.getGraphics();
 						g.drawImage(negImage, 0, 0, null);
 						g.drawImage(posImage, 0, 0, null);
+						Graphics gfull = combinedFull.getGraphics();
+						gfull.drawImage(negImage, 0, 0, null);
+						gfull.drawImage(posImage, 0, 0, null);
 					
 						((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) 0.6));
+						((Graphics2D) gfull).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) 0.6));
 
 						// Save as new image
 						ImageIO.write(combined, "PNG", new File(pngPath+"heatmap.png"));
+						ImageIO.write(combined, "PNG", new File(pngPath+"full-heatmap.png"));
 					
 						// delete source images
 						posHeatmap.delete();

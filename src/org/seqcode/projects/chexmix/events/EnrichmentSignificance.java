@@ -45,7 +45,6 @@ public class EnrichmentSignificance {
 	 * Assumes that the counts in the features are not already scaled
 	 * @param modelRange
 	 */
-	public void execute() {this.execute(-1);}
 	public void execute(int modelRange){
 
 		//Calculate relative replicate weights using signal vs noise fractions in each signal channel
