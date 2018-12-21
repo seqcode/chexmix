@@ -97,7 +97,7 @@ public class ReplicationTester {
 						boolean consistent=true;
 						for(ControlledExperiment r1 : c.getReplicates()){
 							for(ControlledExperiment r2 : c.getReplicates()){
-								if(r1.getIndex()<r2.getIndex()){
+								if(r1.getIndex()!=r2.getIndex()){
 									double countA = e.getRepSigHits(r1), countB = e.getRepSigHits(r2)*repScaling[r1.getIndex()][r2.getIndex()];
 									binomial.setNandP((int)Math.ceil(countA + countB), 1.0 / (minFoldChange + 1));
 						            consistent = consistent && (binomial.cdf((int)Math.ceil(countB))>qMinThres);
