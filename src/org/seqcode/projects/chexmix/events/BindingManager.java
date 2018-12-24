@@ -216,12 +216,12 @@ public class BindingManager {
 	    			Collections.sort(events, new Comparator<BindingEvent>(){
 	    	            public int compare(BindingEvent o1, BindingEvent o2) {return o1.compareBySigCtrlPvalue(o2);}
 	    	        });
-	    			//Print events
+	    			//Print subtype assignments
 	    			String condName = cond.getName(); 
 	    			condName = condName.replaceAll("/", "-");
-	    			filename = filePrefix+"_"+condName+".events";
+	    			filename = filePrefix+"_"+condName+".subtype-assignments.table";
 					fout = new FileWriter(filename);
-					fout.write(BindingEvent.conditionHeadString(cond)+"\n");
+					fout.write(BindingEvent.subtypeAssignmentHeadString(cond)+"\n");
 			    	for(BindingEvent e : events){
 			    		double Q; 
 			    		boolean reportEvent=false;
@@ -245,7 +245,7 @@ public class BindingManager {
 				    	} 
 			    		
 			    		if (reportEvent)
-			    			fout.write(e.getConditionString(cond)+"\n");
+			    			fout.write(e.getSubtypeAssignmentString(cond)+"\n");
 			    	}
 					fout.close();
 					
@@ -254,10 +254,11 @@ public class BindingManager {
 					Collections.sort(events, new Comparator<BindingEvent>(){
 	    	            public int compare(BindingEvent o1, BindingEvent o2) {return o1.compareBySigCounts(o2);}
 	    	        });
-					//Print ML subtype events
-					filename = filePrefix+"_"+condName+".subtype.events";
+					
+					//Print events with ML subytpe assignments
+					filename = filePrefix+"_"+condName+".events";
 					fout = new FileWriter(filename);
-					fout.write(BindingEvent.conditionSubtypeHeadString(cond)+"\n");
+					fout.write(BindingEvent.conditionHeadString(cond)+"\n");
 					for(BindingEvent e : events){
 						double Q; 
 			    		boolean reportEvent=false;
@@ -281,7 +282,7 @@ public class BindingManager {
 				    	}
 			    		
 			    		if (reportEvent)
-							fout.write(e.getSubtypeString(cond)+"\n");
+							fout.write(e.getConditionString(cond)+"\n");
 					}	
 					fout.close();
 					
@@ -333,28 +334,28 @@ public class BindingManager {
 		    				if (currSubtype.reverseMotif()){ //reverse complement
 		    					for (StrandedPoint p : points){
 		    						int location = p.getStrand()=='+' ? p.getLocation()-offset : p.getLocation()+offset;
-		    						// Filter out sequences that are on the edge of cashed sequences
-									if((location-potReg.get(bt).get(c).getStart()>config.SEQPLOTWIN) && (potReg.get(bt).get(c).getEnd()-location>config.SEQPLOTWIN))
-										alignedPoints.get(bt).add(new StrandedPoint(p.getGenome(),p.getChrom(),location,p.getStrand() =='+' ? '-' : '+'));
+		    						// Filter out sequences that are on the edge of cached sequences
+									//if((location-potReg.get(bt).get(c).getStart()>config.SEQPLOTWIN) && (potReg.get(bt).get(c).getEnd()-location>config.SEQPLOTWIN))
+									alignedPoints.get(bt).add(new StrandedPoint(p.getGenome(),p.getChrom(),location,p.getStrand() =='+' ? '-' : '+'));
 									c++;
 		    					}	    						
 		    				}else{
 		    					for (StrandedPoint p : points){
 		    						int location = p.getStrand()=='+' ? p.getLocation()+offset : p.getLocation()-offset;
-		    						if((location-potReg.get(bt).get(c).getStart()>config.SEQPLOTWIN) && (potReg.get(bt).get(c).getEnd()-location>config.SEQPLOTWIN))
-		    							alignedPoints.get(bt).add(new StrandedPoint(p.getGenome(),p.getChrom(),location,p.getStrand()));
+		    						//if((location-potReg.get(bt).get(c).getStart()>config.SEQPLOTWIN) && (potReg.get(bt).get(c).getEnd()-location>config.SEQPLOTWIN))
+		    						alignedPoints.get(bt).add(new StrandedPoint(p.getGenome(),p.getChrom(),location,p.getStrand()));
 		    						c++;
 		    					}	    						
 		    				}	    					
 						}else{ // no motif found
 							for (StrandedPoint p : points){
-								if((p.getLocation()-potReg.get(bt).get(c).getStart()>config.SEQPLOTWIN) && (potReg.get(bt).get(c).getEnd()-p.getLocation()>config.SEQPLOTWIN))
-									alignedPoints.get(bt).add(p);
+								//if((p.getLocation()-potReg.get(bt).get(c).getStart()>config.SEQPLOTWIN) && (potReg.get(bt).get(c).getEnd()-p.getLocation()>config.SEQPLOTWIN))
+								alignedPoints.get(bt).add(p);
 								c++;
 							}
 						}
 					}
-					filename = filePrefix+"_"+condName+".subtype.aligned.events";
+					filename = filePrefix+"_"+condName+".subtype.aligned.events.txt";
 					fout = new FileWriter(filename);
 					int subtypeC=0;
 					for (List<StrandedPoint> points : alignedPoints){
@@ -453,7 +454,7 @@ public class BindingManager {
 		    			condName = condName.replaceAll("/", "-");
 		    			String repName = rep.getRepName();
 		    			repName = repName.replaceAll("/", "-");
-		    			filename = filePrefix+"_"+condName+"_"+repName+".repevents";
+		    			filename = filePrefix+"_"+condName+"_"+repName+".repevents.txt";
 						fout = new FileWriter(filename);
 						fout.write(BindingEvent.replicateHeadString(rep)+"\n");
 				    	for(BindingEvent e : events){

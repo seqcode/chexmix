@@ -132,9 +132,10 @@ public class ReplicationTester {
     		for(ExperimentCondition c : manager.getConditions())
     			head = head +"\t"+c.getName();
     		head = head +"\n";
+			fout.write(head);
 
     		for(BindingEvent e : events){
-    			fout.write(head+e.getPoint().getLocationString());
+    			fout.write(e.getPoint().getLocationString());
     			for(ExperimentCondition c : manager.getConditions())
     				fout.write("\t"+e.getReplicationCode(c));
     			fout.write("\n");

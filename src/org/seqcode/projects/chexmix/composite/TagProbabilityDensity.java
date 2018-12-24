@@ -431,6 +431,33 @@ public class TagProbabilityDensity {
 	}
 	
 	/**
+	 * Reverse complement
+	 * @return
+	 */
+	public TagProbabilityDensity reverseComplement(){
+		TagProbabilityDensity newTDS = null;
+		try {
+			newTDS = new TagProbabilityDensity(this.left, this.right);
+			newTDS.isGaussian=this.isGaussian;
+			newTDS.gaussOffsetC = this.gaussOffsetW;
+			newTDS.gaussOffsetW = this.gaussOffsetC;
+			newTDS.gaussSigmaW = this.gaussSigmaC;
+			newTDS.gaussSigmaC = this.gaussSigmaW;
+			double []revW = new double[watsonData.length];
+			double []revC = new double[crickData.length];
+			for(int i=0; i<watsonData.length; i++){
+				revW[i] = watsonData[watsonData.length-1-i];
+				revC[i] = crickData[crickData.length-1-i];
+			}
+			newTDS.loadData(revC, revW);
+			newTDS.makeProbabilities();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return newTDS;
+	}
+	
+	/**
 	 * Save this TagProbabilityDensity
 	 */
 	public String toString(){

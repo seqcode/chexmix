@@ -391,7 +391,7 @@ public class BindingEvent implements Comparable<BindingEvent>{
 	 * the output of BindingEvent.getConditionString().
 	 * (i.e. single condition files)
 	 */
-	public static String conditionHeadString(ExperimentCondition c){
+	public static String subtypeAssignmentHeadString(ExperimentCondition c){
 		String head="### ChExMix output\n";
 		
 		head = head + "#Condition\tName\tIndex\tTotalSigCount\tSignalFraction\n";
@@ -415,9 +415,10 @@ public class BindingEvent implements Comparable<BindingEvent>{
 		}
 		for (int bt=0; bt < numBindingTypes[c.getIndex()]; bt++){
 			for (int s=0; s< 2;s++){
-				head = head+"\tPoint\tTau";
-				if(config.isAddingSequences() && findMotif)
-						head = head +"\tSequence\tMotifScore";
+				String str = s==0 ? "+" : "-";
+				String subtype = "Subtype"+bt+str;
+				head = head+"\t"+subtype+"-Point\t"+subtype+"-Tau";
+				head = head +"\t"+subtype+"-Sequence\t"+subtype+"-MotifScore";
 			}	
 		}
 
@@ -452,7 +453,7 @@ public class BindingEvent implements Comparable<BindingEvent>{
 	 * the output of BindingEvent.getConditionString().
 	 * (i.e. single condition files)
 	 */
-	public static String conditionSubtypeHeadString(ExperimentCondition c){
+	public static String conditionHeadString(ExperimentCondition c){
 		String head="### ChExMix output\n";
 		
 		head = head + "#Condition\tName\tIndex\tTotalSigCount\tSignalFraction\n";
@@ -475,7 +476,7 @@ public class BindingEvent implements Comparable<BindingEvent>{
 			}
 		}
 		
-		head = head+"\tSubtypePoint\tTau\tSubtypeName";
+		head = head+"\tSubtypePoint\tTau\tSubtypeName\tSubtypeSequence\tSubtypeMotifScore";
 
 		if(config.isAddingAnnotations())
 			head = head +"\tnearestGene\tdistToGene";
@@ -524,7 +525,7 @@ public class BindingEvent implements Comparable<BindingEvent>{
 	/**
 	 * Print info on a single condition and associated inter-condition tests
 	 */
-	public String getConditionString(ExperimentCondition c) {
+	public String getSubtypeAssignmentString(ExperimentCondition c) {
 		//String gene = nearestGene == null ? "NONE" : nearestGene.getName();
 		String out = point.getLocationString();	
 		double logP = Math.log(getCondSigVCtrlQ(c))/config.LOG2;
@@ -543,9 +544,10 @@ public class BindingEvent implements Comparable<BindingEvent>{
 			for (int bt=0; bt < this.getTypePoints(c).length;bt++){
 				for (int s=0; s< 2;s++){
 					out = out+"\t"+this.getTypePoints(c)[bt][s]+"\t"+String.format("%.2f", this.getTypeProbs(c)[bt][s]);
-					if(config.isAddingSequences() && findMotif)
-						if (this.getSequence(c)!=null)
-							out = out+"\t"+this.getSequence(c)[bt][s]+"\t"+String.format("%.2f", this.getMotifScore(c)[bt][s]);
+					if(config.isAddingSequences() && findMotif && this.getSequence(c)!=null)
+						out = out+"\t"+this.getSequence(c)[bt][s]+"\t"+String.format("%.2f", this.getMotifScore(c)[bt][s]);
+					else
+						out = out+"\tN\t0";
 				}}}		
 		
 		if(config.isAddingAnnotations())
@@ -575,7 +577,7 @@ public class BindingEvent implements Comparable<BindingEvent>{
 	/**
 	 * Print info on ML subtypes
 	 */
-	public String getSubtypeString(ExperimentCondition c){
+	public String getConditionString(ExperimentCondition c){
 		String out = point.getLocationString();	
 		double logP = Math.log(getCondSigVCtrlQ(c))/config.LOG2;
 		double logF = Math.log(getCondSigVCtrlFold(c))/config.LOG2;
@@ -594,9 +596,10 @@ public class BindingEvent implements Comparable<BindingEvent>{
 			}
 			out = out+"\t"+this.getTypePoints(c)[maxTypeIndex][maxStrand]+"\t"+String.format("%.2f", this.getTypeProbs(c)[maxTypeIndex][maxStrand])+"\tSubtype"+maxTypeIndex;
 		}
-		if(config.isAddingSequences() && findMotif)
-			if (this.getSequence(c)!=null)
-				out = out+"\t"+this.getSequence(c)[maxTypeIndex][maxStrand]+"\t"+String.format("%.2f", this.getMotifScore(c)[maxTypeIndex][maxStrand]);
+		if(config.isAddingSequences() && findMotif && this.getSequence(c)!=null)
+			out = out+"\t"+this.getSequence(c)[maxTypeIndex][maxStrand]+"\t"+String.format("%.2f", this.getMotifScore(c)[maxTypeIndex][maxStrand]);
+		else
+			out = out+"\tN\t0";
 		
 		return out;
 	}

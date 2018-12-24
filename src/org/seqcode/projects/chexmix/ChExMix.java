@@ -263,12 +263,6 @@ public class ChExMix {
 
         }  
         
-        //Add binding models to the record
-        for(ControlledExperiment rep : manager.getReplicates())
-        	for (BindingSubtype sub : bindingManager.getBindingSubtype(rep.getCondition()))
-        		repBindingModels.get(rep).add(sub.getBindingModel(0));
-       
-        outFormatter.plotAllReadDistributions(repBindingModels);
         
         //ML quantification of events
         System.err.println("\n============================ ML read assignment ============================");
@@ -286,6 +280,16 @@ public class ChExMix {
         if(chexconfig.getFindingMotifs())
         	mixtureModel.getMotifFinder().alignMotifs();
         
+        //Add binding models to the record
+        for(ControlledExperiment rep : manager.getReplicates())
+        	for (BindingSubtype sub : bindingManager.getBindingSubtype(rep.getCondition()))
+        		if(sub.reverseMotif())
+        			repBindingModels.get(rep).add(sub.getBindingModel(0).reverseComplement());
+        		else
+        			repBindingModels.get(rep).add(sub.getBindingModel(0));
+        outFormatter.plotAllReadDistributions(repBindingModels);
+        
+        
         //Statistical analysis: enrichment over controls 
         EnrichmentSignificance tester = new EnrichmentSignificance(evconfig, manager, bindingManager, evconfig.getMinEventFoldChange(), econfig.getMappableGenomeLength());
 		tester.execute(chexconfig.getModelRange());
@@ -299,8 +303,7 @@ public class ChExMix {
 		bindingManager.writeReplicateCounts(chexconfig.getOutputParentDir()+File.separator+chexconfig.getOutBase()+".replicates.counts");
         
 		// Print per-replicate events to files (replicate consistency mode only)
-		if(chexconfig.isLenientMode())
-			bindingManager.writePerReplicateBindingEventFiles(chexconfig.getOutputParentDir()+File.separator+chexconfig.getOutBase(), evconfig.getQMinThres(), evconfig.getRunDiffTests(), evconfig.getDiffPMinThres());
+		bindingManager.writePerReplicateBindingEventFiles(chexconfig.getOutputParentDir()+File.separator+chexconfig.getOutBase(), evconfig.getQMinThres(), evconfig.getRunDiffTests(), evconfig.getDiffPMinThres());
         
 		// Print final events to files
 		bindingManager.writeBindingEventFiles(chexconfig.getOutputParentDir()+File.separator+chexconfig.getOutBase(), evconfig.getQMinThres(), evconfig.getRunDiffTests(), evconfig.getDiffPMinThres());

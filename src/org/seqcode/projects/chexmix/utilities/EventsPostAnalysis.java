@@ -217,7 +217,8 @@ public class EventsPostAnalysis {
 		if (gconfig.getSequenceGenerator().usingLocalFiles()){
 			for(ExperimentCondition cond : manager.getConditions()){		
 				try {
-					String outFile = config.getOutputImagesDir()+File.separator+config.getOutBase()+"_"+cond.getName()+"_seq.png";
+					String outFilename = config.getOutputImagesDir()+File.separator+config.getOutBase()+"_"+cond.getName()+"_seq.full.png";
+					String outResizeFilename = config.getOutputImagesDir()+File.separator+config.getOutBase()+"_"+cond.getName()+"_seq.png";
 					String seqOutFile = config.getOutputIntermediateDir()+File.separator+config.getOutBase()+"."+cond.getName()+".seq";
 					SequenceGenerator seqgen = gconfig.getSequenceGenerator();
 		    	
@@ -231,8 +232,18 @@ public class EventsPostAnalysis {
 					if(seqs !=null){
 						SequenceAlignmentFigure fig = new SequenceAlignmentFigure();
 						fig.setColors(Color.RED, Color.BLUE, Color.ORANGE, Color.GREEN);
-						fig.visualizeSequences(seqs, 3, 1, new File(outFile));
+						File outFile = new File(outFilename);
+						fig.visualizeSequences(seqs, 3, 1, outFile);
+						
+						//Resize
+						BufferedImage seqImage = ImageIO.read(outFile);
+						BufferedImage resizeImage = new BufferedImage(Math.min(seqImage.getWidth(), 250), Math.min(seqImage.getHeight(), 1000), BufferedImage.TYPE_INT_ARGB);
+						Graphics g = resizeImage.getGraphics();
+						g.drawImage(seqImage, 0, 0, null);
+						ImageIO.write(resizeImage, "PNG", new File(outResizeFilename));
+
 				    	
+						//Sequence file
 						if(seqOutFile != null){
 							FileWriter fout = new FileWriter(seqOutFile);
 							for(String s: seqs){
@@ -249,7 +260,7 @@ public class EventsPostAnalysis {
 				
 		//6) Make heatmap
 		for (ExperimentCondition cond : manager.getConditions()){
-			String pointArgs = " --peaks "+config.getOutputParentDir()+File.separator+config.getOutBase()+"_"+cond.getName()+".subtype.aligned.events";
+			String pointArgs = " --peaks "+config.getOutputParentDir()+File.separator+config.getOutBase()+"_"+cond.getName()+".subtype.aligned.events.txt";
 			
 			if(events.size()>0){			
 				// Run for each strand
@@ -289,14 +300,13 @@ public class EventsPostAnalysis {
 
 						// Save as new image
 						ImageIO.write(combined, "PNG", new File(pngPath+"heatmap.png"));
-						ImageIO.write(combined, "PNG", new File(pngPath+"full-heatmap.png"));
+						ImageIO.write(combinedFull, "PNG", new File(pngPath+"full-heatmap.png"));
 					
 						// delete source images
 						posHeatmap.delete();
 						negHeatmap.delete();
 					
 					} catch (IOException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				}
@@ -405,21 +415,23 @@ public class EventsPostAnalysis {
 						"\t<table>\n");
 				fout.write("\t\t<tr>" +
 		    			"\t\t<th>Condition</th>\n" +
-		    			"\t\t<th>Heatmap</th>\n");
+		    			"\t\t<th>Heatmap (+/-250bp)</th>\n");
 				if(config.getFindingMotifs())
-					fout.write("\t\t<th>Sequence plot</th>\n");
+					fout.write("\t\t<th>Sequence plot (+/-"+evconfig.SEQPLOTWIN+"bp)</th>\n");
 				for (int i=0; i < maxNumSubtypes; i++)
 					fout.write("\t\t<th>Subtype "+i+"</th>\n");
 				fout.write("\t\t</tr>\n");
 				
 				for(ExperimentCondition cond : manager.getConditions()){
 					String heatmapFileName = "images/"+config.getOutBase()+"_"+cond.getName()+".events_"+cond.getName()+"_"+"heatmap.png";
+					String heatmapFullFileName = "images/"+config.getOutBase()+"_"+cond.getName()+".events_"+cond.getName()+"_"+"full-heatmap.png";
 					String seqcolorplot = "images/"+config.getOutBase()+"_"+cond.getName()+"_seq.png";
+					String seqcolorplotfull = "images/"+config.getOutBase()+"_"+cond.getName()+"_seq.full.png";
 		    		fout.write("\t\t<tr>" +
 			    			"\t\t<td rowspan=3>"+cond.getName()+"</td>\n" +
-			    			"\t\t<td rowspan=3><a href='#' onclick='return fullpopitup(\""+heatmapFileName+"\")'><img src='"+heatmapFileName+"' height='400' width='150'></a></td>\n");
+			    			"\t\t<td rowspan=3><a href='#' onclick='return fullpopitup(\""+heatmapFullFileName+"\")'><img src='"+heatmapFileName+"' height='400' width='150'></a></td>\n");
 					if(config.getFindingMotifs()){
-						fout.write("\t\t<td rowspan=3><a href='#' onclick='return fullpopitup(\""+seqcolorplot+"\")'><img src='"+seqcolorplot+"' height='400' width='100'></a></td>\n");
+						fout.write("\t\t<td rowspan=3><a href='#' onclick='return fullpopitup(\""+seqcolorplotfull+"\")'><img src='"+seqcolorplot+"' height='400' width='150'></a></td>\n");
 					}
 		    		String replicateName = cond.getName()+"-"+cond.getReplicates().get(0).getRepName();
 		    		for (int i=0; i < maxNumSubtypes; i++){
@@ -430,7 +442,7 @@ public class EventsPostAnalysis {
 		    				fout.write("\t\t<td>NA</td>\n");
 		    			}					
 		    		}fout.write("\t\t</tr>\n");
-		    		fout.write("\t\t<tr>");
+		    		fout.write("\t\t<tr>\n");
 		    		
 		    		if(config.getFindingMotifs()){
 		    			int mc=0;
@@ -438,7 +450,7 @@ public class EventsPostAnalysis {
 		    			if(!motifImageNames.get(cond).isEmpty()){
 		    				for (BindingSubtype subtype :bindingManager.getBindingSubtype(cond)){
 		    					if (subtype.hasMotif()){
-		    						fout.write("\t\t<td><img src='"+motifImageNames.get(cond).get(mc)+"'height='70' width='250'><a href='#' onclick='return motifpopitup(\""+motifRCImageNames.get(cond).get(mc)+"\")'>rc</a></td>\n");
+		    						fout.write("\t\t<td><img src='"+motifImageNames.get(cond).get(mc)+"' height='70' width='250'><a href='#' onclick='return motifpopitup(\""+motifRCImageNames.get(cond).get(mc)+"\")'>rc</a></td>\n");
 		    						mc++;
 		    					}else{
 		    						fout.write("\t\t<td>NA</td>\n");
@@ -455,7 +467,7 @@ public class EventsPostAnalysis {
 		    			for (int i=0; i < maxNumSubtypes; i++)
 			    			fout.write("\t\t<td>NA</td>\n");
 		    		}fout.write("\t\t</tr>\n");
-		    		
+		    		fout.write("\t\t<tr>\n");
 		    		// add number of subtype specific sites
 		    		int[] subtypeCounts=bindingManager.countSubtypeEventsInCondition(cond, evconfig.getQMinThres());
 		    		int colc=0;
@@ -524,6 +536,7 @@ public class EventsPostAnalysis {
 	    		fout.write("\t\t\t<div class='card'>\n" +
 	    				"\t\t\t\t<h5 class='card-header'>Input data</h5>\n"+
 	    				"\t\t\t\t<div class='card-body'>\n"+
+	    				"\t\t\t\t\t<div style='overflow-x:auto;'>\n" +
 	    				"\t\t\t\t\t<table class='table table-bordered'>\n");
 	    		fout.write("\t\t\t\t\t\t<tr>\n"+
 	    				"\t\t\t\t\t\t\t<th>Replicate</th>\n" +
@@ -539,28 +552,29 @@ public class EventsPostAnalysis {
 	    					"\t\t\t\t\t\t\t<td>"+tmpscale+"</td>\n" +
 	    					"\t\t\t\t\t\t\t<td>"+String.format("%.3f",rep.getSignalVsNoiseFraction())+"</td>\n");
 	    			fout.write("\t\t\t\t\t\t</tr>\n");
-	    		}fout.write("\t\t\t\t\t</table>\n");
+	    		}fout.write("\t\t\t\t\t</table>\n\t\t\t\t</div>\n");
 	    		fout.write("\t\t\t\t</div>\n\t\t\t</div>\n\t\t\t<br>\n");
 			
 	    		//Binding subtype information (per condition)
 	    		fout.write("\t\t\t<div class='card'>\n"+
 	    				"\t\t\t\t<h5 class='card-header'>Binding event subtypes</h5>\n"+
 	    				"\t\t\t\t<div class='card-body'>\n");
-	    		fout.write("\t\t\t\t\t<table class='table table-bordered'>\n"+
+	    		fout.write("\t\t\t\t\t<div style='overflow-x:auto;'>\n" +
+	    				"\t\t\t\t\t<table class='table table-bordered'>\n"+
 	    				"\t\t\t\t\t\t<tr>\n" +
 	    				"\t\t\t\t\t\t\t<th>Condition</th>\n" +
 	    				"\t\t\t\t\t\t\t<th>Events</th>\n" +
 	    				"\t\t\t\t\t\t\t<th>File</th>\n");
 	    		fout.write("\t\t\t\t\t\t</tr>\n");
 	    		for(ExperimentCondition cond : manager.getConditions()){
-	    			String subtypeEventFileName = config.getOutBase()+"_"+cond.getName()+".subtype.events";
+	    			String subtypeEventFileName = config.getOutBase()+"_"+cond.getName()+".events";
 	    			fout.write("\t\t\t\t\t\t<tr>\n" +
 	    					"\t\t\t\t\t\t\t<td>"+cond.getName()+"</td>\n" +
 	    					"\t\t\t\t\t\t\t<td>"+bindingManager.countEventsInCondition(cond, evconfig.getQMinThres())+"</td>\n" +
 	    					"\t\t\t\t\t\t\t<td><a href='"+subtypeEventFileName+"'>"+subtypeEventFileName+"</a></td>\n");
 	    			fout.write("\t\t\t\t\t\t</tr>\n");
 //				}fout.write("\t\t\t\t\t</table>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t\t<br>\n");
-	    		}fout.write("\t\t\t\t\t</table>\n\t\t\t\t\t<br>\n");
+	    		}fout.write("\t\t\t\t\t</table>\n\t\t\t\t</div>\n\t\t\t\t\t<br>\n");
 			
 	    		// Heatmap and Motif information
 	    		int maxNumSubtypes=0;
@@ -572,7 +586,8 @@ public class EventsPostAnalysis {
 //			fout.write("\t\t\t<div class='card'>\n"+
 //					"\t\t\t\t<h5 class='card-header'>Heatmap & Motif Information</h5>\n"+
 //					"\t\t\t\t<div class='card-body'>\n");			
-	    		fout.write("\t\t\t\t\t<table class='table table-bordered'>\n"+
+	    		fout.write("\t\t\t\t\t<div style='overflow-x:auto;'>\n" +
+	    				"\t\t\t\t\t<table class='table table-bordered'>\n"+
 	    				"\t\t\t\t\t\t<tr>\n"+
 	    				"\t\t\t\t\t\t\t<th>Condition</th>\n" +
 	    				"\t\t\t\t\t\t\t<th>Heatmap</th>\n");
@@ -637,7 +652,7 @@ public class EventsPostAnalysis {
 	    				fout.write("\t\t\t\t\t\t<td>NA</td>\n");
 	    			fout.write("\t\t\t\t\t\t</tr>\n");
 	    		
-	    		}fout.write("\t\t\t\t\t</table>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t\t<br>\n");
+	    		}fout.write("\t\t\t\t\t</table>\n\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t\t<br>\n");
 			
 			
 	    		//File list of extras (histograms, etc)

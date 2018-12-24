@@ -89,9 +89,12 @@ public class BindingMixture {
 		bindingManager = bMan;
 		potRegFilter=filter;
 		testRegions = filter.getPotentialRegions();
+		List<Region> expTestRegions = new ArrayList<Region>();
+		for(Region r : testRegions)
+			expTestRegions.add(r.expand(evcon.SEQPLOTWIN+1, evcon.SEQPLOTWIN+1));
 				
 		if(config.getFindingMotifs())
-			motifFinder = new MotifPlatform(gconfig, config, manager, bindingManager, testRegions);
+			motifFinder = new MotifPlatform(gconfig, config, manager, bindingManager, expTestRegions);
 		else 
 			motifFinder=null;
 		regionsToPlot = config.getRegionsToPlot();
