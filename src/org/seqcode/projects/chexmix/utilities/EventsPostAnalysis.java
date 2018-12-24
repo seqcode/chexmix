@@ -348,7 +348,7 @@ public class EventsPostAnalysis {
 		    	fout.write("<html>\n" +
 		    			"\t<head><title>ChExMix results ("+config.getOutBase()+")</title></head>\n" +
 		    			"\t<style type='text/css'>/* <![CDATA[ */ table, th{border-color: #600;border-style: solid;} td{border-color: #600;border-style: solid;} table{border-width: 0 0 1px 1px; border-spacing: 0;border-collapse: collapse;} th{margin: 0;padding: 4px;border-width: 1px 1px 0 0;} td{margin: 0;padding: 4px;border-width: 1px 1px 0 0;} /* ]]> */</style>\n" +
-		    			"\t<script language='javascript' type='text/javascript'><!--\nfunction motifpopitup(url) {	newwindow=window.open(url,'name','height=75');	if (window.focus) {newwindow.focus()}	return false;}// --></script>\n" +
+		    			"\t<script language='javascript' type='text/javascript'><!--\nfunction motifpopitup(url) {	newwindow=window.open(url,'name',' height=75');	if (window.focus) {newwindow.focus()}	return false;}// --></script>\n" +
 		    			"\t<script language='javascript' type='text/javascript'><!--\nfunction fullpopitup(url) {	newwindow=window.open(url,'name');	if (window.focus) {newwindow.focus()}	return false;}// --></script>\n" +
 		    			"\t<body>\n" +
 		    			"\t<h1>ChExMix results ("+config.getOutBase()+")</h1>\n" +
@@ -612,7 +612,7 @@ public class EventsPostAnalysis {
 	    				if(!motifImageNames.get(cond).isEmpty()){
 	    					for (BindingSubtype subtype :bindingManager.getBindingSubtype(cond)){
 	    						if (subtype.hasMotif()){
-	    							fout.write("\t\t\t\t\t\t<td><img src='"+motifImageNames.get(cond).get(mc)+" 'height='70' width='250'><a href='#' onclick='return motifpopitup(\""+motifRCImageNames.get(cond).get(mc)+"\")'>rc</a></td>\n");
+	    							fout.write("\t\t\t\t\t\t<td><img src='"+motifImageNames.get(cond).get(mc)+"' height='70' width='250'><a href='#' onclick='return motifpopitup(\""+motifRCImageNames.get(cond).get(mc)+"\")'>rc</a></td>\n");
 	    							mc++;
 	    						}else{
 	    							fout.write("\t\t\t\t\t\t<td>NA</td>\n");
@@ -668,7 +668,7 @@ public class EventsPostAnalysis {
 	    				"\t\t\t\treturn false;\n\t\t\t}\n"+
 	    			
 	        			"\t\t\tfunction motifpopitup(url) {\n"+
-	        			"\t\t\t\tnewwindow = window.open(url, 'name', 'height=75');\n"+
+	        			"\t\t\t\tnewwindow = window.open(url, 'name', ' height=75');\n"+
 	        			"\t\t\t\tif (window.focus) { newwindow.focus() }\n"+
 	        			"\t\t\t\treturn false;\n"+
 	    				"\t\t\t}\n\t\t</script>\n");

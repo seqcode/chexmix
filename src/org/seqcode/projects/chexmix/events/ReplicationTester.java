@@ -99,8 +99,11 @@ public class ReplicationTester {
 							for(ControlledExperiment r2 : c.getReplicates()){
 								if(r1.getIndex()!=r2.getIndex()){
 									double countA = e.getRepSigHits(r1), countB = e.getRepSigHits(r2)*repScaling[r1.getIndex()][r2.getIndex()];
-									binomial.setNandP((int)Math.ceil(countA + countB), 1.0 / (minFoldChange + 1));
-						            consistent = consistent && (binomial.cdf((int)Math.ceil(countB))>qMinThres);
+									int cAB = (int)Math.ceil(countA + countB);
+									if(cAB>0){
+										binomial.setNandP((int)Math.ceil(countA + countB), 1.0 / (minFoldChange + 1));
+										consistent = consistent && (binomial.cdf((int)Math.ceil(countB))>qMinThres);
+									}
 								}
 							}
 						}
