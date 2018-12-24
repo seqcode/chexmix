@@ -414,14 +414,22 @@ public class EventsPostAnalysis {
 				fout.write("\t\t</tr>\n");
 				
 				for(ExperimentCondition cond : manager.getConditions()){
-					String heatmapFileName = "images/"+config.getOutBase()+"_"+cond.getName()+".events_"+cond.getName()+"_"+"heatmap.png";
+					int numEvents = bindingManager.countEventsInCondition(cond, evconfig.getQMinThres());
+	    			String heatmapFileName = "images/"+config.getOutBase()+"_"+cond.getName()+".events_"+cond.getName()+"_"+"heatmap.png";
 					String seqcolorplot = "images/"+config.getOutBase()+"_"+cond.getName()+"_seq.png";
-		    		fout.write("\t\t<tr>" +
-			    			"\t\t<td rowspan=3>"+cond.getName()+"</td>\n" +
-			    			"\t\t<td rowspan=3><a href='#' onclick='return fullpopitup(\""+heatmapFileName+"\")'><img src='"+heatmapFileName+"' height='400' width='150'></a></td>\n");
-					if(config.getFindingMotifs()){
-						fout.write("\t\t<td rowspan=3><a href='#' onclick='return fullpopitup(\""+seqcolorplot+"\")'><img src='"+seqcolorplot+"' height='400' width='150'></a></td>\n");
-					}
+					fout.write("\t\t<tr>" +
+			    			"\t\t<td rowspan=3>"+cond.getName()+"</td>\n");
+		    		if(numEvents>0)
+		    			fout.write("\t\t<td rowspan=3><a href='#' onclick='return fullpopitup(\""+heatmapFileName+"\")'><img src='"+heatmapFileName+"' height='400' width='150'></a></td>\n");
+		    		else
+		    			fout.write("\t\t\t\t\t\t\t<td rowspan=3>No events</td>\n");
+	    			if(config.getFindingMotifs()){
+	    				if(numEvents>0)
+	    					fout.write("\t\t<td rowspan=3><a href='#' onclick='return fullpopitup(\""+seqcolorplot+"\")'><img src='"+seqcolorplot+"' height='400' width='150'></a></td>\n");
+	    				else
+			    			fout.write("\t\t\t\t\t\t\t<td rowspan=3>No events</td>\n");
+	    			}
+					
 		    		String replicateName = cond.getName()+"-"+cond.getReplicates().get(0).getRepName();
 		    		for (int i=0; i < maxNumSubtypes; i++){
 		    			if (i < bindingManager.getNumBindingType(cond)){
@@ -587,13 +595,20 @@ public class EventsPostAnalysis {
 	    		fout.write("\t\t\t\t\t\t</tr>\n");
 			
 	    		for(ExperimentCondition cond : manager.getConditions()){
+	    			int numEvents = bindingManager.countEventsInCondition(cond, evconfig.getQMinThres());
 	    			String heatmapFileName = "images/"+config.getOutBase()+"_"+cond.getName()+".events_"+cond.getName()+"_"+"heatmap.png";
 					String seqcolorplot = "images/"+config.getOutBase()+"_"+cond.getName()+"_seq.png";
 		    		fout.write("\t\t\t\t\t\t<tr>" +
-	    					"\t\t\t\t\t\t\t<td rowspan=3>"+cond.getName()+"</td>\n" +
-	    					"\t\t\t\t\t\t\t<td rowspan=3><a href='#' onclick='return fullpopitup(\""+heatmapFileName+"\")'><img class='myimg mx-auto d-block' src='"+heatmapFileName+"' height='400' width='150'></a></td>\n");
+	    					"\t\t\t\t\t\t\t<td rowspan=3>"+cond.getName()+"</td>\n");
+		    		if(numEvents>0)
+		    			fout.write("\t\t\t\t\t\t\t<td rowspan=3><a href='#' onclick='return fullpopitup(\""+heatmapFileName+"\")'><img class='myimg mx-auto d-block' src='"+heatmapFileName+"' height='400' width='150'></a></td>\n");
+		    		else
+		    			fout.write("\t\t\t\t\t\t\t<td rowspan=3>No events</td>\n");
 	    			if(config.getFindingMotifs()){
-	    				fout.write("\t\t\t\t\t\t\t<td rowspan=3><a href='#' onclick='return fullpopitup(\""+seqcolorplot+"\")'><img class='myimg mx-auto d-block' src='"+seqcolorplot+"' height='400' width='150'></a></td>\n");
+	    				if(numEvents>0)
+	    					fout.write("\t\t\t\t\t\t\t<td rowspan=3><a href='#' onclick='return fullpopitup(\""+seqcolorplot+"\")'><img class='myimg mx-auto d-block' src='"+seqcolorplot+"' height='400' width='150'></a></td>\n");
+	    				else
+			    			fout.write("\t\t\t\t\t\t\t<td rowspan=3>No events</td>\n");
 	    			}
 	    			String replicateName = cond.getName()+"-"+cond.getReplicates().get(0).getRepName();
 	    			for (int i=0; i < maxNumSubtypes; i++){
