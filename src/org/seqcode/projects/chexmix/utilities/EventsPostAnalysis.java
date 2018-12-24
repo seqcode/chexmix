@@ -475,8 +475,8 @@ public class EventsPostAnalysis {
 				fout.write("\t<h2>Miscellaneous files</h2>\n");
 				if(config.getFindingMotifs()){
 					for(ExperimentCondition cond : manager.getConditions())
-						fout.write("\t<p><a href='intermediate-results/"+config.getOutBase()+"."+cond.getName()+".transfac'>"+cond.getName()+" subtype motifs.</a></p>\n");
-					fout.write("\t<p> Try inputting these motifs into <a href='http://www.benoslab.pitt.edu/stamp/'>STAMP</a> for validation.</p>\n");
+						fout.write("\t<p><a href='intermediate-results/"+config.getOutBase()+"."+cond.getName()+".transfac'>"+cond.getName()+" subtype motifs</a></p>\n");
+					fout.write("\t<p> Try inputting these motifs into <a href='http://www.benoslab.pitt.edu/stamp/'>STAMP</a> for validation</p>\n");
 				}
 				fout.write("\t<p><a href='intermediate-results/"+config.getOutBase()+".intraCondPeakDistances.histo.txt'>Peak-peak distance histograms (same condition)</a></p>\n");
 				if(manager.getNumConditions()>1)
@@ -650,8 +650,8 @@ public class EventsPostAnalysis {
 	    		fout.write("\t\t\t\t<h4>Miscellaneous files</h4>\n");
 	    		if(config.getFindingMotifs()){
 	    			for(ExperimentCondition cond : manager.getConditions())
-	    				fout.write("\t\t\t\t<p><a href='intermediate-results/"+config.getOutBase()+"."+cond.getName()+".transfac'>"+cond.getName()+" subtype motifs.</a></p>\n");
-	    			fout.write("\t\t\t\t<p> Try inputting these motifs into <a href='http://www.benoslab.pitt.edu/stamp/'>STAMP</a> for validation.</p>\n");
+	    				fout.write("\t\t\t\t<p><a href='intermediate-results/"+config.getOutBase()+"."+cond.getName()+".transfac'>"+cond.getName()+" subtype motifs</a></p>\n");
+	    			fout.write("\t\t\t\t<p> Try inputting these motifs into <a href='http://www.benoslab.pitt.edu/stamp/'>STAMP</a> for validation</p>\n");
 	    		}
 	    		fout.write("\t\t\t\t<p><a href='intermediate-results/"+config.getOutBase()+".intraCondPeakDistances.histo.txt'>Peak-peak distance histograms (same condition)</a></p>\n");
 	    		if(manager.getNumConditions()>1)
