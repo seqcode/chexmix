@@ -91,7 +91,7 @@ public class BindingMixture {
 		testRegions = filter.getPotentialRegions();
 		List<Region> expTestRegions = new ArrayList<Region>();
 		for(Region r : testRegions)
-			expTestRegions.add(r.expand(evcon.SEQPLOTWIN+1, evcon.SEQPLOTWIN+1));
+			expTestRegions.add(r.expand(evcon.SEQPLOTWIN*2, evcon.SEQPLOTWIN*2));
 				
 		if(config.getFindingMotifs())
 			motifFinder = new MotifPlatform(gconfig, config, manager, bindingManager, expTestRegions);
