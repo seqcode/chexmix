@@ -159,7 +159,7 @@ public class BindingManager {
 	public int countEventsInCondition(ExperimentCondition cond, double qMinThres){
 		int count=0;
 		for(BindingEvent e : events){
-			if(e.isFoundInCondition(cond) && e.getCondSigVCtrlP(cond) <=qMinThres)
+			if(e.isFoundInCondition(cond) && e.getCondSigVCtrlQ(cond) <=qMinThres)
 				count++;
 		}
 		return count;
@@ -174,7 +174,7 @@ public class BindingManager {
 		for (int i=0; i <getNumBindingType(cond); i++){ subtypeCount[i]=0;}
 		ArrayList<Integer> subtyeCount= new ArrayList<Integer>();
 		for(BindingEvent e : events){
-			if(e.isFoundInCondition(cond) && e.getCondSigVCtrlP(cond) <=qMinThres)
+			if(e.isFoundInCondition(cond) && e.getCondSigVCtrlQ(cond) <=qMinThres)
 				subtypeCount[e.getMaxSubtypePoint(cond).car()]++;
 		}
 		return subtypeCount;
@@ -187,7 +187,7 @@ public class BindingManager {
 	public int countDiffEventsBetweenConditions(ExperimentCondition cond, ExperimentCondition othercond, double qMinThres, double diffPMinThres){
 		int count=0;
 		for(BindingEvent e : events){
-			if(e.isFoundInCondition(cond) && e.getCondSigVCtrlP(cond) <=qMinThres)
+			if(e.isFoundInCondition(cond) && e.getCondSigVCtrlQ(cond) <=qMinThres)
     			if(e.getInterCondP(cond, othercond)<=diffPMinThres && e.getInterCondFold(cond, othercond)>0)
     				count++;
 		}
@@ -228,7 +228,7 @@ public class BindingManager {
 			    		
 			    		if(lenientMode){
 			    			if(e.isFoundInCondition(cond)){
-			    				if(e.getCondSigVCtrlP(cond)<=qMinThres)
+			    				if(e.getCondSigVCtrlQ(cond)<=qMinThres)
 			    					reportEvent=true;
 			    				else{
 				    				for (ControlledExperiment rep : cond.getReplicates()){
@@ -239,7 +239,7 @@ public class BindingManager {
 			    				}
 				    		}
 			    		}else{
-			    			Q= e.getCondSigVCtrlP(cond);
+			    			Q= e.getCondSigVCtrlQ(cond);
 			    			if(e.isFoundInCondition(cond) && Q <=qMinThres)
 			    				reportEvent=true;
 				    	} 
@@ -265,7 +265,7 @@ public class BindingManager {
 			    		
 			    		if(lenientMode){
 			    			if(e.isFoundInCondition(cond)){
-			    				if(e.getCondSigVCtrlP(cond)<=qMinThres)
+			    				if(e.getCondSigVCtrlQ(cond)<=qMinThres)
 			    					reportEvent=true;
 			    				else{
 				    				for (ControlledExperiment rep : cond.getReplicates()){
@@ -276,7 +276,7 @@ public class BindingManager {
 			    				}
 				    		}
 			    		}else{
-			    			Q= e.getCondSigVCtrlP(cond);
+			    			Q= e.getCondSigVCtrlQ(cond);
 			    			if(e.isFoundInCondition(cond) && Q <=qMinThres)
 			    				reportEvent=true;
 				    	}
@@ -301,7 +301,7 @@ public class BindingManager {
 			    		
 			    		if(lenientMode){
 			    			if(e.isFoundInCondition(cond)){
-			    				if(e.getCondSigVCtrlP(cond)<=qMinThres)
+			    				if(e.getCondSigVCtrlQ(cond)<=qMinThres)
 			    					reportEvent=true;
 			    				else{
 				    				for (ControlledExperiment rep : cond.getReplicates()){
@@ -312,7 +312,7 @@ public class BindingManager {
 			    				}
 				    		}
 			    		}else{
-			    			Q= e.getCondSigVCtrlP(cond);
+			    			Q= e.getCondSigVCtrlQ(cond);
 			    			if(e.isFoundInCondition(cond) && Q <=qMinThres)
 			    				reportEvent=true;
 				    	}
@@ -387,7 +387,7 @@ public class BindingManager {
 			    		
 			    		if(lenientMode){
 			    			if(e.isFoundInCondition(cond)){
-			    				if(e.getCondSigVCtrlP(cond)<=qMinThres)
+			    				if(e.getCondSigVCtrlQ(cond)<=qMinThres)
 			    					reportEvent=true;
 			    				else{
 				    				for (ControlledExperiment rep : cond.getReplicates()){
@@ -398,7 +398,7 @@ public class BindingManager {
 			    				}
 				    		}
 			    		}else{
-			    			Q= e.getCondSigVCtrlP(cond);
+			    			Q= e.getCondSigVCtrlQ(cond);
 			    			if(e.isFoundInCondition(cond) && Q <=qMinThres)
 			    				reportEvent=true;
 				    	}
