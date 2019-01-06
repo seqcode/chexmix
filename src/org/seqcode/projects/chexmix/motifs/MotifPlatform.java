@@ -818,18 +818,18 @@ public class MotifPlatform {
 			Region potential;				
 			long randPos = (long)(1+(rand.nextDouble()*genomeSize));
 			//find the chr
-			boolean found=false;
+			boolean found=false, valid=true;
 			long total=0;
 			for(int c=0; c<numChroms && !found; c++){
 				if(randPos<total+chromoSize[c]){
 					found=true;
-					if(randPos+sampleSize<total+chromoSize[c]-1){
-						int pstart = (int)(randPos-total);
-						int pend = (int)(randPos+sampleSize-total);
+					valid=true;
+					
+					int pstart = (int)(randPos-total+1);
+					int pend = (int)(pstart+sampleSize);
+					if(pstart>0 && pend<chromoSize[c]-1){
 						potential = new Region(config.getGenome(), chromoNames[c], pstart, pend);
-						
 						//is this region in the blacklist? 
-						boolean valid=true;
 						if(blackList!=null){
 							for(Region r : blackList){
 								if(potential.overlaps(r)){valid=false;}
@@ -840,6 +840,7 @@ public class MotifPlatform {
 							regs.add(potential);
 						}
 					}
+
 				}total+=chromoSize[c];
 			}
 		}
