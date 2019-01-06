@@ -82,33 +82,34 @@ public class ReplicationTester {
 
 				for(BindingEvent e : events){
 					// 2.2) if this event is not called in this condition, code = -2
-					if(!e.isFoundInCondition(c))
+					if(!e.isFoundInCondition(c)){
 						e.setReplicationCode(c, -2);
-					
-					// 2.3) if this event passes per-replicate significant filters in multiple replicates, code = number of passing replicates
-					int repC=0;
-					for(ControlledExperiment r : c.getReplicates())
-						if(e.isFoundInCondition(c) && e.getRepSigVCtrlQ(r)<=qMinThres)
-							repC++;
-					if(repC>1){
-						e.setReplicationCode(c, repC);
-					}else if(repC==1 || e.getCondSigVCtrlQ(c)<=qMinThres){
-						// 2.4) if the event is called in only one replicate or the condition as a whole, test the difference between replicates using Binomial
-						boolean consistent=true;
-						for(ControlledExperiment r1 : c.getReplicates()){
-							for(ControlledExperiment r2 : c.getReplicates()){
-								if(r1.getIndex()!=r2.getIndex()){
-									double countA = e.getRepSigHits(r1), countB = e.getRepSigHits(r2)*repScaling[r1.getIndex()][r2.getIndex()];
-									int cAB = (int)Math.ceil(countA + countB);
-									if(cAB>0){
-										binomial.setNandP((int)Math.ceil(countA + countB), 1.0 / (minFoldChange + 1));
-										consistent = consistent && (binomial.cdf((int)Math.ceil(countB))>qMinThres);
+					}else{
+						// 2.3) if this event passes per-replicate significant filters in multiple replicates, code = number of passing replicates
+						int repC=0;
+						for(ControlledExperiment r : c.getReplicates())
+							if(e.isFoundInCondition(c) && e.getRepSigVCtrlQ(r)<=qMinThres)
+								repC++;
+						if(repC>1){
+							e.setReplicationCode(c, repC);
+						}else if(repC==1 || e.getCondSigVCtrlQ(c)<=qMinThres){
+							// 2.4) if the event is called in only one replicate or the condition as a whole, test the difference between replicates using Binomial
+							boolean consistent=true;
+							for(ControlledExperiment r1 : c.getReplicates()){
+								for(ControlledExperiment r2 : c.getReplicates()){
+									if(r1.getIndex()!=r2.getIndex()){
+										double countA = e.getRepSigHits(r1), countB = e.getRepSigHits(r2)*repScaling[r1.getIndex()][r2.getIndex()];
+										int cAB = (int)Math.ceil(countA + countB);
+										if(cAB>0){
+											binomial.setNandP((int)Math.ceil(countA + countB), 1.0 / (minFoldChange + 1));
+											consistent = consistent && (binomial.cdf((int)Math.ceil(countB))>qMinThres);
+										}
 									}
 								}
 							}
+							// 2.4 cont) if there is any significant difference, code = -1. otherwise, code = 1
+							e.setReplicationCode(c, consistent ? 1: -1);
 						}
-						// 2.4 cont) if there is any significant difference, code = -1. otherwise, code = 1
-						e.setReplicationCode(c, consistent ? 1: -1);
 					}
 				}
 			}
