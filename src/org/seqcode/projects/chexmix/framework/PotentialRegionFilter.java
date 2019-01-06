@@ -333,10 +333,11 @@ public class PotentialRegionFilter {
 		
 		for(Region t : testRegions){
 			boolean ignore = false;
-			for(Region i : config.getRegionsToIgnore()){
-				if(t.overlaps(i)){
-					ignore = true; break;
-				}
+			int x=0;
+			while(x<config.getRegionsToIgnore().size() && ignore==false){
+				Region i = config.getRegionsToIgnore().get(x);
+				if(t.overlaps(i))
+					ignore = true;
 			}
 			if(!ignore)
 				filtered.add(t);
