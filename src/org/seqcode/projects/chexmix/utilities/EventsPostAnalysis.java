@@ -661,7 +661,7 @@ public class EventsPostAnalysis {
 	    		
 	    		//Replicate consistency info	    		
 	    		fout.write("\t\t\t<div class='card'>\n"+
-	    				"\t\t\t\t<h5 class='card-header'>Replicate info</h5>\n"+
+	    				"\t\t\t\t<h5 class='card-header'>Replicate information</h5>\n"+
 	    				"\t\t\t\t<div class='card-body'>\n");
 	    		// Replication code
 	    		fout.write("\t\t\t\t\t<div style='overflow-x:auto;'>\n" +
@@ -677,14 +677,14 @@ public class EventsPostAnalysis {
 	    					"\t\t\t\t\t\t\t<td>"+cond.getName()+"</td>\n" +
 	    					"\t\t\t\t\t\t\t<td><a href='"+repCodeFileName+"'>"+repCodeFileName+"</a></td>\n");
 	    			fout.write("\t\t\t\t\t\t</tr>\n");
-	    		}fout.write("\t\t\t\t\t</table>\n\t\t\t\t</div>\n");
+	    		}fout.write("\t\t\t\t\t</table>\n\t\t\t\t</div>\n\t\t\t\t<br>\n");
 	    		
 	    		//Replicate events
 	    		fout.write("\t\t\t\t\t<div style='overflow-x:auto;'>\n" +
 	    				"\t\t\t\t\t<table class='table table-bordered'>\n"+
 	    				"\t\t\t\t\t\t<tr>\n" +
 	    				"\t\t\t\t\t\t\t<th>Replicate</th>\n" +
-	    				"\t\t\t\t\t\t\t<th>File</th>\n");
+	    				"\t\t\t\t\t\t\t<th>Event file</th>\n");
 	    		fout.write("\t\t\t\t\t\t</tr>\n");
 	    		
 	    		for(ControlledExperiment rep : manager.getReplicates()){
