@@ -688,7 +688,7 @@ public class EventsPostAnalysis {
 	    		fout.write("\t\t\t\t\t\t</tr>\n");
 	    		
 	    		for(ControlledExperiment rep : manager.getReplicates()){
-	    			String repEventFileName = config.getOutBase()+"_"+rep.getCondName()+"_"+rep.getName()+".repevents.txt";
+	    			String repEventFileName = config.getOutBase()+"_"+rep.getCondName()+"_"+rep.getRepName()+".repevents.txt";
 	    			fout.write("\t\t\t\t\t\t<tr>\n" +
 	    					"\t\t\t\t\t\t\t<td>"+rep.getCondName()+" "+rep.getRepName()+"</td>\n" +
 	    					"\t\t\t\t\t\t\t<td><a href='"+repEventFileName+"'>"+repEventFileName+"</a></td>\n");
