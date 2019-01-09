@@ -672,7 +672,7 @@ public class EventsPostAnalysis {
 	    		fout.write("\t\t\t\t\t\t</tr>\n");
 	    		
 	    		for(ExperimentCondition cond : manager.getConditions()){
-	    			String repCodeFileName = config.getOutputParentDir()+File.separator+config.getOutBase()+".all.replicationcodes.table";
+	    			String repCodeFileName = config.getOutBase()+".all.replicationcodes.table";
 	    			fout.write("\t\t\t\t\t\t<tr>\n" +
 	    					"\t\t\t\t\t\t\t<td>"+cond.getName()+"</td>\n" +
 	    					"\t\t\t\t\t\t\t<td><a href='"+repCodeFileName+"'>"+repCodeFileName+"</a></td>\n");
@@ -688,7 +688,7 @@ public class EventsPostAnalysis {
 	    		fout.write("\t\t\t\t\t\t</tr>\n");
 	    		
 	    		for(ControlledExperiment rep : manager.getReplicates()){
-	    			String repEventFileName = config.getOutputParentDir()+File.separator+config.getOutBase()+"_"+rep.getCondName()+"_"+rep.getName()+".repevents.txt";
+	    			String repEventFileName = config.getOutBase()+"_"+rep.getCondName()+"_"+rep.getName()+".repevents.txt";
 	    			fout.write("\t\t\t\t\t\t<tr>\n" +
 	    					"\t\t\t\t\t\t\t<td>"+rep.getCondName()+" "+rep.getRepName()+"</td>\n" +
 	    					"\t\t\t\t\t\t\t<td><a href='"+repEventFileName+"'>"+repEventFileName+"</a></td>\n");
