@@ -425,7 +425,7 @@ public class BindingMixture {
     	int width = config.MAX_BINDINGMODEL_WIDTH;
     	int left = config.MAX_BINDINGMODEL_WIDTH/2;
 		
-		if(config.doBMUpdate()&& config.getClusteringReads()){
+		if(config.doBMUpdate()){
 		
 		// Choose which ones to include
 		//Sum read profiles if there are enough binding components
@@ -445,10 +445,7 @@ public class BindingMixture {
     					if(bc.getSumResponsibility()>(config.getMinComponentReadFactorForBM()*currAlpha)){
     						currComps.get(bc.getMaxType()).add(bc);
     						numPeaks++;
-    					}
-    				}
-    			}
-    		}
+    					}}}}			
     		
     		// Update read profile using assigned reads to a binding component per subtype group
     		List<double[][]> newModelList = new ArrayList<double[][]>();

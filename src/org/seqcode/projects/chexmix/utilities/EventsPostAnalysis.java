@@ -496,7 +496,7 @@ public class EventsPostAnalysis {
 		    	fout.write("\t</body>\n</html>\n");
 		    	fout.close();
 	    		
-	    	}else{
+	    	}else{ // bootstrap html version
 	    	
 	    		fout.write("<!doctype html>\n<html lang='en'>\n\t<head>\n");
 	    		//Required meta tags
@@ -658,6 +658,43 @@ public class EventsPostAnalysis {
 	    			fout.write("\t\t\t\t\t\t</tr>\n");
 	    		
 	    		}fout.write("\t\t\t\t\t</table>\n\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t\t<br>\n");
+	    		
+	    		//Replicate consistency info	    		
+	    		fout.write("\t\t\t<div class='card'>\n"+
+	    				"\t\t\t\t<h5 class='card-header'>Replicate info</h5>\n"+
+	    				"\t\t\t\t<div class='card-body'>\n");
+	    		// Replication code
+	    		fout.write("\t\t\t\t\t<div style='overflow-x:auto;'>\n" +
+	    				"\t\t\t\t\t<table class='table table-bordered'>\n"+
+	    				"\t\t\t\t\t\t<tr>\n" +
+	    				"\t\t\t\t\t\t\t<th>Condition</th>\n" +
+	    				"\t\t\t\t\t\t\t<th>Replication code file</th>\n");
+	    		fout.write("\t\t\t\t\t\t</tr>\n");
+	    		
+	    		for(ExperimentCondition cond : manager.getConditions()){
+	    			String repCodeFileName = config.getOutputParentDir()+File.separator+config.getOutBase()+".all.replicationcodes.table";
+	    			fout.write("\t\t\t\t\t\t<tr>\n" +
+	    					"\t\t\t\t\t\t\t<td>"+cond.getName()+"</td>\n" +
+	    					"\t\t\t\t\t\t\t<td><a href='"+repCodeFileName+"'>"+repCodeFileName+"</a></td>\n");
+	    			fout.write("\t\t\t\t\t\t</tr>\n");
+	    		}fout.write("\t\t\t\t\t</table>\n\t\t\t\t</div>\n");
+	    		
+	    		//Replicate events
+	    		fout.write("\t\t\t\t\t<div style='overflow-x:auto;'>\n" +
+	    				"\t\t\t\t\t<table class='table table-bordered'>\n"+
+	    				"\t\t\t\t\t\t<tr>\n" +
+	    				"\t\t\t\t\t\t\t<th>Replicate</th>\n" +
+	    				"\t\t\t\t\t\t\t<th>File</th>\n");
+	    		fout.write("\t\t\t\t\t\t</tr>\n");
+	    		
+	    		for(ControlledExperiment rep : manager.getReplicates()){
+	    			String repEventFileName = config.getOutputParentDir()+File.separator+config.getOutBase()+"_"+rep.getCondName()+"_"+rep.getName()+".repevents.txt";
+	    			fout.write("\t\t\t\t\t\t<tr>\n" +
+	    					"\t\t\t\t\t\t\t<td>"+rep.getCondName()+" "+rep.getRepName()+"</td>\n" +
+	    					"\t\t\t\t\t\t\t<td><a href='"+repEventFileName+"'>"+repEventFileName+"</a></td>\n");
+	    			fout.write("\t\t\t\t\t\t</tr>\n");
+	    		}fout.write("\t\t\t\t\t</table>\n\t\t\t\t</div>\n");
+	    		fout.write("\t\t\t\t</div>\n\t\t\t</div>\n\t\t\t<br>\n");
 			
 			
 	    		//File list of extras (histograms, etc)
