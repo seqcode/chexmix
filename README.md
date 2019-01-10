@@ -173,4 +173,5 @@ For queries, please contact Naomi (nuy11@psu.edu) or Shaun Mahony (mahony@psu.ed
 Major History:
 --------------  
 Version 0.1 (2018-02-14): Initial release.
+
 Version 0.2 (2018-10-03): Updates to support Galaxy integration, added command line options to set 1) user provided motifs in seeding subtypes and 2) a Markov background threshold for motif detection, updates on EM training plots and html output, and bug fixes.
