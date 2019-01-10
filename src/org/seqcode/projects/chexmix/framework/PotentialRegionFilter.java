@@ -338,6 +338,7 @@ public class PotentialRegionFilter {
 				Region i = config.getRegionsToIgnore().get(x);
 				if(t.overlaps(i))
 					ignore = true;
+				x++;
 			}
 			if(!ignore)
 				filtered.add(t);
