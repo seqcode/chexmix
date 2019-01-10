@@ -17,6 +17,7 @@ import org.seqcode.genome.location.Region;
 import org.seqcode.genome.location.StrandedPoint;
 import org.seqcode.gseutils.Pair;
 import org.seqcode.projects.chexmix.composite.TagProbabilityDensity;
+import org.seqcode.projects.chexmix.framework.ChExMixConfig;
 import org.seqcode.projects.chexmix.mixturemodel.BindingSubComponents;
 
 
@@ -32,6 +33,7 @@ import org.seqcode.projects.chexmix.mixturemodel.BindingSubComponents;
 public class BindingManager {
 
 	protected EventsConfig config;
+	protected ChExMixConfig chexcon;
 	protected ExperimentManager manager;
 	protected List<BindingEvent> events;
 	protected Map<ExperimentCondition, List <BindingEvent>> conditionEvents;
@@ -42,12 +44,11 @@ public class BindingManager {
 	protected Map<ExperimentCondition, Double> alpha;
 	protected Map<ExperimentCondition, List<List<StrandedPoint>>> alignedEventPoints;
 	protected Map<ExperimentCondition, List<BindingSubtype>> potentialBindingSubtypes;
-	protected boolean lenientMode;
 	
-	public BindingManager(EventsConfig con, ExperimentManager exptman, boolean lenient){
+	public BindingManager(EventsConfig con, ExperimentManager exptman, ChExMixConfig chexcon){
 		config = con;
 		manager = exptman;
-		lenientMode = lenient;
+		this.chexcon = chexcon;
 		events  = new ArrayList<BindingEvent>();
 		conditionEvents = new HashMap<ExperimentCondition, List <BindingEvent>>();
 		bindingSubtypes = new HashMap<ExperimentCondition, List<BindingSubtype>>();
@@ -226,23 +227,23 @@ public class BindingManager {
 			    		double Q; 
 			    		boolean reportEvent=false;
 			    		
-			    		if(lenientMode){
-			    			if(e.isFoundInCondition(cond)){
-			    				if(e.getCondSigVCtrlQ(cond)<=qMinThres)
-			    					reportEvent=true;
-			    				else{
-				    				for (ControlledExperiment rep : cond.getReplicates()){
-					    				Q = e.getRepSigVCtrlQ(rep);
-					    				if (Q <=qMinThres)
-					    					reportEvent=true;
-					    			}
-			    				}
-				    		}
-			    		}else{
-			    			Q= e.getCondSigVCtrlQ(cond);
-			    			if(e.isFoundInCondition(cond) && Q <=qMinThres)
-			    				reportEvent=true;
-				    	} 
+			    		
+			    		Q= e.getCondSigVCtrlQ(cond);
+		    			if(e.isFoundInCondition(cond) && Q <=qMinThres){
+		    				reportEvent=true;
+		    			}else{
+		    				boolean xreport=false;
+		    				for (ControlledExperiment rep : cond.getReplicates()){
+			    				Q = e.getRepSigVCtrlQ(rep);
+			    				if (Q <=qMinThres)
+			    					xreport=true;
+			    			}
+		    				if(xreport && chexcon.isLenientMode())
+		    					reportEvent=true;
+		    				else if(xreport && chexcon.isLenientPlusMode() && e.getReplicationCode(cond)!='D')
+		    					reportEvent=true;
+		    			}
+			    		
 			    		
 			    		if (reportEvent)
 			    			fout.write(e.getSubtypeAssignmentString(cond)+"\n");
@@ -263,23 +264,21 @@ public class BindingManager {
 						double Q; 
 			    		boolean reportEvent=false;
 			    		
-			    		if(lenientMode){
-			    			if(e.isFoundInCondition(cond)){
-			    				if(e.getCondSigVCtrlQ(cond)<=qMinThres)
-			    					reportEvent=true;
-			    				else{
-				    				for (ControlledExperiment rep : cond.getReplicates()){
-					    				Q = e.getRepSigVCtrlQ(rep);
-					    				if (Q <=qMinThres)
-					    					reportEvent=true;
-					    			}
-			    				}
-				    		}
-			    		}else{
-			    			Q= e.getCondSigVCtrlQ(cond);
-			    			if(e.isFoundInCondition(cond) && Q <=qMinThres)
-			    				reportEvent=true;
-				    	}
+			    		Q= e.getCondSigVCtrlQ(cond);
+		    			if(e.isFoundInCondition(cond) && Q <=qMinThres){
+		    				reportEvent=true;
+		    			}else{
+		    				boolean xreport=false;
+		    				for (ControlledExperiment rep : cond.getReplicates()){
+			    				Q = e.getRepSigVCtrlQ(rep);
+			    				if (Q <=qMinThres)
+			    					xreport=true;
+			    			}
+		    				if(xreport && chexcon.isLenientMode())
+		    					reportEvent=true;
+		    				else if(xreport && chexcon.isLenientPlusMode() && e.getReplicationCode(cond)!='D')
+		    					reportEvent=true;
+		    			}
 			    		
 			    		if (reportEvent)
 							fout.write(e.getConditionString(cond)+"\n");
@@ -299,23 +298,21 @@ public class BindingManager {
 						double Q; 
 			    		boolean reportEvent=false;
 			    		
-			    		if(lenientMode){
-			    			if(e.isFoundInCondition(cond)){
-			    				if(e.getCondSigVCtrlQ(cond)<=qMinThres)
-			    					reportEvent=true;
-			    				else{
-				    				for (ControlledExperiment rep : cond.getReplicates()){
-					    				Q = e.getRepSigVCtrlQ(rep);
-					    				if (Q <=qMinThres)
-					    					reportEvent=true;
-					    			}
-			    				}
-				    		}
-			    		}else{
-			    			Q= e.getCondSigVCtrlQ(cond);
-			    			if(e.isFoundInCondition(cond) && Q <=qMinThres)
-			    				reportEvent=true;
-				    	}
+			    		Q= e.getCondSigVCtrlQ(cond);
+		    			if(e.isFoundInCondition(cond) && Q <=qMinThres){
+		    				reportEvent=true;
+		    			}else{
+		    				boolean xreport=false;
+		    				for (ControlledExperiment rep : cond.getReplicates()){
+			    				Q = e.getRepSigVCtrlQ(rep);
+			    				if (Q <=qMinThres)
+			    					xreport=true;
+			    			}
+		    				if(xreport && chexcon.isLenientMode())
+		    					reportEvent=true;
+		    				else if(xreport && chexcon.isLenientPlusMode() && e.getReplicationCode(cond)!='D')
+		    					reportEvent=true;
+		    			}
 			    		
 			    		if (reportEvent){
 							Pair<Integer, StrandedPoint>p=e.getMaxSubtypePoint(cond);
@@ -385,23 +382,21 @@ public class BindingManager {
     					double Q; 
 			    		boolean reportEvent=false;
 			    		
-			    		if(lenientMode){
-			    			if(e.isFoundInCondition(cond)){
-			    				if(e.getCondSigVCtrlQ(cond)<=qMinThres)
-			    					reportEvent=true;
-			    				else{
-				    				for (ControlledExperiment rep : cond.getReplicates()){
-					    				Q = e.getRepSigVCtrlQ(rep);
-					    				if (Q <=qMinThres)
-					    					reportEvent=true;
-					    			}
-			    				}
-				    		}
-			    		}else{
-			    			Q= e.getCondSigVCtrlQ(cond);
-			    			if(e.isFoundInCondition(cond) && Q <=qMinThres)
-			    				reportEvent=true;
-				    	}
+			    		Q= e.getCondSigVCtrlQ(cond);
+		    			if(e.isFoundInCondition(cond) && Q <=qMinThres){
+		    				reportEvent=true;
+		    			}else{
+		    				boolean xreport=false;
+		    				for (ControlledExperiment rep : cond.getReplicates()){
+			    				Q = e.getRepSigVCtrlQ(rep);
+			    				if (Q <=qMinThres)
+			    					xreport=true;
+			    			}
+		    				if(xreport && chexcon.isLenientMode())
+		    					reportEvent=true;
+		    				else if(xreport && chexcon.isLenientPlusMode() && e.getReplicationCode(cond)!='D')
+		    					reportEvent=true;
+		    			}
 			    		
     					if (reportEvent)
     						fout.write(e.getConditionBED(cond)+"\n");					

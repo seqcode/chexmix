@@ -121,7 +121,7 @@ public class ClusterMotifFinder {
 		
 		for(int i=0; i<=TRAIN_REPEATS; i++){			
 			//Random starts
-			Random generator = new Random();
+			Random generator = new Random(shapeAlignConfig.RANDOMSEED);
 			ArrayList<Integer> pNum = new ArrayList<Integer>();
 			Vector<VectorClusterElement> starts = new Vector<VectorClusterElement>();
 			int s=0;

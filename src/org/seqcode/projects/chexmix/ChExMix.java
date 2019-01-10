@@ -63,7 +63,7 @@ public class ChExMix {
 		shapeconfig = sc;
 		chexconfig.makeChExMixOutputDirs(true);
 		outFormatter = new OutputFormatter(chexconfig);
-		bindingManager = new BindingManager(evconfig, manager, chexconfig.isLenientMode());
+		bindingManager = new BindingManager(evconfig, manager, chexconfig);
 		
 		//Initialize binding models & binding model record
 		repBindingModels = new HashMap<ControlledExperiment, List<TagProbabilityDensity>>();
@@ -362,7 +362,7 @@ public class ChExMix {
 	public static String getChExMixArgsList(){
 		return(new String("" +
 				"Copyright (C) Naomi Yamada 2018\n" +
-				"<http://mahonylab.org/software/chexmix>\n" +
+				"Further documentation: <http://mahonylab.org/software/chexmix>\n" +
 				"\n" +
 				"ChExMix comes with ABSOLUTELY NO WARRANTY.  This is free software, and you\n"+
 				"are welcome to redistribute it under certain conditions.  See the MIT license \n"+
@@ -398,17 +398,19 @@ public class ChExMix {
 				"\t--nomodelupdate [flag to turn off binding model updates]\n" +
 				"\t--minmodelupdateevents <minimum number of events to support an update (default=100)>\n" +
 				"\t--prlogconf <Poisson log threshold for potential region scanning (default=-6)>\n" +
-				"\t--alphascale <alpha scaling factor (default=1.0)>\n" +
-				"\t--betascale <beta scaling factor (default=0.05)>\n" +
-				"\t--epsilonscale <epsilon scaling factor (default=0.2)>\n" +
-				"\t--fixedalpha <impose this alpha (default: set automatically)>\n" +
-				"\t--mlconfignotshared [flag to not share component configs in the ML step]\n" +
-				"\t--exclude <file of regions to ignore> OR --excludebed <file of regions to ignore in bed format>\n" +
+				"\t--fixedalpha <binding events must have at least this number of reads (default: set automatically)>\n" +
+				"\t--alphascale <alpha scaling factor; increase for stricter event calls (default=1.0)>\n" +
+				"\t--betascale <beta scaling factor; prior on subtype assignment (default=0.05)>\n" +
+				"\t--epsilonscale <epsilon scaling factor; increase for more weight on motif in subtype assignment (default=0.2)>\n" +
 				"\t--peakf <file of peaks to initialize component positions>\n" +
-				"\t--motfile <file of motifs in transfac format to initialize subtype motifs>\n" +
-				"\t--lenient [flag to report events as long as they pass significance threshold in any replicate]\n" +
+				"\t--exclude <file of regions to ignore> OR --excludebed <file of regions to ignore in bed format>\n" +
 				"\t--galaxyhtml [flag to produce a html output appropreate for galaxy]\n" +
+				" Binding event reporting mode (which events to put into .events file):\n" +
+				"\t--standard [report events that pass significance threshold in condition as a whole (default mode)]\n" +
+				"\t--lenient [report events that pass significance in >=1 replicate *or* the condition as a whole.]\n" +
+				"\t--lenientplus [report events that pass significance in condition OR (>=1 replicate AND no signif diff between replicates)]\n" +
 				" Finding ChExMix subtypes using motif:\n"+
+				"\t--motfile <file of motifs in transfac format to initialize subtype motifs>\n" +
 				"\t--memepath <path to the meme bin dir (default: meme is in $PATH)>\n" +
 				"\t--nomotifs [flag to turn off motif-finding & motif priors]\n" +
 				"\t--nomotifprior [flag to turn off motif priors only]\n" +

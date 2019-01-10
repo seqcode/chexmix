@@ -105,15 +105,22 @@ __Running ChExMix__:
   * --betascale \<value\>: Beta scaling factor (default=0.05). The beta parameter is a sparse prior on binding event subtype assignment in the ChExMix model. Increasing this parameter may result in inaccurate subtype assignment.
   * --epsilonscale \<value\>: Epsilon scaling factor (default=0.2). The epsilon parameter control a balance between motif and read distribution in subtype assignment. Increasing this parameter will increase the contribution of motif and decreases the contribution of read distribution.
   * --peakf \<file\>: File of peaks to initialize component positions. See [here](https://github.com/seqcode/chexmix/blob/master/manuscriptsppl/MCF7-Erpos.peaks) for an example peak file.
-  * --motfile \<file\>: File of motifs in transfac format to initialize subtype motifs
   * --galaxyhtml: Flag to produce a html output appropreate for galaxy
   * --__exclude__ \<file\>: File containing a set of regions to ignore during ChExMix training. It’s a good idea to exclude the mitochondrial genome and other ‘blacklisted’ regions that contain artifactual accumulations of reads in both ChIP-exo and control experiments. ChExMix will waste time trying to model binding events in these regions, even though they will not typically appear significantly enriched over the control (and thus will not be reported to the user). See the format of an exclude region file [here](http://lugh.bmb.psu.edu/software/multigps/support/mm9_excludes.txt) (example for mm9).
   * --excludebed \<file\>: Bed file containing a set of regions to ignore during ChExMix training.
 
+
+__Binding event reporting mode__: (controls which events to put into .events file)
+  * --standard [report events that pass significance threshold in condition as a whole (default mode)]
+  * --lenient [report events that pass significance in >=1 replicate *or* the condition as a whole.]
+  * --lenientplus [report events that pass significance in condition OR (>=1 replicate AND no signif diff between replicates)]
+
+	
 __Finding ChExMix subtypes__:
 
 1. Using motifs:
 
+  * --motfile \<file\>: File of motifs in transfac format to initialize subtype motifs
   * --__memepath__  \<path\>: Path to the meme bin dir (default: meme is in $PATH). MEME path is required for motif finding.
   * --nomotifs \<value\>: Flag to turn off motif-finding & motif priors
   * --nomotifprior \<value\>: Flag to turn off motif priors only

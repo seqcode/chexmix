@@ -796,7 +796,7 @@ public class MotifPlatform {
 	 */
 	protected List<Region> randomRegionPick(List<Region> blackList, int numSamples, int sampleSize){
 		List<Region> regs = new ArrayList<Region>();
-		Random rand = new Random();
+		Random rand = new Random(config.RANDOMSEED);
 		int validSamples=0;
 		
 		//First see how big the genome is:

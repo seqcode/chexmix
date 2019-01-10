@@ -16,11 +16,11 @@ import cern.jet.random.engine.DRand;
 /** 
  * This class assesses replication of each peak across replicates in a given condition.
  * Replication codes (added to BindingEvents):
- * 		-2 : This event was not called in this condition  
- * 		 0 : This condition only contains a single replicate
- * 		-1 : Called in one replicate or condition as a whole, significant difference detected across some replicates
- * 		 1 : Called in one replicate or condition as a whole, no significant difference detected across any replicates
- * 		>1 : Number of replicates in which binding event is called significant
+ * 		 X : Event was not called in this condition\n" +  
+ * 		 S : This condition only contains a single replicate\n"+
+ * 		 D : Called in one replicate or condition as a whole, significant difference detected across some replicates (binomial P-value, same threshold as --q)\n"+
+ * 		 1 : Called in one replicate or condition as a whole, NO significant difference detected across any replicates\n"+
+ * 		>1 : Number of replicates in which binding event is called significant\n"+
  *  
  * @author mahony
  *
@@ -74,16 +74,16 @@ public class ReplicationTester {
 		// 2) assign replication codes
 		for(ExperimentCondition c : manager.getConditions()){
 			
-			// 2.1) if the condition contains only one replicate, code = 0
+			// 2.1) if the condition contains only one replicate, code = S
 			if(c.getReplicates().size()==1){
 				for(BindingEvent e : events)
-					e.setReplicationCode(c, 0);
+					e.setReplicationCode(c, 'S');
 			}else{
 
 				for(BindingEvent e : events){
-					// 2.2) if this event is not called in this condition, code = -2
+					// 2.2) if this event is not called in this condition, code = X
 					if(!e.isFoundInCondition(c)){
-						e.setReplicationCode(c, -2);
+						e.setReplicationCode(c, 'X');
 					}else{
 						// 2.3) if this event passes per-replicate significant filters in multiple replicates, code = number of passing replicates
 						int repC=0;
@@ -91,7 +91,7 @@ public class ReplicationTester {
 							if(e.isFoundInCondition(c) && e.getRepSigVCtrlQ(r)<=qMinThres)
 								repC++;
 						if(repC>1){
-							e.setReplicationCode(c, repC);
+							e.setReplicationCode(c, (char)(repC + '0'));
 						}else if(repC==1 || e.getCondSigVCtrlQ(c)<=qMinThres){
 							// 2.4) if the event is called in only one replicate or the condition as a whole, test the difference between replicates using Binomial
 							boolean consistent=true;
@@ -107,8 +107,11 @@ public class ReplicationTester {
 									}
 								}
 							}
-							// 2.4 cont) if there is any significant difference, code = -1. otherwise, code = 1
-							e.setReplicationCode(c, consistent ? 1: -1);
+							// 2.4 cont) if there is any significant difference, code = D. otherwise, code = 1
+							e.setReplicationCode(c, consistent ? (char)('1'): 'D');
+						}else{
+							//Event not called in any replicate and not called in condition as a whole. Code = X
+							e.setReplicationCode(c, 'X');
 						}
 					}
 				}
@@ -126,10 +129,10 @@ public class ReplicationTester {
     		FileWriter fout = new FileWriter(filename);
     		String head = "### ChExMix replication codes\n"+
     				"# Codes:\n"+
-    				"#    -2 : Event was not called in this condition\n" +  
-    				"#     0 : This condition only contains a single replicate\n"+
-    				"#    -1 : Called in one replicate or condition as a whole, significant difference detected across some replicates\n"+
-    				"#     1 : Called in one replicate or condition as a whole, no significant difference detected across any replicates\n"+
+    				"#     X : Event was not called in this condition\n" +  
+    				"#     S : This condition only contains a single replicate\n"+
+    				"#     D : Called in one replicate or condition as a whole, significant difference detected across some replicates (binomial P-value, same threshold as --q)\n"+
+    				"#     1 : Called in one replicate or condition as a whole, NO significant difference detected across any replicates\n"+
     				"#    >1 : Number of replicates in which binding event is called significant\n"+
     				"#\n"+
     				"#BindingEvent";

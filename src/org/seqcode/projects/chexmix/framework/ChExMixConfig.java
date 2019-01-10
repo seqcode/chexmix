@@ -95,10 +95,13 @@ public class ChExMixConfig {
 	protected int numClusteringComps = 500;	// Number of components to perform AP clustering
 	protected double MarkovBackSeqRmThres = 0.1; // Markov background threshold for removing sequences
 	protected int modelRange = 50;	// Window size to extract tag counts for potential region filter, Poisson significance test, and other purposes
-	protected boolean lenientMode=false; // Mode in which events are reported if significant over background in >=1 replicate *or* the condition as a whole.  
 	protected boolean galaxyhtml=false; // Output simpler html file for galaxy 
 	protected boolean shareSubtypes=true;	// Share subtypes across experiments
-    
+	protected boolean standardMode=true; // Mode in which events are reported if summed tag counts significant over background in condition as a whole.
+	protected boolean lenientMode=false; // Mode in which events are reported if significant over background in >=1 replicate *or* the condition as a whole.  
+	protected boolean lenientPlusMode=false; // Mode in which events are reported if summed tag counts significant over background in condition as a whole OR (significant over background in >=1 replicate AND no significant difference between replicates).  
+	
+	
 	//Constants
 	public final double LOG2 = Math.log(2);
 	public final int POTREG_BIN_STEP = 100; //Sliding window step in potential region scanner
@@ -139,6 +142,7 @@ public class ChExMixConfig {
     public final double KMEANS_CONVERGENCE_THRES = 0.01;
     public final double KL_DIVERGENCE_BM_THRES = -10;
     public final double CORR_THRES =100; //100 is no threshold
+    public final long RANDOMSEED = 1000; //setting the random seed for the sake of reproducibility
 	
 	protected String[] args;
 	public String getArgs(){
@@ -301,8 +305,16 @@ public class ChExMixConfig {
 				//Extra output
 				verbose = Args.parseFlags(args).contains("verbose") ? true : false;
 				
-				//Replicate consistency mode
-				lenientMode = Args.parseFlags(args).contains("lenient") ? true: false;
+				//Event reporting mode - determines which events to print to .events file
+				if(Args.parseFlags(args).contains("standard") || Args.parseFlags(args).contains("lenient") || Args.parseFlags(args).contains("lenientplus")){
+					if(Args.parseFlags(args).contains("standard")){
+						standardMode = true; lenientMode=false; lenientPlusMode=false;
+					}else if(Args.parseFlags(args).contains("lenient")){
+						standardMode = false; lenientMode=true; lenientPlusMode=false;
+					}else if(Args.parseFlags(args).contains("lenientplus")){
+						standardMode = false; lenientMode=false; lenientPlusMode=true;
+					}
+				}
 				
 				//Galaxy html output
 				galaxyhtml = Args.parseFlags(args).contains("galaxyhtml") ? true : false;
@@ -414,7 +426,9 @@ public class ChExMixConfig {
 	public double getMarkovBackSeqRmThres(){return MarkovBackSeqRmThres;}
 	public boolean getMEMEnonparallel(){return MEMEnonparallel;}
 	public int getModelRange(){return modelRange;}
+	public boolean isStandardMode(){return standardMode;}
 	public boolean isLenientMode(){return lenientMode;}
+	public boolean isLenientPlusMode(){return lenientPlusMode;}
 	public boolean useGalaxyhtml(){return galaxyhtml;}
 	public boolean getShareSubtypes(){return shareSubtypes;}
 	
@@ -469,41 +483,42 @@ public class ChExMixConfig {
 	 */
 	public String getArgsList(){
 		return(new String("" +
-				"Genome:" +
-				"\t--species <Species;Genome>\n" +
-				"\tOR\n" +
-				"\t--geninfo <genome info file> AND --seq <fasta seq directory>\n" +
-				"General:\n" +
-				"\t--round <max. model update rounds (default="+maxModelUpdateRounds+">\n" +
-				"\t--out <out name (default="+outBase+">\n" +
-				"\t--d <read distribution model file>\n" +
-				"\t--nonunique [flag to use non-unique reads]\n" +
-				"\t--threads <number of threads to use (default="+maxThreads+")>\n" +
-				"Experiment Design File:\n" +
-				"\t--design <file name>\n" +
-				"ChExMix Model:" +
-				"\t--model <filename>\n" +
-				"Miscellaneous:\n" +
-				"\t--prlogconf <Poisson log threshold for potential region scanning(default="+prLogConf+")>\n" +
-				"\t--alphascale <alpha scaling factor(default="+alphaScalingFactor+")>\n" +
-				"\t--fixedalpha <impose this alpha (default: set automatically)>\n" +
-				"\t--extwin <number of bp expansion centered around gff points (default: 500)]\n" +
+				" Running ChExMix:\n" +
+				"\t--round <max. model update rounds (default=3)>\n" +
 				"\t--nomodelupdate [flag to turn off binding model updates]\n" +
-				"\t--gausssmoothparam <Gaussian smoothing std dev (default="+gauss_smooth+">\n" +
-				"\t--exclude <file of regions to ignore>\n" +
-				"\t--plotregions <regions to print during EM training>\n" +
-				"\t--peakf <peak file used for component initialization>\n" +
-				"\t--motifregions <regions to print component distribution histogram>\n" +
-				"\t--eventbasecomp [flag to record event base compositions]\n"+
+				"\t--minmodelupdateevents <minimum number of events to support an update (default=100)>\n" +
+				"\t--prlogconf <Poisson log threshold for potential region scanning (default=-6)>\n" +
+				"\t--fixedalpha <binding events must have at least this number of reads (default: set automatically)>\n" +
+				"\t--alphascale <alpha scaling factor; increase for stricter event calls (default=1.0)>\n" +
+				"\t--betascale <beta scaling factor; prior on subtype assignment (default=0.05)>\n" +
+				"\t--epsilonscale <epsilon scaling factor; increase for more weight on motif in subtype assignment (default=0.2)>\n" +
+				"\t--peakf <file of peaks to initialize component positions>\n" +
+				"\t--exclude <file of regions to ignore> OR --excludebed <file of regions to ignore in bed format>\n" +
+				"\t--galaxyhtml [flag to produce a html output appropreate for galaxy]\n" +
+				" Binding event reporting mode (which events to put into .events file):\n" +
+				"\t--standard [report events that pass significance threshold in condition as a whole (default mode)]\n" +
+				"\t--lenient [report events that pass significance in >=1 replicate *or* the condition as a whole.]\n" +
+				"\t--lenientplus [report events that pass significance in condition OR (>=1 replicate AND no signif diff between replicates)]\n" +
+				" Finding ChExMix subtypes using motif:\n"+
+				"\t--motfile <file of motifs in transfac format to initialize subtype motifs>\n" +
+				"\t--memepath <path to the meme bin dir (default: meme is in $PATH)>\n" +
 				"\t--nomotifs [flag to turn off motif-finding & motif priors]\n" +
 				"\t--nomotifprior [flag to turn off motif priors only]\n" +
-				"\t--memepath <path to the meme bin dir (default: meme is in $PATH)>\n" +
 				"\t--memenmotifs <number of motifs MEME should find for each condition (default=3)>\n" +
-				"\t--mememinw <minw arg for MEME (default="+MEMEminw+")>\n"+
-				"\t--mememaxw <maxw arg for MEME (default="+MEMEmaxw+")>\n"+
-				"\t--back <Markov background model>\n"+
-				"\t--verbose [flag to print intermediate files and extra output]\n" +
-				"\t--config <config file: all options can be specified in a name<space>value text file, over-ridden by command-line args>\n" +
+				"\t--mememinw <minw arg for MEME (default=6)>\n"+
+				"\t--mememaxw <maxw arg for MEME (default=18)>\n"+
+				"\t--memeargs <additional args for MEME (default=  -dna -mod zoops -revcomp -nostatus)>\n"+
+				"\t--minroc <minimum motif ROC value (default=0.7)>\n"+
+				"\t--minmodelupdaterefs <minimum number of motif reference to support an subtype distribution update (default=50)>\n"+
+				"\t--seqrmthres <Filter out sequences with motifs below this threshold for recursively finding motifs (default=0.1)>\n" +
+				" Finding ChExMix subtypes using read distribution clustering:\n"+
+				"\t--noclustering [flag to turn off read distribution clustering]\n" +
+				"\t--pref <preference value for read distribution clustering (default=-0.1)>\n"+
+				"\t--numcomps <number of components to cluster (default=500)>\n"+
+				"\t--win <window size of read profiles (default=150)>\n"+
+				" Reporting binding events:\n" +
+				"\t--q <Q-value minimum (default=0.01)>\n" +
+				"\t--minfold <minimum event fold-change vs scaled control (default=1.5)>\n" +
 				""));
 	}
 }

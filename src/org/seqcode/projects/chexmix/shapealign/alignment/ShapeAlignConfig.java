@@ -57,6 +57,9 @@ public class ShapeAlignConfig {
 	protected boolean AKL = false;
 	protected boolean ALLR = false;
 	
+    public final long RANDOMSEED = 10000; //setting the random seed for the sake of reproducibility
+
+	
 	// accessors	
 	public List<StrandedPoint> getStrandedPoints(){return spoints;}
 	public List<StrandedRegion> getStrandedRegions(){return strandedRegions;}

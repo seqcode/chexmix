@@ -338,7 +338,6 @@ public class PotentialRegionFilter {
 				Region i = config.getRegionsToIgnore().get(x);
 				if(t.overlaps(i))
 					ignore = true;
-				x++;
 			}
 			if(!ignore)
 				filtered.add(t);
@@ -734,7 +733,7 @@ public class PotentialRegionFilter {
 			System.err.println(config.getArgsList());
 		}else{
 			ExperimentManager manager = new ExperimentManager(econfig);
-			BindingManager bman = new BindingManager(evconfig, manager, config.isLenientMode());
+			BindingManager bman = new BindingManager(evconfig, manager, config);
 			//Initialize binding models & binding model record
 			Map<ControlledExperiment, List<BindingModel>> repBindingModels = new HashMap<ControlledExperiment, List<BindingModel>>();
 			for(ControlledExperiment rep : manager.getReplicates()){
