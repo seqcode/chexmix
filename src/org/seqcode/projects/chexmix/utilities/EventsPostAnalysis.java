@@ -307,7 +307,7 @@ public class EventsPostAnalysis {
 		try{
 			String modelwidthfilename = config.getOutputIntermediateDir()+File.separator+config.getOutBase()+".subtypeModelWidth.txt";
 			FileWriter fout = new FileWriter(modelwidthfilename);
-			fout.write("Subtype model width (i.e. peak width)\n\n");
+			fout.write("#Subtype model width (i.e. peak width)\n\n");
 			for(ExperimentCondition cond : manager.getConditions()){
 				fout.write("#Condition: "+cond.getName()+"\n");
 				String firstline="";
