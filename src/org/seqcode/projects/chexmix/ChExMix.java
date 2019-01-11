@@ -348,8 +348,8 @@ public class ChExMix {
 				System.err.println("No experiments specified. Use --expt or --design options."); System.exit(1);
 			}
 			
-			ChExMix gps = new ChExMix(gcon, econ, evconfig, config, xlconfig,sc, manager);
-			gps.runMixtureModel();
+			ChExMix chex = new ChExMix(gcon, econ, evconfig, config, xlconfig,sc, manager);
+			chex.runMixtureModel();
 			
 			manager.close();
 		}

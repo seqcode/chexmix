@@ -374,7 +374,7 @@ public class TagProbabilityDensity {
 	}
 	
 	//Return a pair of distances corresponding to the central probability interval provided
-	protected Pair<Integer,Integer> probIntervalDistances(double prob){
+	public Pair<Integer,Integer> probIntervalDistances(double prob){
 		double ends=(1-prob)/2;
 		double probSum=0;
 		boolean firstFound=false, secondFound=false;

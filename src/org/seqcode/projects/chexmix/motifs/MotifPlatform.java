@@ -586,8 +586,6 @@ public class MotifPlatform {
 					
 					if(revAlignment.cdr()>forAlignment.cdr() && refMotif.length()%2 ==0 && condFreqMatrix.get(index).length()%2 ==0)
 						refOffset = (int)((refMotif.length()-condFreqMatrix.get(index).length())/2-1);
-					System.out.println("fscore "+forAlignment.cdr()+" alignment offset "+forAlignment.car()+" total offset "+(refOffset+forAlignment.car()));
-					System.out.println("rscore "+revAlignment.cdr()+" alignment offset "+revAlignment.car()+" total offset "+(refOffset+revAlignment.car()));
 					if(revAlignment.cdr()>forAlignment.cdr()){
 						currSubtype.setMotif(WeightMatrix.reverseComplement(condMotifs.get(index)), WeightMatrix.reverseComplement(condFreqMatrix.get(index)));
 						currSubtype.setMotifOffset(refOffset+revAlignment.car()); // is this correct ?

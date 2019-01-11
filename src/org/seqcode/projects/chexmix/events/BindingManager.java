@@ -1,5 +1,6 @@
 package org.seqcode.projects.chexmix.events;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -220,7 +221,7 @@ public class BindingManager {
 	    			//Print subtype assignments
 	    			String condName = cond.getName(); 
 	    			condName = condName.replaceAll("/", "-");
-	    			filename = filePrefix+"_"+condName+".subtype-assignments.table";
+	    			filename = chexcon.getOutputIntermediateDir()+File.separator+chexcon.getOutBase()+"_"+condName+".subtype-assignments.table";
 					fout = new FileWriter(filename);
 					fout.write(BindingEvent.subtypeAssignmentHeadString(cond)+"\n");
 			    	for(BindingEvent e : events){
@@ -325,7 +326,6 @@ public class BindingManager {
 					for (int bt=0;bt< getNumBindingType(cond); bt++){
 						List<StrandedPoint> points = subtypePoints.get(bt);
 						BindingSubtype currSubtype = bindingSubtypes.get(cond).get(bt);
-						int c=0;
 						if (currSubtype.hasMotif()){
 		    				int offset = currSubtype.getMotifOffset();
 		    				if (currSubtype.reverseMotif()){ //reverse complement
@@ -334,25 +334,23 @@ public class BindingManager {
 		    						// Filter out sequences that are on the edge of cached sequences
 									//if((location-potReg.get(bt).get(c).getStart()>config.SEQPLOTWIN) && (potReg.get(bt).get(c).getEnd()-location>config.SEQPLOTWIN))
 									alignedPoints.get(bt).add(new StrandedPoint(p.getGenome(),p.getChrom(),location,p.getStrand() =='+' ? '-' : '+'));
-									c++;
 		    					}	    						
 		    				}else{
 		    					for (StrandedPoint p : points){
 		    						int location = p.getStrand()=='+' ? p.getLocation()+offset : p.getLocation()-offset;
 		    						//if((location-potReg.get(bt).get(c).getStart()>config.SEQPLOTWIN) && (potReg.get(bt).get(c).getEnd()-location>config.SEQPLOTWIN))
 		    						alignedPoints.get(bt).add(new StrandedPoint(p.getGenome(),p.getChrom(),location,p.getStrand()));
-		    						c++;
 		    					}	    						
 		    				}	    					
 						}else{ // no motif found
 							for (StrandedPoint p : points){
 								//if((p.getLocation()-potReg.get(bt).get(c).getStart()>config.SEQPLOTWIN) && (potReg.get(bt).get(c).getEnd()-p.getLocation()>config.SEQPLOTWIN))
 								alignedPoints.get(bt).add(p);
-								c++;
 							}
 						}
 					}
-					filename = filePrefix+"_"+condName+".subtype.aligned.events.txt";
+					// Place this file in intermediate-results folder 
+					filename = chexcon.getOutputIntermediateDir()+File.separator+chexcon.getOutBase()+"_"+condName+".subtype.aligned.events.txt";
 					fout = new FileWriter(filename);
 					int subtypeC=0;
 					for (List<StrandedPoint> points : alignedPoints){

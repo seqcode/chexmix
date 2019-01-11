@@ -5,9 +5,7 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.DateFormat;
@@ -28,8 +26,10 @@ import org.seqcode.genome.GenomeConfig;
 import org.seqcode.genome.location.StrandedPoint;
 import org.seqcode.genome.location.StrandedRegion;
 import org.seqcode.genome.sequence.SequenceGenerator;
+import org.seqcode.gseutils.Pair;
 import org.seqcode.gseutils.RealValuedHistogram;
 import org.seqcode.motifs.DrawMotifs;
+import org.seqcode.projects.chexmix.composite.TagProbabilityDensity;
 import org.seqcode.projects.chexmix.events.BindingEvent;
 import org.seqcode.projects.chexmix.events.BindingManager;
 import org.seqcode.projects.chexmix.events.BindingSubtype;
@@ -302,9 +302,45 @@ public class EventsPostAnalysis {
 					}
 				}
 			}
-		}				
+		}	
+		//7) Report subtype model width
+		try{
+			String modelwidthfilename = config.getOutputIntermediateDir()+File.separator+config.getOutBase()+".subtypeModelWidth.txt";
+			FileWriter fout = new FileWriter(modelwidthfilename);
+			fout.write("Subtype model width (i.e. peak width)\n\n");
+			for(ExperimentCondition cond : manager.getConditions()){
+				fout.write("#Condition: "+cond.getName()+"\n");
+				String firstline="";
+				String secondline="";
+				double aveWidth=0;
+				int[] subtypeCounts=bindingManager.countSubtypeEventsInCondition(cond, evconfig.getQMinThres());
+				
+				int subIndex=0;
+				for (BindingSubtype sub : bindingManager.getBindingSubtype(cond)){
+					TagProbabilityDensity model =sub.getBindingModel(0);
+					Pair<Integer,Integer> intervals = model.probIntervalDistances(0.95);
+					int longest = Math.max(Math.abs(intervals.car()), Math.abs(intervals.cdr()));
+					secondline+=(longest+"\t");
+					double weightedModelSize = (double) longest*(double) subtypeCounts[subIndex];
+					aveWidth+=weightedModelSize;
+					
+					firstline+="Subtype"+subIndex+"(n="+subtypeCounts[subIndex]+")\t";
+					
+					subIndex++;
+				}
+				aveWidth/=bindingManager.countEventsInCondition(cond, evconfig.getQMinThres());
+				firstline+="average(bp)\n";
+				secondline+=((int)aveWidth+"\n");
+								
+				fout.write(firstline);
+				fout.write(secondline);
+			}
+			fout.close();
+		}catch (IOException e) {
+			e.printStackTrace();
+		}
 		
-		//7) HTML report
+		//8) HTML report
 		try {
 			System.err.println("Writing results report to: "+htmlfilename);
 			
@@ -705,6 +741,7 @@ public class EventsPostAnalysis {
 	    				fout.write("\t\t\t\t<p><a href='intermediate-results/"+config.getOutBase()+"."+cond.getName()+".transfac'>"+cond.getName()+" subtype motifs</a></p>\n");
 	    			fout.write("\t\t\t\t<p> Try inputting these motifs into <a href='http://www.benoslab.pitt.edu/stamp/'>STAMP</a> for validation</p>\n");
 	    		}
+	    		fout.write("\t\t\t\t<p><a href='intermediate-results/"+config.getOutBase()+".subtypeModelWidth.txt'>Subtype model width</a></p>\n");
 	    		fout.write("\t\t\t\t<p><a href='intermediate-results/"+config.getOutBase()+".intraCondPeakDistances.histo.txt'>Peak-peak distance histograms (same condition)</a></p>\n");
 	    		if(manager.getNumConditions()>1)
 	    			fout.write("\t\t\t\t<p><a href='intermediate-results/"+config.getOutBase()+".interCondPeakDistances.histo.txt'>Peak-peak distance histograms (between conditions)</a></p>\n");
