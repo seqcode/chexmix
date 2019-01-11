@@ -310,8 +310,8 @@ public class EventsPostAnalysis {
 			fout.write("#Subtype model width (i.e. peak width): reporting 90% probability interval distance in a model\n\n");
 			for(ExperimentCondition cond : manager.getConditions()){
 				fout.write("#Condition: "+cond.getName()+"\n");
-				String firstline="";
-				String secondline="";
+				String firstline="Group\t";
+				String secondline="ModelRange(bp)\t";
 				double aveWidth=0;
 				int[] subtypeCounts=bindingManager.countSubtypeEventsInCondition(cond, evconfig.getQMinThres());
 				
@@ -329,7 +329,7 @@ public class EventsPostAnalysis {
 					subIndex++;
 				}
 				aveWidth/=bindingManager.countEventsInCondition(cond, evconfig.getQMinThres());
-				firstline+="average(bp)\n";
+				firstline+="average\n";
 				secondline+=((int)aveWidth+"\n");
 								
 				fout.write(firstline);
