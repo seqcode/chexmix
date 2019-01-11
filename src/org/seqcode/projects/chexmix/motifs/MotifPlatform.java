@@ -87,7 +87,7 @@ public class MotifPlatform {
 		backMod = c.getBackModel();
 		
         //Pre-load the random sequences
-		RandomSequenceGenerator randGen = new RandomSequenceGenerator(backMod);
+		RandomSequenceGenerator randGen = new RandomSequenceGenerator(backMod, config.RANDOMSEED);
 		for(int i=0; i<config.MARKOV_NUM_TEST; i++){
 			MarkovRandSeq.add(randGen.execute(config.MOTIF_FINDING_SEQWINDOW));
 		}
