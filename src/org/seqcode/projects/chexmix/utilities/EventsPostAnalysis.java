@@ -307,7 +307,7 @@ public class EventsPostAnalysis {
 		try{
 			String modelwidthfilename = config.getOutputIntermediateDir()+File.separator+config.getOutBase()+".subtypeModelWidth.txt";
 			FileWriter fout = new FileWriter(modelwidthfilename);
-			fout.write("#Subtype model width (i.e. peak width)\n\n");
+			fout.write("#Subtype model width (i.e. peak width): reporting 90% probability interval distance in a model\n\n");
 			for(ExperimentCondition cond : manager.getConditions()){
 				fout.write("#Condition: "+cond.getName()+"\n");
 				String firstline="";
@@ -318,7 +318,7 @@ public class EventsPostAnalysis {
 				int subIndex=0;
 				for (BindingSubtype sub : bindingManager.getBindingSubtype(cond)){
 					TagProbabilityDensity model =sub.getBindingModel(0);
-					Pair<Integer,Integer> intervals = model.probIntervalDistances(0.95);
+					Pair<Integer,Integer> intervals = model.probIntervalDistances(0.90);
 					int longest = Math.max(Math.abs(intervals.car()), Math.abs(intervals.cdr()));
 					secondline+=(longest+"\t");
 					double weightedModelSize = (double) longest*(double) subtypeCounts[subIndex];
