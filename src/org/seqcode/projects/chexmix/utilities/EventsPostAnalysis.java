@@ -512,8 +512,38 @@ public class EventsPostAnalysis {
 						fout.write("\t\t<td>NA</td>\n");
 		    		fout.write("\t\t</tr>\n");
 		    		
+				}fout.write("\t</table>\n");				
+				
+				//Replicate consistency info	
+				fout.write("\t<h2>Replicate information</h2>\n" +
+		    			"\t<table>\n");
+				// Replication code
+		    	fout.write("\t\t<tr>" +
+		    			"\t\t<th>Condition</th>\n" +
+		    			"\t\t<th>Replication code file</th>\n");
+		    	fout.write("\t\t</tr>\n");
+		    	for(ExperimentCondition cond : manager.getConditions()){
+		    		String repCodeFileName = config.getOutBase()+".all.replicationcodes.table";
+		    		fout.write("\t\t<tr>" +
+			    			"\t\t<td>"+cond.getName()+"</td>\n" +
+			    			"\t\t<td><a href='"+repCodeFileName+"'>"+repCodeFileName+"</a></td>\n");
+			    	fout.write("\t\t</tr>\n");
 				}fout.write("\t</table>\n");
 				
+				//Replicate events
+				fout.write("\t<p></p>\n"+ 
+						"\t<table>\n");
+				// Replication code
+		    	fout.write("\t\t<tr>" +
+		    			"\t\t<th>Replicate</th>\n" +
+		    			"\t\t<th>Event file</th>\n");
+				for (ControlledExperiment rep : manager.getReplicates()){
+					String repEventFileName = config.getOutBase()+"_"+rep.getCondName()+"_"+rep.getRepName()+".repevents.txt";
+					fout.write("\t\t<tr>" +
+			    			"\t\t<td>"+rep.getCondName()+" "+rep.getRepName()+"</td>\n" +
+			    			"\t\t<td><a href='"+repEventFileName+"'>"+repEventFileName+"</a></td>\n");
+					fout.write("\t\t</tr>\n");
+				}fout.write("\t</table>\n");
 				
 				//File list of extras (histograms, etc)
 				fout.write("\t<h2>Miscellaneous files</h2>\n");
@@ -522,6 +552,7 @@ public class EventsPostAnalysis {
 						fout.write("\t<p><a href='intermediate-results/"+config.getOutBase()+"."+cond.getName()+".transfac'>"+cond.getName()+" subtype motifs</a></p>\n");
 					fout.write("\t<p> Try inputting these motifs into <a href='http://www.benoslab.pitt.edu/stamp/'>STAMP</a> for validation</p>\n");
 				}
+				fout.write("\t<p><a href='intermediate-results/"+config.getOutBase()+".subtypeModelWidth.txt'>Subtype model width</a></p>\n");
 				fout.write("\t<p><a href='intermediate-results/"+config.getOutBase()+".intraCondPeakDistances.histo.txt'>Peak-peak distance histograms (same condition)</a></p>\n");
 				if(manager.getNumConditions()>1)
 					fout.write("\t<p><a href='intermediate-results/"+config.getOutBase()+".interCondPeakDistances.histo.txt'>Peak-peak distance histograms (between conditions)</a></p>\n");
