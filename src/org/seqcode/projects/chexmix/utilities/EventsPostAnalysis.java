@@ -439,6 +439,7 @@ public class EventsPostAnalysis {
 //				fout.write("\t<h2>Binding event subtype images</h2>\n" +
 //		    			"\t<table>\n");
 				fout.write("\t<p></p>\n"+
+						"\t<div style='overflow-x:auto;'>\n" +
 						"\t<table>\n");
 				fout.write("\t\t<tr>" +
 		    			"\t\t<th>Condition</th>\n" +
@@ -512,7 +513,7 @@ public class EventsPostAnalysis {
 						fout.write("\t\t<td>NA</td>\n");
 		    		fout.write("\t\t</tr>\n");
 		    		
-				}fout.write("\t</table>\n");				
+				}fout.write("\t</div>\n\t</table>\n");				
 				
 				//Replicate consistency info	
 				fout.write("\t<h2>Replicate information</h2>\n" +
