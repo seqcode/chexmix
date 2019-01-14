@@ -251,8 +251,8 @@ public class EventsPostAnalysis {
 				
 		//6) Make heatmap
 		for (ExperimentCondition cond : manager.getConditions()){
-			String pointArgs = " --peaks "+config.getOutputParentDir()+File.separator+config.getOutBase()+"_"+cond.getName()+".subtype.aligned.events.txt";
-			
+			String pointArgs = " --peaks "+config.getOutputIntermediateDir()+File.separator+config.getOutBase()+"_"+cond.getName()+".subtype.aligned.events.txt";
+						
 			if(events.size()>0){			
 				// Run for each strand
 				System.out.println(config.getMetaMakerArgs()+pointArgs+" --strand + --color blue --noborder --out "+cond.getName()+".events");			
