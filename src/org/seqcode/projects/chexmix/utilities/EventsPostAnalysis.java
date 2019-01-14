@@ -513,7 +513,7 @@ public class EventsPostAnalysis {
 						fout.write("\t\t<td>NA</td>\n");
 		    		fout.write("\t\t</tr>\n");
 		    		
-				}fout.write("\t</div>\n\t</table>\n");				
+				}fout.write("\t</table>\n\t</div>\n");				
 				
 				//Replicate consistency info	
 				fout.write("\t<h2>Replicate information</h2>\n" +
