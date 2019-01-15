@@ -115,19 +115,25 @@ public class PotentialRegionFilter {
 	 */
 	public List<Region> execute(){
 		//TODO: check config for defined subset of regions
-		Iterator<Region> testRegions = new ChromosomeGenerator().execute(config.getGenome());
+		Iterator<Region> testRegionsIter = new ChromosomeGenerator().execute(config.getGenome());
+		List<Region> testRegions = new ArrayList<Region>();
+		while(testRegionsIter.hasNext())
+			testRegions.add(testRegionsIter.next());
+		
+		//If we put the exclude filter here, we can deal with large regions that overlap exclude regions more smoothly
+		//However, this method of filtering is safest when excluding regions from whole chromosomes or other large regions
+		testRegions = filterExcludedLeaveRemaining(testRegions);
 		
 		//Threading divides analysis over entire chromosomes. This approach is not compatible with file caching. 
 		int numThreads = econfig.getCacheAllData() ? config.getMaxThreads() : 1;
 				
 		Thread[] threads = new Thread[numThreads];
-        ArrayList<Region> threadRegions[] = new ArrayList[numThreads];
+        List<Region> threadRegions[] = new ArrayList[numThreads];
         int i = 0;
         for (i = 0 ; i < threads.length; i++) {
             threadRegions[i] = new ArrayList<Region>();
         }i=0;
-        while(testRegions.hasNext()){
-        	Region r = testRegions.next(); 
+        for(Region r : testRegions){ 
             threadRegions[(i++) % numThreads].add(r);
         }
 
@@ -187,7 +193,7 @@ public class PotentialRegionFilter {
 				chrStartExcluded.add(r);
 		}
 		
-		potentialRegions = filterExcluded(chrStartExcluded);
+		potentialRegions = filterExcludedAnyOverlap(chrStartExcluded);
 		
 		// signal and control counts from potential regions
 		countReadsInRegionsNoLandscape(potentialRegions);
@@ -325,8 +331,11 @@ public class PotentialRegionFilter {
 		}
 	}	
 	
-	//Filter out pre-defined regions to ignore (e.g. tower regions)
-    protected List<Region> filterExcluded(List<Region> testRegions) {
+	/**
+	 * Filter out pre-defined regions to ignore (e.g. blacklist regions)
+	 * This version filters regions that touch an excluded region >=1bp  
+	 */
+    protected List<Region> filterExcludedAnyOverlap(List<Region> testRegions) {
 		List<Region> filtered = new ArrayList<Region>();
 		if(config.getRegionsToIgnore().size()==0)
 			return testRegions;
@@ -342,6 +351,35 @@ public class PotentialRegionFilter {
 			}
 			if(!ignore)
 				filtered.add(t);
+		}
+		return filtered;
+	}
+    
+    /**
+     * Filter out pre-defined regions to ignore (e.g. blacklist regions)
+     * This version returns segments of regions that don't overlap. 
+     * Safest to apply to whole chromosomes, I think
+     */
+    protected List<Region> filterExcludedLeaveRemaining(List<Region> testRegions) {
+		if(config.getRegionsToIgnore().size()==0)
+			return testRegions;
+		
+		List<Region> filtered = new ArrayList<Region>();
+		filtered.addAll(testRegions);
+		for(Region i : config.getRegionsToIgnore()){
+			boolean overlaps = false;
+			int x=0;
+			while(x < filtered.size() && overlaps==false){
+				Region t = filtered.get(x);
+				if(t.overlaps(i)){
+					overlaps = true;
+					Collection<Region> subFrags = t.getSubtractionFragments(i);
+					filtered.remove(x);
+					if(subFrags.size()>0)
+						filtered.addAll(subFrags);
+				}
+				x++;
+			}
 		}
 		return filtered;
 	}
@@ -472,7 +510,8 @@ public class PotentialRegionFilter {
                     //Count all "signal" reads overlapping the regions in currPotRegions (including the lastPotential)
                     if(lastPotential!=null)
                     	currPotRegions.add(lastPotential);
-                    currPotRegions = filterExcluded(currPotRegions);
+                    //The exclude filter here is very likely redundant with the first-pass filter in the main execute method, but I'm leaving it here in case there are other execution modes. 
+                    currPotRegions = filterExcludedAnyOverlap(currPotRegions);
                     countReadsInRegions(currPotRegions, ipHits, backHits, y==currentRegion.getEnd() ? y : y-expansion);
                     countReadsInRegionsByRep(currPotRegions, ipHitsByRep, y==currentRegion.getEnd() ? y : y-expansion);
                     //Note: it looks like currPotRegions and threadPotentials are redundant in the above, but they are not.
@@ -495,7 +534,7 @@ public class PotentialRegionFilter {
     						threadPotentials.add(p);
                 	}
                 }
-                threadPotentials = filterExcluded(threadPotentials);
+                threadPotentials = filterExcludedAnyOverlap(threadPotentials);
             }
         	if(threadPotentials.size()>0){
         		synchronized(potentialRegions){
