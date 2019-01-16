@@ -172,7 +172,7 @@ For queries, please contact Naomi (nuy11@psu.edu) or Shaun Mahony (mahony@psu.ed
 
 Major History:
 --------------  
-Version 0.3 (2019-01-11): Introducing --lenient and --lenientplus modes for determining alternate ways of defining final binding events when replicated experiments are present. Output files now consist of only one ".events" file (to reduce confusion), files listing binding events found in each replicate, and a file reporting on the replication status of each binding event. Fixed several bugs, including relating to the final heatmap and composite plots displayed on the output HTML page, and a bug in --noclustering. 
+Version 0.3 (2019-01-15): Introducing --lenient and --lenientplus modes for determining alternate ways of defining final binding events when replicated experiments are present. Output files now consist of only one ".events" file (to reduce confusion), files listing binding events found in each replicate, and a file reporting on the replication status of each binding event. Fixed several bugs, including relating to the final heatmap and composite plots displayed on the output HTML page, and a bug in --noclustering. 
 
 Version 0.2 (2018-10-03): Updates to support Galaxy integration, added command line options to set 1) user provided motifs in seeding subtypes and 2) a Markov background threshold for motif detection, updates on EM training plots and html output, and bug fixes.
 
