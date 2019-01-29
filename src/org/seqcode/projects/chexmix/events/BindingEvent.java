@@ -276,10 +276,10 @@ public class BindingEvent implements Comparable<BindingEvent>{
 	public static String fullHeadString(){
 		String head="### ChExMix output\n";
 		
-		head = head + "#Condition\tName\tIndex\tTotalSigCount\tSignalFraction\n";
+		head = head + "#Condition\tName\tIndex\tTotalSigCount\tSigCtrlScaling\tSignalFraction\n";
 		//Add some basic information on the experiments
 		for(ExperimentCondition c : experiments.getConditions()){
-			head = head + "#Condition\t"+c.getName()+"\t"+c.getIndex()+"\t"+c.getTotalSignalCount()+"\t"+String.format("%.3f",c.getTotalSignalVsNoiseFrac())+"\n";
+			head = head + "#Condition\t"+c.getName()+"\t"+c.getIndex()+"\t"+c.getTotalSignalCount()+"\t"+c.getPooledSampleControlScaling()+"\t"+String.format("%.3f",c.getTotalSignalVsNoiseFrac())+"\n";
 		}
 		head = head + "#Replicate\tParentCond\tName\tIndex\tSigCount\tCtrlCount\tSigCtrlScaling\tSignalFraction\n";
 		for(ExperimentCondition c : experiments.getConditions()){
