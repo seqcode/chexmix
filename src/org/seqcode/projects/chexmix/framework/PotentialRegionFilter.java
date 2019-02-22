@@ -54,7 +54,8 @@ public class PotentialRegionFilter {
 	protected boolean stranded=false;
 	protected List<Region> potentialRegions = new ArrayList<Region>();
 	protected double potRegionLengthTotal=0;
-	protected HashMap<ExperimentCondition, BackgroundCollection> conditionBackgrounds=new HashMap<ExperimentCondition, BackgroundCollection>(); //Background models for each replicate
+	protected HashMap<ExperimentCondition, BackgroundCollection> conditionBackgrounds=new HashMap<ExperimentCondition, BackgroundCollection>(); //Background models for each condition
+	protected HashMap<ControlledExperiment, BackgroundCollection> replicateBackgrounds=new HashMap<ControlledExperiment, BackgroundCollection>(); //Background models for each replicate
 	protected HashMap<ExperimentCondition, Double> potRegCountsSigChannel = new HashMap<ExperimentCondition, Double>();
 	protected HashMap<ExperimentCondition, Double> nonPotRegCountsSigChannel = new HashMap<ExperimentCondition, Double>();
 	protected HashMap<ExperimentCondition, Double> potRegCountsCtrlChannel = new HashMap<ExperimentCondition, Double>();
@@ -73,7 +74,7 @@ public class PotentialRegionFilter {
 		//Initialize background models
 		for(ExperimentCondition cond : manager.getConditions()){
 			conditionBackgrounds.put(cond, new BackgroundCollection());
-    			
+				
     		//global threshold
     		conditionBackgrounds.get(cond).addBackgroundModel(new PoissonBackgroundModel(-1, config.getPRLogConf(), cond.getTotalSignalCount(), config.getGenome().getGenomeLength(), econfig.getMappableGenomeProp(), maxBinWidth, '.', 1, true));
     		//local windows won't work since we are testing per condition and we don't have a way to scale signal vs controls at the condition level (at least at this stage of execution)
@@ -81,6 +82,12 @@ public class PotentialRegionFilter {
     		double thres = conditionBackgrounds.get(cond).getGenomicModelThreshold();
     		System.err.println("PotentialRegionFilter: genomic threshold for "+cond.getName()+" with bin width "+maxBinWidth+" = "+thres);
     			
+    		for(ControlledExperiment rep : manager.getReplicates()){
+    			replicateBackgrounds.put(rep, new BackgroundCollection());
+    			//global thresholds
+        		replicateBackgrounds.get(rep).addBackgroundModel(new PoissonBackgroundModel(-1, config.getPRLogConf(), rep.getSignal().getHitCount(), config.getGenome().getGenomeLength(), econfig.getMappableGenomeProp(), maxBinWidth, '.', 1, true));
+        	}
+    	
     		//Initialize counts
     		potRegCountsSigChannel.put(cond, 0.0);
     		nonPotRegCountsSigChannel.put(cond, 0.0);
@@ -154,6 +161,12 @@ public class PotentialRegionFilter {
                     break;
                 }
             }
+        }
+        
+        //Error checking
+        if(potentialRegions.size()==0) {
+        	System.err.println("NO POTENTIAL REGIONS FOUND");
+        	System.exit(1);
         }
         
         //Initialize signal & noise counts based on potential region calls
@@ -405,6 +418,8 @@ public class PotentialRegionFilter {
         private Collection<Region> regions;
         private float[][] landscape=null;
         private float[][] starts=null;
+        private float[][] landscapeRep=null;
+        private float[][] startsRep=null;
         private List<Region> threadPotentials = new ArrayList<Region>();
         
         public PotentialRegionFinderThread(Collection<Region> r) {
@@ -459,6 +474,9 @@ public class PotentialRegionFilter {
                             makeHitLandscape(backHits, currSubRegion, maxBinWidth, binStep, str);
                             backBinnedStarts = starts.clone();
                         }
+                        makeHitLandscapeByRep(ipHitsByRep, currSubRegion, maxBinWidth, binStep, str);
+                        float ipHitCountsRep[][] = landscapeRep.clone();
+                        float ipBinnedStartsRep[][] = startsRep.clone();
 					
                         //Scan regions
                         int currBin=0;
@@ -481,8 +499,23 @@ public class PotentialRegionFilter {
                         				regionPasses=true;
                         				break;
 		                            }
+		                        }else {
+		                        	//Check per-replicate counts here (necessary because only one replicate may have signal)
+		                        	for(ControlledExperiment rep:  cond.getReplicates()){
+		                        		double ipWinHitsRep=ipHitCountsRep[rep.getIndex()][currBin];
+		                        		if(replicateBackgrounds.get(rep).passesGenomicThreshold((int)ipWinHitsRep, str)){
+		                        			//Second Test: refresh all thresholds & test again (note this uses condition control...)
+		                        			replicateBackgrounds.get(rep).updateModels(currSubRegion, i-x, ipBinnedStartsRep[rep.getIndex()], backBinnedStarts==null ? null : backBinnedStarts[cond.getIndex()], binStep);
+		                        			if(replicateBackgrounds.get(rep).passesAllThresholds((int)ipWinHitsRep, str)){
+		                        				//If the region passes the thresholds for one condition, it's a potential
+		                        				regionPasses=true;
+		                        				break;
+				                            }
+		                        		}
+		                        	}
 		                        }
                         	}
+                        	
                         	if(regionPasses){
                         		Region currPotential = new Region(gen, currentRegion.getChrom(), Math.max(i-expansion, 1), Math.min((int)(i-1+expansion), currentRegion.getEnd()));
                         		if(lastPotential!=null && currPotential.overlaps(lastPotential)){
@@ -601,6 +634,31 @@ public class PotentialRegionFilter {
 	    				int binend = inBounds((int)((double)(offset)/binStep), 0, numBins);
 	    				for(int b=binstart; b<=binend; b++)
 	    					landscape[cond.getIndex()][b]+=r.getCount();
+	    			}
+            	}
+    		}
+    	}
+    	//Makes integer arrays corresponding to the read landscape over the current region.
+        //Reads are semi-extended out to bin width to account for the bin step
+        //No needlefiltering here as that is taken care of during read loading (i.e. in Sample)
+    	protected void makeHitLandscapeByRep(List<List<StrandedBaseCount>> hits, Region currReg, float binWidth, float binStep, char strand){
+    		int numBins = (int)(currReg.getWidth()/binStep);
+    		landscapeRep = new float[hits.size()][numBins+1];
+    		startsRep = new float[hits.size()][numBins+1];
+    		float halfWidth = binWidth/2;
+
+    		for(ControlledExperiment rep : manager.getReplicates()){
+        		List<StrandedBaseCount> currHits = hits.get(rep.getIndex());
+    			for(int i=0; i<=numBins; i++){landscapeRep[rep.getIndex()][i]=0; startsRep[rep.getIndex()][i]=0; }
+	    		for(StrandedBaseCount r : currHits){
+	    			if(strand=='.' || r.getStrand()==strand){
+	    				int offset=inBounds(r.getCoordinate()-currReg.getStart(),0,currReg.getWidth());
+	    				int binoff = inBounds((int)(offset/binStep), 0, numBins);
+	    				startsRep[rep.getIndex()][binoff]+=r.getCount();
+	    				int binstart = inBounds((int)((double)(offset-halfWidth)/binStep), 0, numBins);
+	    				int binend = inBounds((int)((double)(offset)/binStep), 0, numBins);
+	    				for(int b=binstart; b<=binend; b++)
+	    					landscapeRep[rep.getIndex()][b]+=r.getCount();
 	    			}
             	}
     		}

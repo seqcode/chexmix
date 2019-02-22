@@ -70,6 +70,7 @@ public class BindingMixture {
 	protected List<Region> testRegions;
 	protected HashMap<Region, List<List<BindingSubComponents>>> activeComponents; //Components active after a round of execute()
 	protected HashMap<ExperimentCondition, BackgroundCollection> conditionBackgrounds=new HashMap<ExperimentCondition, BackgroundCollection>(); //Genomic Background models for each condition -- used to set alpha values in sparse prior
+	protected HashMap<ControlledExperiment, BackgroundCollection> replicateBackgrounds=new HashMap<ControlledExperiment, BackgroundCollection>(); //Genomic Background models for each condition -- used to set alpha values in sparse prior in lenient mode
 	protected List<BindingEvent> bindingEvents;
 	protected List<Region> regionsToPlot;
 	protected int trainingRound=0;
@@ -105,10 +106,24 @@ public class BindingMixture {
 		
 		activeComponents = new HashMap<Region, List<List<BindingSubComponents>>>();
 		
+		//Setting initial alpha value
 		for(ExperimentCondition cond : manager.getConditions()){
 			conditionBackgrounds.put(cond, new BackgroundCollection());
 			conditionBackgrounds.get(cond).addBackgroundModel(new PoissonBackgroundModel(-1, config.getSigLogConf(), cond.getTotalSignalCount()*(1-cond.getTotalSignalVsNoiseFrac()), config.getGenome().getGenomeLength(), econfig.getMappableGenomeProp(), config.getModelRange(), '.', 1, true));
-			double alf = config.getFixedAlpha()>0 ? config.getFixedAlpha() : (double)conditionBackgrounds.get(cond).getMaxThreshold('.');
+			double condAlf = config.getFixedAlpha()>0 ? config.getFixedAlpha() : (double)conditionBackgrounds.get(cond).getMaxThreshold('.');
+			double alf=condAlf;
+			
+			//In lenient mode, we have to allow alpha to be small enough to catch events significant in individual replicates
+			double repAlf = Double.MAX_VALUE;	
+			if(config.getFixedAlpha()<=0 && (config.isLenientMode() || config.isLenientPlusMode())){
+				for(ControlledExperiment rep : cond.getReplicates()){
+					replicateBackgrounds.put(rep, new BackgroundCollection());
+					replicateBackgrounds.get(rep).addBackgroundModel(new PoissonBackgroundModel(-1, config.getSigLogConf(), rep.getSignal().getHitCount()*(1-rep.getSignalVsNoiseFraction()), config.getGenome().getGenomeLength(), econfig.getMappableGenomeProp(), config.getModelRange(), '.', 1, true));
+					repAlf = Math.min(repAlf, (double)replicateBackgrounds.get(rep).getMaxThreshold('.'));
+				}
+				alf = Math.min(condAlf,  repAlf);
+			}
+			
 			System.err.println("Alpha "+cond.getName()+"\tRange="+config.getModelRange()+"\t"+alf);
 			bindingManager.setAlpha(cond,alf);
 		}
@@ -621,7 +636,20 @@ public class BindingMixture {
     	for(ExperimentCondition cond : manager.getConditions()){
 			conditionBackgrounds.put(cond, new BackgroundCollection());
 			conditionBackgrounds.get(cond).addBackgroundModel(new PoissonBackgroundModel(-1, config.getSigLogConf(), cond.getTotalSignalCount()*(1-cond.getTotalSignalVsNoiseFrac()), config.getGenome().getGenomeLength(), econfig.getMappableGenomeProp(), config.getModelRange(), '.', 1, true));
-			double alf = config.getFixedAlpha()>0 ? config.getFixedAlpha() : (double)conditionBackgrounds.get(cond).getMaxThreshold('.');
+			double condAlf = config.getFixedAlpha()>0 ? config.getFixedAlpha() : (double)conditionBackgrounds.get(cond).getMaxThreshold('.');
+			double alf=condAlf;
+			
+			//In lenient mode, we have to allow alpha to be small enough to catch events significant in individual replicates
+			double repAlf = Double.MAX_VALUE;	
+			if(config.getFixedAlpha()<=0 && (config.isLenientMode() || config.isLenientPlusMode())){
+				for(ControlledExperiment rep : cond.getReplicates()){
+					replicateBackgrounds.put(rep, new BackgroundCollection());
+					replicateBackgrounds.get(rep).addBackgroundModel(new PoissonBackgroundModel(-1, config.getSigLogConf(), rep.getSignal().getHitCount()*(1-rep.getSignalVsNoiseFraction()), config.getGenome().getGenomeLength(), econfig.getMappableGenomeProp(), config.getModelRange(), '.', 1, true));
+					repAlf = Math.min(repAlf, (double)replicateBackgrounds.get(rep).getMaxThreshold('.'));
+				}
+				alf = Math.min(condAlf,  repAlf);
+			}
+			
 			System.err.println("Alpha "+cond.getName()+"\tRange="+config.getModelRange()+"\t"+alf);
 			bindingManager.setAlpha(cond,alf);
 		}
