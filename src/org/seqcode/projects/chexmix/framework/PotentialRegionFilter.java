@@ -80,12 +80,14 @@ public class PotentialRegionFilter {
     		//local windows won't work since we are testing per condition and we don't have a way to scale signal vs controls at the condition level (at least at this stage of execution)
     		
     		double thres = conditionBackgrounds.get(cond).getGenomicModelThreshold();
-    		System.err.println("PotentialRegionFilter: genomic threshold for "+cond.getName()+" with bin width "+maxBinWidth+" = "+thres);
+    		System.err.println("PotentialRegionFilter: condition genomic threshold for "+cond.getName()+" with bin width "+maxBinWidth+" = "+thres);
     			
     		for(ControlledExperiment rep : manager.getReplicates()){
     			replicateBackgrounds.put(rep, new BackgroundCollection());
     			//global thresholds
         		replicateBackgrounds.get(rep).addBackgroundModel(new PoissonBackgroundModel(-1, config.getPRLogConf(), rep.getSignal().getHitCount(), config.getGenome().getGenomeLength(), econfig.getMappableGenomeProp(), maxBinWidth, '.', 1, true));
+        		thres = replicateBackgrounds.get(rep).getGenomicModelThreshold();
+        		System.err.println("PotentialRegionFilter: replicate genomic threshold for "+rep.getName()+" with bin width "+maxBinWidth+" = "+thres);
         	}
     	
     		//Initialize counts

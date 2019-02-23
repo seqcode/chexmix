@@ -33,6 +33,7 @@ public class MultiGPSBindingEM {
 	protected int numConditions;
 	protected int trainingRound=0; //Identifier for the overall training round, used only for file names
 	protected HashMap<ExperimentCondition, BackgroundCollection> conditionBackgrounds; //Background models per condition
+	protected HashMap<ControlledExperiment, BackgroundCollection> replicateBackgrounds; //Background models per replicate
 	//	EM VARIABLES
 	// H function and responsibility have to account for all reads in region now, as they will be updated 
     // once the component positions change (i.e. we can't do the trick where we restrict to reads within 
@@ -68,11 +69,12 @@ public class MultiGPSBindingEM {
 	 * @param c
 	 * @param eMan
 	 */
-	public MultiGPSBindingEM(ChExMixConfig c, ExperimentManager eMan, BindingManager bMan, HashMap<ExperimentCondition, BackgroundCollection> condBacks, int numPotReg){
+	public MultiGPSBindingEM(ChExMixConfig c, ExperimentManager eMan, BindingManager bMan, HashMap<ExperimentCondition, BackgroundCollection> condBacks, HashMap<ControlledExperiment, BackgroundCollection> repBacks,int numPotReg){
 		config=c;
 		manager = eMan;
 		bindingManager = bMan;
 		conditionBackgrounds = condBacks;
+		replicateBackgrounds = repBacks;
 		numConditions = manager.getNumConditions();
 		numPotentialRegions = (double)numPotReg;
 	}
@@ -131,8 +133,7 @@ public class MultiGPSBindingEM {
         		bindingModels[rep.getIndex()] = bindingManager.getUnstrandedBindingModel(rep);
         	
         	//Set maximum alphas
-        	alphaMax[c] =  config.getFixedAlpha()>0 ? config.getFixedAlpha() : 
-        			config.getAlphaScalingFactor() * (double)conditionBackgrounds.get(cond).getMaxThreshold('.');
+        	alphaMax[c] =  calcAlpha(cond);
         	
         	//Load Reads (merge from all replicates)
         	List<StrandedBaseCount> bases = new ArrayList<StrandedBaseCount>();
@@ -650,5 +651,22 @@ public class MultiGPSBindingEM {
     			}
 			}}
 		return numCompEqual && compPosEqual && piBindEquivalent && rBindEquivalent;
+    }
+    
+    /**
+     * Calculate alpha value
+     */
+    private double calcAlpha(ExperimentCondition cond) {
+    	double condAlf = config.getFixedAlpha()>0 ? config.getFixedAlpha() : config.getAlphaScalingFactor() * (double)conditionBackgrounds.get(cond).getMaxThreshold('.');
+		double alf=condAlf;	    			
+		//In lenient mode, we have to allow alpha to be small enough to catch events significant in individual replicates
+		double repAlf = Double.MAX_VALUE;	
+		if(config.getFixedAlpha()<=0 && (config.isLenientMode() || config.isLenientPlusMode())){
+			for(ControlledExperiment rep : cond.getReplicates()){
+				repAlf = Math.min(repAlf, config.getAlphaScalingFactor() * (double)replicateBackgrounds.get(rep).getMaxThreshold('.'));
+			}
+			alf = Math.min(condAlf,  repAlf);
+		}
+		return  alf;
     }
 }

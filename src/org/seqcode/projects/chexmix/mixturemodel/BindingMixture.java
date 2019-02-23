@@ -301,7 +301,8 @@ public class BindingMixture {
 				//Sum read profiles if there are enough binding components
 				List<BindingSubComponents> currComps = new ArrayList<BindingSubComponents>();
 	    		for(ExperimentCondition cond : manager.getConditions()){
-	    			double currAlpha = (double)conditionBackgrounds.get(cond).getMaxThreshold('.');
+	    			double currAlpha = calcAlpha(cond);
+	 
 	    			//Choose which components to include
 	    			for(Region r : activeComponents.keySet()){
 	    				for(BindingSubComponents bc : activeComponents.get(r).get(cond.getIndex())){
@@ -450,7 +451,7 @@ public class BindingMixture {
     		//Initialize
     		for (int bt=0; bt < bindingManager.getNumBindingType(cond); bt++)
     			currComps.add(new ArrayList<BindingSubComponents>());
-    		double currAlpha = (double)conditionBackgrounds.get(cond).getMaxThreshold('.');
+			double currAlpha = calcAlpha(cond);
     		//Choose which components to include
     		for(Region r : activeComponents.keySet()){
     			for(BindingSubComponents bc : activeComponents.get(r).get(cond.getIndex())){
@@ -653,6 +654,23 @@ public class BindingMixture {
 			System.err.println("Alpha "+cond.getName()+"\tRange="+config.getModelRange()+"\t"+alf);
 			bindingManager.setAlpha(cond,alf);
 		}
+    }
+    
+    /**
+     * Calculate alpha value
+     */
+    private double calcAlpha(ExperimentCondition cond) {
+    	double condAlf = config.getFixedAlpha()>0 ? config.getFixedAlpha() : (double)conditionBackgrounds.get(cond).getMaxThreshold('.');
+		double alf=condAlf;	    			
+		//In lenient mode, we have to allow alpha to be small enough to catch events significant in individual replicates
+		double repAlf = Double.MAX_VALUE;	
+		if(config.getFixedAlpha()<=0 && (config.isLenientMode() || config.isLenientPlusMode())){
+			for(ControlledExperiment rep : cond.getReplicates()){
+				repAlf = Math.min(repAlf, (double)replicateBackgrounds.get(rep).getMaxThreshold('.'));
+			}
+			alf = Math.min(condAlf,  repAlf);
+		}
+		return alf;
     }
     
     /**
@@ -932,8 +950,8 @@ public class BindingMixture {
 		 * @throws FileNotFoundException 
 		 */
 		private Pair<List<NoiseComponent>, List<List<BindingSubComponents>>> analyzeWindowEM(Region w) throws FileNotFoundException{
-			BindingEM EM = new BindingEM(config, manager, bindingManager, conditionBackgrounds, potRegFilter.getPotentialRegions().size());
-			MultiGPSBindingEM multiGPSEM = new MultiGPSBindingEM(config, manager, bindingManager, conditionBackgrounds, potRegFilter.getPotentialRegions().size());
+			BindingEM EM = new BindingEM(config, manager, bindingManager, conditionBackgrounds, replicateBackgrounds, potRegFilter.getPotentialRegions().size());
+			MultiGPSBindingEM multiGPSEM = new MultiGPSBindingEM(config, manager, bindingManager, conditionBackgrounds, replicateBackgrounds,  potRegFilter.getPotentialRegions().size());
 			
 			List<List<BindingSubComponents>> bindingComponents=null;
 			List<NoiseComponent> noiseComponents=null;
