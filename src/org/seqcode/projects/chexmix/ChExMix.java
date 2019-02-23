@@ -302,7 +302,7 @@ public class ChExMix {
 		//Write the replicate counts to a file (needed before EdgeR differential enrichment)
 		bindingManager.writeReplicateCounts(chexconfig.getOutputParentDir()+File.separator+chexconfig.getOutBase()+".replicates.counts");
         
-		// Print per-replicate events to files (replicate consistency mode only)
+		// Print per-replicate events to files 
 		bindingManager.writePerReplicateBindingEventFiles(chexconfig.getOutputParentDir()+File.separator+chexconfig.getOutBase(), evconfig.getQMinThres(), evconfig.getRunDiffTests(), evconfig.getDiffPMinThres());
         
 		// Print final events to files

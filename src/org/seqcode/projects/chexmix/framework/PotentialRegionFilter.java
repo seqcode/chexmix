@@ -501,7 +501,7 @@ public class PotentialRegionFilter {
                         				regionPasses=true;
                         				break;
 		                            }
-		                        }else {
+		                        }else if(config.isLenientMode() || config.isLenientPlusMode()){
 		                        	//Check per-replicate counts here (necessary because only one replicate may have signal)
 		                        	for(ControlledExperiment rep:  cond.getReplicates()){
 		                        		double ipWinHitsRep=ipHitCountsRep[rep.getIndex()][currBin];
