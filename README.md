@@ -79,7 +79,6 @@ Instead of using the above options to specify each and every ChIP-seq data file 
  * --readfilter: Flag to turn on filtering reads, recommended for highly duplicated experiments. It estimates a global per-base limit from a Poisson distribution parameterized by the number of reads divided by the number of mappable bases in the genome. The per-base limit is set as the count corresponding to the 10^-7 probability level from the Poisson. Default = no read filter
  * --fixedpb \<value\>: Fixed per-base limit.
  * --poissongausspb \<value\>: Filter per base using a Poisson threshold parameterized by a local Gaussian sliding window (i.e. look at neighboring positions to decide what the per-base limit should be). 
- * Default behavior is to estimate a global per-base limit from a Poisson distribution parameterized by the number of reads divided by the number of mappable bases in the genome. The per-base limit is set as the count corresponding to the 10^-7 probability level from the Poisson.
  * --nonunique: Flag to use non-unique reads. 
  * --mappability \<value\>: Fraction of the genome that is mappable for these experiments. Default=0.8.
  * --nocache: Flag to turn off caching of the entire set of experiments (i.e. run slower with less memory)
