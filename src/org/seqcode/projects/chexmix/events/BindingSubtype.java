@@ -1,6 +1,5 @@
 package org.seqcode.projects.chexmix.events;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.seqcode.data.motifdb.WeightMatrix;

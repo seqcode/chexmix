@@ -264,9 +264,7 @@ public class EventsPostAnalysis {
 				for (ExperimentCondition pcond : manager.getConditions()){				
 					String pngPath=config.getOutputImagesDir()+File.separator+config.getOutBase()+"_"+pcond.getName()+".events_"+cond.getName()+"_";
 					try {
-					
-						//	Process proc = Runtime.getRuntime().exec("composite -dissolve 60,100 -transparent-color white "+pngPath+"+_lines.png "+pngPath+"-_lines.png "+pngPath+"heatmap.png");
-					
+										
 						// load source images
 						File posHeatmap = new File(pngPath+"+_lines.png");
 						File negHeatmap = new File(pngPath+"-_lines.png");
@@ -274,24 +272,24 @@ public class EventsPostAnalysis {
 						BufferedImage negImage = ImageIO.read(negHeatmap);
 
 						// create the new image, canvas size is at most 250x1000
-						//BufferedImage combined = new BufferedImage(Math.min(posImage.getWidth(), 250), Math.min(posImage.getHeight(), 1000), BufferedImage.TYPE_INT_ARGB);
+						BufferedImage combined = new BufferedImage(Math.min(posImage.getWidth(), 250), Math.min(posImage.getHeight(), 1000), BufferedImage.TYPE_INT_ARGB);
 						// also create a new full image, canvas size unchanged
 						BufferedImage combinedFull = new BufferedImage(posImage.getWidth(), posImage.getHeight(), BufferedImage.TYPE_INT_ARGB);
 						
 						// paint both images, preserving the alpha channels
-						//Graphics g = combined.getGraphics();
-						//g.drawImage(negImage, 0, 0, null);
-						//g.drawImage(posImage, 0, 0, null);
+						Graphics g = combined.getGraphics();
+						g.drawImage(negImage, 0, 0, null);
+						g.drawImage(posImage, 0, 0, null);
 						Graphics gfull = combinedFull.getGraphics();
 						gfull.drawImage(negImage, 0, 0, null);
 						gfull.drawImage(posImage, 0, 0, null);
 					
-						//((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) 0.6));
+						((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) 0.6));
 						((Graphics2D) gfull).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) 0.6));
 
 						// Save as new image
-						//ImageIO.write(combined, "PNG", new File(pngPath+"heatmap.png"));
-						ImageIO.write(combinedFull, "PNG", new File(pngPath+"heatmap.png"));
+						ImageIO.write(combined, "PNG", new File(pngPath+"heatmap.png"));
+						ImageIO.write(combinedFull, "PNG", new File(pngPath+"heatmap.full.png"));
 					
 						// delete source images
 						posHeatmap.delete();

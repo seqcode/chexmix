@@ -635,7 +635,7 @@ public class MotifPlatform {
 					WeightMatrixScoreProfile profiler = scorer.execute(regSeq);
 					// profile stores either forward or reverse strand scores
 					double[] scores = forwardScores ? profiler.getForwardScores() : profiler.getReverseScores();
-					for(int z=0; z<reg.getWidth()-sub.getMotif().length()+1; z++){
+					for(int z=0; z<reg.getWidth()-motifLen+1; z++){
 						double currScore= scores[z];
 						int zOff = z+sub.getMotifOffset()+halfMotifWidth;
 						if(currScore>0)
@@ -670,7 +670,7 @@ public class MotifPlatform {
 				WeightMatrixScoreProfile profiler = scorer.execute(regSeq);
 				// profile stores either forward or reverse strand scores
 				double[] scores = forwardScores ? profiler.getForwardScores() : profiler.getReverseScores();
-				for(int z=0; z<reg.getWidth()-sub.getMotif().length()+1; z++){
+				for(int z=0; z<reg.getWidth()-motifLen+1; z++){
 					double currScore= scores[z];
 					int zOff = z+sub.getMotifOffset()+halfMotifWidth;
 					if(currScore>0)
@@ -712,7 +712,7 @@ public class MotifPlatform {
 					WeightMatrixScoreProfile profiler = scorer.execute(regSeq);
 					// profile stores either forward or reverse strand scores
 					double[] scores = forwardScores ? profiler.getForwardScores() : profiler.getReverseScores();
-					for(int z=0; z<reg.getWidth()-sub.getMotif().length()+1; z++){
+					for(int z=0; z<reg.getWidth()-motifLen+1; z++){
 						double currScore= scores[z];
 						String currSeq = regSeq.substring(z, z+sub.getMotif().length());
 						if (!forwardScores)
