@@ -4,6 +4,7 @@ import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileWriter;
@@ -234,6 +235,14 @@ public class EventsPostAnalysis {
 						File outFile = new File(outFilename);
 						fig.visualizeSequences(seqs, 3, 1, outFile);
 						
+						// resize image
+						BufferedImage seqImage = ImageIO.read(outFile);
+						Image resizedImage = seqImage.getScaledInstance(Math.min(seqImage.getWidth(), 250),  Math.min(seqImage.getHeight(), 1000), Image.SCALE_DEFAULT);						
+						// convert image back to buffered image
+						BufferedImage bimg = new BufferedImage(Math.min(seqImage.getWidth(), 250),  Math.min(seqImage.getHeight(), 1000), Image.SCALE_DEFAULT);
+						bimg.getGraphics().drawImage(resizedImage,0,0, null);	
+						ImageIO.write(bimg, "PNG", new File(outFilename));
+						
 						//Sequence file
 						if(seqOutFile != null){
 							FileWriter fout = new FileWriter(seqOutFile);
@@ -243,6 +252,7 @@ public class EventsPostAnalysis {
 							fout.close();
 						}
 					}
+					
 				}catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -272,24 +282,29 @@ public class EventsPostAnalysis {
 						BufferedImage negImage = ImageIO.read(negHeatmap);
 
 						// create the new image, canvas size is at most 250x1000
-						BufferedImage combined = new BufferedImage(Math.min(posImage.getWidth(), 250), Math.min(posImage.getHeight(), 1000), BufferedImage.TYPE_INT_ARGB);
+						//BufferedImage combined = new BufferedImage(Math.min(posImage.getWidth(), 250), Math.min(posImage.getHeight(), 1000), BufferedImage.TYPE_INT_ARGB);
 						// also create a new full image, canvas size unchanged
 						BufferedImage combinedFull = new BufferedImage(posImage.getWidth(), posImage.getHeight(), BufferedImage.TYPE_INT_ARGB);
 						
 						// paint both images, preserving the alpha channels
-						Graphics g = combined.getGraphics();
-						g.drawImage(negImage, 0, 0, null);
-						g.drawImage(posImage, 0, 0, null);
+						//Graphics g = combined.getGraphics();
+						//g.drawImage(negImage, 0, 0, null);
+						//g.drawImage(posImage, 0, 0, null);
 						Graphics gfull = combinedFull.getGraphics();
 						gfull.drawImage(negImage, 0, 0, null);
 						gfull.drawImage(posImage, 0, 0, null);
 					
-						((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) 0.6));
+						//((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) 0.6));
 						((Graphics2D) gfull).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) 0.6));
 
 						// Save as new image
-						ImageIO.write(combined, "PNG", new File(pngPath+"heatmap.png"));
-						ImageIO.write(combinedFull, "PNG", new File(pngPath+"heatmap.full.png"));
+						//ImageIO.write(combined, "PNG", new File(pngPath+"heatmap.png"));
+						// resize image to 250 x 1000
+						Image resizedImage = combinedFull.getScaledInstance(Math.min(combinedFull.getWidth(), 250),  Math.min(combinedFull.getHeight(), 1000), Image.SCALE_DEFAULT);						
+						// convert image back to buffered image
+						BufferedImage bimg = new BufferedImage(Math.min(combinedFull.getWidth(), 250),  Math.min(combinedFull.getHeight(), 1000), Image.SCALE_DEFAULT);
+						bimg.getGraphics().drawImage(resizedImage,0,0, null);	
+						ImageIO.write(bimg, "PNG", new File(pngPath+"heatmap.png"));
 					
 						// delete source images
 						posHeatmap.delete();
