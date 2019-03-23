@@ -239,7 +239,7 @@ public class EventsPostAnalysis {
 						BufferedImage seqImage = ImageIO.read(outFile);
 						Image resizedImage = seqImage.getScaledInstance(Math.min(seqImage.getWidth(), 250),  Math.min(seqImage.getHeight(), 1000), Image.SCALE_DEFAULT);						
 						// convert image back to buffered image
-						BufferedImage bimg = new BufferedImage(Math.min(seqImage.getWidth(), 250),  Math.min(seqImage.getHeight(), 1000), Image.SCALE_DEFAULT);
+						BufferedImage bimg = new BufferedImage(Math.min(seqImage.getWidth(), 250),  Math.min(seqImage.getHeight(), 1000), BufferedImage.TYPE_INT_ARGB);
 						bimg.getGraphics().drawImage(resizedImage,0,0, null);	
 						ImageIO.write(bimg, "PNG", new File(outFilename));
 						
@@ -302,7 +302,7 @@ public class EventsPostAnalysis {
 						// resize image to 250 x 1000
 						Image resizedImage = combinedFull.getScaledInstance(Math.min(combinedFull.getWidth(), 250),  Math.min(combinedFull.getHeight(), 1000), Image.SCALE_DEFAULT);						
 						// convert image back to buffered image
-						BufferedImage bimg = new BufferedImage(Math.min(combinedFull.getWidth(), 250),  Math.min(combinedFull.getHeight(), 1000), Image.SCALE_DEFAULT);
+						BufferedImage bimg = new BufferedImage(Math.min(combinedFull.getWidth(), 250),  Math.min(combinedFull.getHeight(), 1000), BufferedImage.TYPE_INT_ARGB);
 						bimg.getGraphics().drawImage(resizedImage,0,0, null);	
 						ImageIO.write(bimg, "PNG", new File(pngPath+"heatmap.png"));
 					
