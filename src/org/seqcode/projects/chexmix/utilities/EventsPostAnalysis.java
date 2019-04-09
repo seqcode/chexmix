@@ -673,7 +673,7 @@ public class EventsPostAnalysis {
 	    		for(ExperimentCondition cond : manager.getConditions()){
 	    			int numEvents = bindingManager.countEventsInCondition(cond, evconfig.getQMinThres());
 	    			String heatmapFileName = "images/"+config.getOutBase()+"_"+cond.getName()+".events_"+cond.getName()+"_"+"heatmap.png";
-	    			String heatmapFullFileName = "images/"+config.getOutBase()+"_"+cond.getName()+".events_"+cond.getName()+"_"+"heatmap.png";
+	    			String heatmapFullFileName = "images/"+config.getOutBase()+"_"+cond.getName()+".events_"+cond.getName()+"_"+"heatmap.full.png";
 					String seqcolorplot = "images/"+config.getOutBase()+"_"+cond.getName()+"_seq.png";
 		    		fout.write("\t\t\t\t\t\t<tr>" +
 	    					"\t\t\t\t\t\t\t<td rowspan=3>"+cond.getName()+"</td>\n");
