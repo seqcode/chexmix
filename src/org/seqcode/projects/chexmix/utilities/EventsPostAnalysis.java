@@ -90,8 +90,7 @@ public class EventsPostAnalysis {
 					eventStruct.get(c).get(chr).add(loc);
 				}
 			}
-		}
-		
+		}		
 		
 		//1) Histograms of peak-closestMotif distances
 		try {
@@ -281,24 +280,19 @@ public class EventsPostAnalysis {
 						BufferedImage posImage = ImageIO.read(posHeatmap);
 						BufferedImage negImage = ImageIO.read(negHeatmap);
 
-						// create the new image, canvas size is at most 250x1000
-						//BufferedImage combined = new BufferedImage(Math.min(posImage.getWidth(), 250), Math.min(posImage.getHeight(), 1000), BufferedImage.TYPE_INT_ARGB);
 						// also create a new full image, canvas size unchanged
 						BufferedImage combinedFull = new BufferedImage(posImage.getWidth(), posImage.getHeight(), BufferedImage.TYPE_INT_ARGB);
 						
 						// paint both images, preserving the alpha channels
-						//Graphics g = combined.getGraphics();
-						//g.drawImage(negImage, 0, 0, null);
-						//g.drawImage(posImage, 0, 0, null);
 						Graphics gfull = combinedFull.getGraphics();
 						gfull.drawImage(negImage, 0, 0, null);
 						gfull.drawImage(posImage, 0, 0, null);
 					
-						//((Graphics2D) g).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) 0.6));
 						((Graphics2D) gfull).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) 0.6));
 
-						// Save as new image
-						//ImageIO.write(combined, "PNG", new File(pngPath+"heatmap.png"));
+						// Save as new image						
+						ImageIO.write(combinedFull, "PNG", new File(pngPath+"heatmap.full.png"));
+						
 						// resize image to 250 x 1000
 						Image resizedImage = combinedFull.getScaledInstance(Math.min(combinedFull.getWidth(), 250),  Math.min(combinedFull.getHeight(), 1000), Image.SCALE_DEFAULT);						
 						// convert image back to buffered image
@@ -466,11 +460,12 @@ public class EventsPostAnalysis {
 				for(ExperimentCondition cond : manager.getConditions()){
 					int numEvents = bindingManager.countEventsInCondition(cond, evconfig.getQMinThres());
 	    			String heatmapFileName = "images/"+config.getOutBase()+"_"+cond.getName()+".events_"+cond.getName()+"_"+"heatmap.png";
+	    			String heatmapFullFileName = "images/"+config.getOutBase()+"_"+cond.getName()+".events_"+cond.getName()+"_"+"heatmap.full.png";
 					String seqcolorplot = "images/"+config.getOutBase()+"_"+cond.getName()+"_seq.png";
 					fout.write("\t\t<tr>" +
 			    			"\t\t<td rowspan=3>"+cond.getName()+"</td>\n");
 		    		if(numEvents>0)
-		    			fout.write("\t\t<td rowspan=3><a href='#' onclick='return fullpopitup(\""+heatmapFileName+"\")'><img src='"+heatmapFileName+"' height='400' width='150'></a></td>\n");
+		    			fout.write("\t\t<td rowspan=3><a href='#' onclick='return fullpopitup(\""+heatmapFullFileName+"\")'><img src='"+heatmapFileName+"' height='400' width='150'></a></td>\n");
 		    		else
 		    			fout.write("\t\t\t\t\t\t\t<td rowspan=3>No events</td>\n");
 	    			if(config.getFindingMotifs()){
@@ -678,11 +673,12 @@ public class EventsPostAnalysis {
 	    		for(ExperimentCondition cond : manager.getConditions()){
 	    			int numEvents = bindingManager.countEventsInCondition(cond, evconfig.getQMinThres());
 	    			String heatmapFileName = "images/"+config.getOutBase()+"_"+cond.getName()+".events_"+cond.getName()+"_"+"heatmap.png";
+	    			String heatmapFullFileName = "images/"+config.getOutBase()+"_"+cond.getName()+".events_"+cond.getName()+"_"+"heatmap.png";
 					String seqcolorplot = "images/"+config.getOutBase()+"_"+cond.getName()+"_seq.png";
 		    		fout.write("\t\t\t\t\t\t<tr>" +
 	    					"\t\t\t\t\t\t\t<td rowspan=3>"+cond.getName()+"</td>\n");
 		    		if(numEvents>0)
-		    			fout.write("\t\t\t\t\t\t\t<td rowspan=3><a href='#' onclick='return fullpopitup(\""+heatmapFileName+"\")'><img class='myimg mx-auto d-block' src='"+heatmapFileName+"' height='400' width='150'></a></td>\n");
+		    			fout.write("\t\t\t\t\t\t\t<td rowspan=3><a href='#' onclick='return fullpopitup(\""+heatmapFullFileName+"\")'><img class='myimg mx-auto d-block' src='"+heatmapFileName+"' height='400' width='150'></a></td>\n");
 		    		else
 		    			fout.write("\t\t\t\t\t\t\t<td rowspan=3>No events</td>\n");
 	    			if(config.getFindingMotifs()){
