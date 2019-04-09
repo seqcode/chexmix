@@ -279,6 +279,8 @@ public class EventsPostAnalysis {
 						File negHeatmap = new File(pngPath+"-_lines.png");
 						BufferedImage posImage = ImageIO.read(posHeatmap);
 						BufferedImage negImage = ImageIO.read(negHeatmap);
+						
+						System.out.println("1: size of image, "+posImage.getHeight()+" x "+posImage.getHeight());
 
 						// also create a new full image, canvas size unchanged
 						BufferedImage combinedFull = new BufferedImage(posImage.getWidth(), posImage.getHeight(), BufferedImage.TYPE_INT_ARGB);
@@ -289,9 +291,13 @@ public class EventsPostAnalysis {
 						gfull.drawImage(posImage, 0, 0, null);
 					
 						((Graphics2D) gfull).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) 0.6));
+						
+						System.out.println("2: size of image, "+combinedFull.getWidth()+" x "+combinedFull.getHeight());
 
 						// Save as new image						
 						ImageIO.write(combinedFull, "PNG", new File(pngPath+"heatmap.full.png"));
+						
+						System.out.println("3: size of image, "+combinedFull.getWidth()+" x "+combinedFull.getHeight());
 						
 						// resize image to 250 x 1000
 						Image resizedImage = combinedFull.getScaledInstance(Math.min(combinedFull.getWidth(), 250),  Math.min(combinedFull.getHeight(), 1000), Image.SCALE_DEFAULT);						
@@ -299,6 +305,9 @@ public class EventsPostAnalysis {
 						BufferedImage bimg = new BufferedImage(Math.min(combinedFull.getWidth(), 250),  Math.min(combinedFull.getHeight(), 1000), BufferedImage.TYPE_INT_ARGB);
 						bimg.getGraphics().drawImage(resizedImage,0,0, null);	
 						ImageIO.write(bimg, "PNG", new File(pngPath+"heatmap.png"));
+						
+						
+						System.out.println("4: size of image, "+combinedFull.getWidth()+" x "+combinedFull.getHeight());
 					
 						// delete source images
 						posHeatmap.delete();
