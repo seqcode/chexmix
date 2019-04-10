@@ -85,7 +85,7 @@ public class ChExMixConfig {
 	protected MarkovBackgroundModel markovBackMode; // Markov background model file
 	protected boolean verbose = false; //Print extra output
 	protected List<List<StrandedPoint>> initialClustPoints = null; // Initial cluster points
-	protected String MetaMakerArgs="--win 250 --bins 250 --batch --nocolorbar --linemax 3 --linethick 1 --transparent";
+	protected String MetaMakerArgs="--win 250 --bins 250 --batch --nocolorbar --linemax 3 --linethick 1 --noborder";
 	protected int initComponentSpacing=30;	//Initial component spacing
 	protected String distribA=null;	//Stranded distribution A
 	protected String distribB=null;	//Stranded distribution B

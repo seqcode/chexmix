@@ -217,6 +217,7 @@ public class EventsPostAnalysis {
 		if (gconfig.getSequenceGenerator().usingLocalFiles()){
 			for(ExperimentCondition cond : manager.getConditions()){		
 				try {
+					String outFullFilename = config.getOutputImagesDir()+File.separator+config.getOutBase()+"_"+cond.getName()+"_seq.full.png";
 					String outFilename = config.getOutputImagesDir()+File.separator+config.getOutBase()+"_"+cond.getName()+"_seq.png";
 					String seqOutFile = config.getOutputIntermediateDir()+File.separator+config.getOutBase()+"."+cond.getName()+".seq";
 					SequenceGenerator seqgen = gconfig.getSequenceGenerator();
@@ -231,11 +232,11 @@ public class EventsPostAnalysis {
 					if(seqs !=null){
 						SequenceAlignmentFigure fig = new SequenceAlignmentFigure();
 						fig.setColors(Color.RED, Color.BLUE, Color.ORANGE, Color.GREEN);
-						File outFile = new File(outFilename);
-						fig.visualizeSequences(seqs, 3, 1, outFile);
+						File outFullFile = new File(outFullFilename);
+						fig.visualizeSequences(seqs, 3, 1, outFullFile);
 						
 						// resize image
-						BufferedImage seqImage = ImageIO.read(outFile);
+						BufferedImage seqImage = ImageIO.read(outFullFile);
 						Image resizedImage = seqImage.getScaledInstance(Math.min(seqImage.getWidth(), 250),  Math.min(seqImage.getHeight(), 1000), Image.SCALE_DEFAULT);						
 						// convert image back to buffered image
 						BufferedImage bimg = new BufferedImage(Math.min(seqImage.getWidth(), 250),  Math.min(seqImage.getHeight(), 1000), BufferedImage.TYPE_INT_ARGB);
@@ -266,8 +267,8 @@ public class EventsPostAnalysis {
 				// Run for each strand
 				System.out.println(config.getMetaMakerArgs()+pointArgs+" --strand + --color blue --noborder --out "+cond.getName()+".events");			
 			
-				runMetaMaker(config.getMetaMakerArgs()+pointArgs+" --strand + --color blue --noborder --out "+cond.getName()+".events");
-				runMetaMaker(config.getMetaMakerArgs()+pointArgs+" --strand - --color red --noborder --out "+cond.getName()+".events");
+				runMetaMaker(config.getMetaMakerArgs()+pointArgs+" --strand + --color blue --transparent --out "+cond.getName()+".events");
+				runMetaMaker(config.getMetaMakerArgs()+pointArgs+" --strand - --color red --out "+cond.getName()+".events");
 					
 				// Combine plots
 				for (ExperimentCondition pcond : manager.getConditions()){				
@@ -280,11 +281,9 @@ public class EventsPostAnalysis {
 						BufferedImage posImage = ImageIO.read(posHeatmap);
 						BufferedImage negImage = ImageIO.read(negHeatmap);
 						
-						System.out.println("1: size of image, "+posImage.getHeight()+" x "+posImage.getHeight());
-
 						// also create a new full image, canvas size unchanged
 						BufferedImage combinedFull = new BufferedImage(posImage.getWidth(), posImage.getHeight(), BufferedImage.TYPE_INT_ARGB);
-						
+												
 						// paint both images, preserving the alpha channels
 						Graphics gfull = combinedFull.getGraphics();
 						gfull.drawImage(negImage, 0, 0, null);
@@ -292,23 +291,16 @@ public class EventsPostAnalysis {
 					
 						((Graphics2D) gfull).setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, (float) 0.6));
 						
-						System.out.println("2: size of image, "+combinedFull.getWidth()+" x "+combinedFull.getHeight());
-
 						// Save as new image						
 						ImageIO.write(combinedFull, "PNG", new File(pngPath+"heatmap.full.png"));
-						
-						System.out.println("3: size of image, "+combinedFull.getWidth()+" x "+combinedFull.getHeight());
-						
+												
 						// resize image to 250 x 1000
 						Image resizedImage = combinedFull.getScaledInstance(Math.min(combinedFull.getWidth(), 250),  Math.min(combinedFull.getHeight(), 1000), Image.SCALE_DEFAULT);						
 						// convert image back to buffered image
 						BufferedImage bimg = new BufferedImage(Math.min(combinedFull.getWidth(), 250),  Math.min(combinedFull.getHeight(), 1000), BufferedImage.TYPE_INT_ARGB);
 						bimg.getGraphics().drawImage(resizedImage,0,0, null);	
 						ImageIO.write(bimg, "PNG", new File(pngPath+"heatmap.png"));
-						
-						
-						System.out.println("4: size of image, "+combinedFull.getWidth()+" x "+combinedFull.getHeight());
-					
+											
 						// delete source images
 						posHeatmap.delete();
 						negHeatmap.delete();
@@ -471,6 +463,7 @@ public class EventsPostAnalysis {
 	    			String heatmapFileName = "images/"+config.getOutBase()+"_"+cond.getName()+".events_"+cond.getName()+"_"+"heatmap.png";
 	    			String heatmapFullFileName = "images/"+config.getOutBase()+"_"+cond.getName()+".events_"+cond.getName()+"_"+"heatmap.full.png";
 					String seqcolorplot = "images/"+config.getOutBase()+"_"+cond.getName()+"_seq.png";
+					String seqcolorfullplot = "images/"+config.getOutBase()+"_"+cond.getName()+"_seq.full.png";
 					fout.write("\t\t<tr>" +
 			    			"\t\t<td rowspan=3>"+cond.getName()+"</td>\n");
 		    		if(numEvents>0)
@@ -479,7 +472,7 @@ public class EventsPostAnalysis {
 		    			fout.write("\t\t\t\t\t\t\t<td rowspan=3>No events</td>\n");
 	    			if(config.getFindingMotifs()){
 	    				if(numEvents>0)
-	    					fout.write("\t\t<td rowspan=3><a href='#' onclick='return fullpopitup(\""+seqcolorplot+"\")'><img src='"+seqcolorplot+"' height='400' width='150'></a></td>\n");
+	    					fout.write("\t\t<td rowspan=3><a href='#' onclick='return fullpopitup(\""+seqcolorfullplot+"\")'><img src='"+seqcolorplot+"' height='400' width='150'></a></td>\n");
 	    				else
 			    			fout.write("\t\t\t\t\t\t\t<td rowspan=3>No events</td>\n");
 	    			}
