@@ -677,6 +677,7 @@ public class EventsPostAnalysis {
 	    			String heatmapFileName = "images/"+config.getOutBase()+"_"+cond.getName()+".events_"+cond.getName()+"_"+"heatmap.png";
 	    			String heatmapFullFileName = "images/"+config.getOutBase()+"_"+cond.getName()+".events_"+cond.getName()+"_"+"heatmap.full.png";
 					String seqcolorplot = "images/"+config.getOutBase()+"_"+cond.getName()+"_seq.png";
+					String seqcolorfullplot = "images/"+config.getOutBase()+"_"+cond.getName()+"_seq.full.png";
 		    		fout.write("\t\t\t\t\t\t<tr>" +
 	    					"\t\t\t\t\t\t\t<td rowspan=3>"+cond.getName()+"</td>\n");
 		    		if(numEvents>0)
@@ -685,7 +686,7 @@ public class EventsPostAnalysis {
 		    			fout.write("\t\t\t\t\t\t\t<td rowspan=3>No events</td>\n");
 	    			if(config.getFindingMotifs()){
 	    				if(numEvents>0)
-	    					fout.write("\t\t\t\t\t\t\t<td rowspan=3><a href='#' onclick='return fullpopitup(\""+seqcolorplot+"\")'><img class='myimg mx-auto d-block' src='"+seqcolorplot+"' height='400' width='150'></a></td>\n");
+	    					fout.write("\t\t\t\t\t\t\t<td rowspan=3><a href='#' onclick='return fullpopitup(\""+seqcolorfullplot+"\")'><img class='myimg mx-auto d-block' src='"+seqcolorplot+"' height='400' width='150'></a></td>\n");
 	    				else
 			    			fout.write("\t\t\t\t\t\t\t<td rowspan=3>No events</td>\n");
 	    			}
