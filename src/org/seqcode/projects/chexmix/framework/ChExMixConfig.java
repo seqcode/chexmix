@@ -293,13 +293,15 @@ public class ChExMixConfig {
 				// Markov background model
 				String backfile = Args.parseString(args, "back", null);				
 				//Load the background model or make background model
-		        try{       
-		        	if(backfile == null)
-		        		markovBackMode = new MarkovBackgroundModel(CountsBackgroundModel.modelFromWholeGenome(gen)); // this doesn't seem working for sacCer3
-		        	else
-		        		markovBackMode = BackgroundModelIO.parseMarkovBackgroundModel(backfile, gen);
-		        } catch (IOException | ParseException e) {
-					e.printStackTrace();
+				if (findMotifs){
+					try{       
+						if(backfile == null)
+							markovBackMode = new MarkovBackgroundModel(CountsBackgroundModel.modelFromWholeGenome(gen)); // this doesn't seem working for sacCer3
+						else
+							markovBackMode = BackgroundModelIO.parseMarkovBackgroundModel(backfile, gen);
+					} catch (IOException | ParseException e) {
+						e.printStackTrace();
+					}
 				}
 				
 				//Extra output
