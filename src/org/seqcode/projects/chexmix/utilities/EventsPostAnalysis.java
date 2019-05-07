@@ -214,7 +214,7 @@ public class EventsPostAnalysis {
 		}
 				
 		//5) Print aligned sequences and 4 color sequence plot  
-		if (gconfig.getSequenceGenerator().usingLocalFiles()){
+		if (gconfig.getSequenceGenerator().usingLocalFiles() && events.size()>0){
 			for(ExperimentCondition cond : manager.getConditions()){		
 				try {
 					String outFullFilename = config.getOutputImagesDir()+File.separator+config.getOutBase()+"_"+cond.getName()+"_seq.full.png";

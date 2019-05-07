@@ -160,7 +160,7 @@ public class ChExMix {
 			potentials = potentialFilter.execute();
 		System.err.println(potentials.size()+" potential regions found. Total length: "+potentialFilter.getPotRegionLengthTotal());
 		if(potentials.size()==0){
-			System.err.println("No potential regions - exiting.");
+			System.err.println("No potential regions.");
 	//		System.exit(1);
 		}
 		potentialFilter.printPotentialRegionsToFile();		
