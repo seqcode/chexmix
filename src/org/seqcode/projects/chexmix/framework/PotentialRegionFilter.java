@@ -165,6 +165,7 @@ public class PotentialRegionFilter {
             }
         }
         
+        // For galaxy support, ChExMix always need to produce output files in absence of potential regions, hence commenting out this section. 
         //Error checking
 //        if(potentialRegions.size()==0) {
 //        	System.err.println("NO POTENTIAL REGIONS FOUND");

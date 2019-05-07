@@ -40,7 +40,7 @@ import org.seqcode.motifs.FreqMatrixImport;
  */
 public class ChExMixConfig {
 
-	public static String version = "0.31";
+	public static String version = "0.41";
 	public boolean isGPS=true;
 	protected GenomeConfig gconfig;
 	protected Genome gen=null;
