@@ -166,10 +166,10 @@ public class PotentialRegionFilter {
         }
         
         //Error checking
-        if(potentialRegions.size()==0) {
-        	System.err.println("NO POTENTIAL REGIONS FOUND");
-        	System.exit(1);
-        }
+//        if(potentialRegions.size()==0) {
+//        	System.err.println("NO POTENTIAL REGIONS FOUND");
+//       	System.exit(1);
+//        }
         
         //Initialize signal & noise counts based on potential region calls
         for(ExperimentCondition cond : manager.getConditions()){
