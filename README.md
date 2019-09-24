@@ -5,7 +5,7 @@ ChExMix aims to characterize protein-DNA binding subtypes in ChIP-exo experiment
 
 Citation:
 --------------
-N Yamada, WKM Lai, N Farrell, BF Pugh, S Mahony .“Characterizing protein-DNA binding event subtypes in ChIP-exo data”. Bioinformatics (2018). [doi:10.1093/bioinformatics/bty703](http://dx.doi.org/10.1093/bioinformatics/bty703).
+N Yamada, WKM Lai, N Farrell, BF Pugh, S Mahony .“Characterizing protein-DNA binding event subtypes in ChIP-exo data”. Bioinformatics (2019). 35(6):903-913 [doi:10.1093/bioinformatics/bty703](http://dx.doi.org/10.1093/bioinformatics/bty703).
 This paper was presented at [RECOMB 2018](http://recomb2018.fr/).
 
 Downloading Executables
