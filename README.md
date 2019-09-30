@@ -1,3 +1,8 @@
+[![Anaconda-Server Badge](https://anaconda.org/bioconda/chexmix/badges/installer/conda.svg)](https://anaconda.org/bioconda/chexmix) 
+[![Anaconda-Server Badge](https://anaconda.org/bioconda/chexmix/badges/downloads.svg)](https://anaconda.org/bioconda/chexmix)
+[![Anaconda-Server Badge](https://anaconda.org/bioconda/chexmix/badges/platforms.svg)](https://anaconda.org/bioconda/chexmix)
+[![Anaconda-Server Badge](https://anaconda.org/bioconda/chexmix/badges/license.svg)](https://anaconda.org/bioconda/chexmix)
+
 # ChExMix
 ChExMix: the ChIP-exo mixture model
 
