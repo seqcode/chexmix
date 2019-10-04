@@ -174,14 +174,14 @@ Output files
 --------------
 1. `OutName_results.html` is a html that you can open in a web browser. It summarizes the ChExMix run results including input data, binding event subtypes, and replicate information for binding events.
 
-2. `OutName.events` is a tabular file which contains information about significant binding events. A header starts with # and contain the following information for conditions and replicates. 
+2. `OutName.events` is a tabular file which contains information about significant binding events. A header starts with # and contains the following information for conditions and replicates. 
   * `Name`: Condition or replicate name
   * `Index`: Index used for a condition and replicate
   * `SigCount`: Total number of tags for a condition and replicate
   * `SigCtrlScaling`: Factor used to scale signal and control experiments 
   * `SignalFraction`: Fraction of tags estimated to come from foreground
   
-Information in the last header and the rest of the rows contains the following:
+Rest of the rows contains the following information:
   * `Point`: Genomic position of binding event in “chromosome:coordinates” format
   * `CondName_Sig`: Number of tags associated with binding events from signal experiments
   * `CondName_Ctrl`: Number of tags associated with binding events from control experiments
