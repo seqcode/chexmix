@@ -148,6 +148,51 @@ __Reporting binding events__:
   * --q \<value\>: Q-value minimum (default=0.01)
   * --minfold \<value\>: Minimum event fold-change vs scaled control (default=1.5)
 
+Output files
+--------------
+1. OutName_results.html is a html that you can open in a web browser. It summarizes the ChExMix run results including input data, binding event subtypes, and replicate information for binding events.
+
+2. OutName.events is a tabular file which contains information about significant binding events. A header starts with # and contain the following information for conditions and replicates. 
+  * Name: Condition or replicate name
+  * Index: Index used for a condition and replicate
+  * SigCount: Total number of tags for a condition and replicate
+  * SigCtrlScaling: Factor used to scale signal and control experiments 
+  * SignalFraction: Fraction of tags estimated to come from foreground
+  
+Information in the last header and the rest of the rows contains the following:
+  * Point: Genomic position of binding event in “chromosome:coordinates” format
+  * CondName_Sig: Number of tags associated with binding events from signal experiments
+  * CondName_Ctrl : Number of tags associated with binding events from control experiments
+  * CondName_log2Fold: Log2 fold differences of tag counts between signal and control experiments
+  * CondName_log2P: Log2 q-values for binding events 
+  * SubtypePoint : Genomic position and strand of dominant subtype (subtype associated with the binding events with the highest probability) 
+  * Tau: Probability of binding event associated with dominant subtype 
+  * SubtypeName: Name of subtype
+  * SubtypeSequence: Sequence associated with subtype at binding event
+  * SubtypeMotifSocre: Log odd motif score of subtype
+
+3. Name.bed is a bed format file which contains binding event locations in a single base pair and q-value. You can load it to the UCSC genome browser. This uses [UCSC ENCODE narrowPeak format](https://genome.ucsc.edu/FAQ/FAQformat.html#format12).
+  * 1st: Chromosome
+  * 2nd: Start
+  * 3rd: End
+  * 5th: Integer score for display. It is calculated as int(-10\*log2 q-value). The value is saturated at 1000. 
+
+4. Name.all.events.table is a tabular file which contains information about potential binding events and uses a similar format to OutName.events file. This file contains the following additional information:
+  * ActiveConds: Indices of conditions that this event is still active (having non-zero probability)
+
+5. Name.replicates.counts is a tabular file which contains information about replicate tag counts and p- and q-values associated with potential binding events
+  * Point: Genomic position of binding event in “chromosome:coordinates” format
+  * CondName:RepName : Number of tags associated with binding event
+  * CondName:RepName_log2P: Log2 p-value 
+  * CondName:RepName_log2Q: Log2 q-value 
+
+6. Name_RepName.repevents.txt is a tabular file which contains information about replicate tag counts and q-values associated with significant binding events. The format of this file is similar to Name.replicates.counts. 
+
+7. Name.all.replicationcodes.table is a tabular file which contains information about consistency of replicates. A header describes meaning of labels.
+  * BindingEvent: Genomic position of binding event in “chromosome:coordinates” format
+  * CondName: Label of replicate consistency information explained in header. 
+  
+
 Example
 --------------
 This example runs ChExMix v0.1 on a simulated dataset. The simulated data is made by mixing mutually-exclusive binding events from yeast Reb1 and Abf1 ChIP-exo datasets. This ensures that there are two distinct binding event subtypes in the dataset. The version of ChExMix and all files required to run this analysis are in this file: [chexmix-yeast-example.tar.gz](http://lugh.bmb.psu.edu/software/chexmix/examples/chexmix-yeast-example.tar.gz)
