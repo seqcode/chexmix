@@ -176,22 +176,22 @@ Output files
 
 2. `OutName.events` is a tabular file which contains information about significant binding events. A header starts with # and contains the following information for conditions and replicates. 
   * `Name`: Condition or replicate name
-  * `Index`: Index used for a condition and replicate
-  * `SigCount`: Total number of tags for a condition and replicate
+  * `Index`: Index used for a condition or replicate
+  * `SigCount`: Total number of tags for a condition or replicate
   * `SigCtrlScaling`: Factor used to scale signal and control experiments 
-  * `SignalFraction`: Fraction of tags estimated to come from foreground
+  * `SignalFraction`: Fraction of tags estimated to come from a foreground
   
 Rest of the rows contains the following information:
   * `Point`: Genomic position of binding event in “chromosome:coordinates” format
-  * `CondName_Sig`: Number of tags associated with binding events from signal experiments
-  * `CondName_Ctrl`: Number of tags associated with binding events from control experiments
+  * `CondName_Sig`: Number of tags associated with binding event from signal experiments of a condition. Tags of replicates within a condition are combined. 
+  * `CondName_Ctrl`: Number of tags associated with binding event from control experiments of a condition. Tags of replicates within a condition are combined.
   * `CondName_log2Fold`: Log2 fold differences of tag counts between signal and control experiments
   * `CondName_log2P`: Log2 q-values for binding events 
   * `SubtypePoint`: Genomic position and strand of dominant subtype (subtype associated with the binding events with the highest probability) 
   * `Tau`: Probability of binding event associated with dominant subtype 
   * `SubtypeName`: Name of subtype
-  * `SubtypeSequence`: Sequence associated with subtype at binding event
-  * `SubtypeMotifSocre`: Log odd motif score of subtype
+  * `SubtypeSequence`: Sequence associated with subtype at binding event. Sequences are only reported if subtypes are associated with motifs.
+  * `SubtypeMotifSocre`: Log-likelihood motif score of a subtype at binding event. Scoring uses a 2nd-order Markov model based on whole genome nucleotide frequencies.
 
 3. `OutName.bed` is a bed format file which contains binding event locations in a single base pair and q-value. You can load it to the UCSC genome browser. This uses [UCSC ENCODE narrowPeak format](https://genome.ucsc.edu/FAQ/FAQformat.html#format12).
   * 1st: Chromosome
