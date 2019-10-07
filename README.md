@@ -183,8 +183,8 @@ Output files
   
 Rest of the rows contains the following information:
   * `Point`: Genomic position of binding event in “chromosome:coordinates” format
-  * `CondName_Sig`: Number of tags associated with binding event from signal experiments of a condition. Tags of replicates within a condition are combined. 
-  * `CondName_Ctrl`: Number of tags associated with binding event from control experiments of a condition. Tags of replicates within a condition are combined.
+  * `CondName_Sig`: Number of tags associated with binding event from signal experiments of a condition. Tags among replicates within a condition are combined. 
+  * `CondName_Ctrl`: Number of tags associated with binding event from control experiments of a condition. Tags among replicates within a condition are combined.
   * `CondName_log2Fold`: Log2 fold differences of tag counts between signal and control experiments
   * `CondName_log2P`: Log2 q-values for binding events 
   * `SubtypePoint`: Genomic position and strand of dominant subtype (subtype associated with the binding events with the highest probability) 
