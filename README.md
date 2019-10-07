@@ -1,3 +1,8 @@
+[![Anaconda-Server Badge](https://anaconda.org/bioconda/chexmix/badges/installer/conda.svg)](https://anaconda.org/bioconda/chexmix) 
+[![Anaconda-Server Badge](https://anaconda.org/bioconda/chexmix/badges/downloads.svg)](https://anaconda.org/bioconda/chexmix)
+[![Anaconda-Server Badge](https://anaconda.org/bioconda/chexmix/badges/platforms.svg)](https://anaconda.org/bioconda/chexmix)
+[![Anaconda-Server Badge](https://anaconda.org/bioconda/chexmix/badges/license.svg)](https://anaconda.org/bioconda/chexmix)
+
 # ChExMix
 ChExMix: the ChIP-exo mixture model
 
@@ -5,7 +10,7 @@ ChExMix aims to characterize protein-DNA binding subtypes in ChIP-exo experiment
 
 Citation:
 --------------
-N Yamada, WKM Lai, N Farrell, BF Pugh, S Mahony .“Characterizing protein-DNA binding event subtypes in ChIP-exo data”. Bioinformatics (2018). [doi:10.1093/bioinformatics/bty703](http://dx.doi.org/10.1093/bioinformatics/bty703).
+N Yamada, WKM Lai, N Farrell, BF Pugh, S Mahony .“Characterizing protein-DNA binding event subtypes in ChIP-exo data”. Bioinformatics (2019) 35(6):903-913. [doi:10.1093/bioinformatics/bty703](http://dx.doi.org/10.1093/bioinformatics/bty703).
 This paper was presented at [RECOMB 2018](http://recomb2018.fr/).
 
 Downloading Executables
@@ -164,6 +169,50 @@ java -Xmx10G -jar chexmix.public.jar --geninfo sacCer3.info --threads 16 --expt 
 Expected results can be found here: [testchexmix_20180214_reb1_abf1_all_nomotifs](http://lugh.bmb.psu.edu/software/chexmix/examples/testchexmix_20180214_reb1_abf1_all_nomotifs/ChExMix_testchexmix_20180214_reb1_abf1_all_nomotifs_results.html)
 
 Note that due to some stochasticity between runs, your results may not match those above exactly, but should be broadly similar.
+
+Output files
+--------------
+1. `OutName_results.html` is a html that you can open in a web browser. It summarizes the ChExMix run results including input data, binding event subtypes, and replicate information for binding events.
+
+2. `OutName.events` is a tabular file which contains information about significant binding events. A header starts with # and contains the following information for conditions and replicates. 
+  * `Name`: Condition or replicate name
+  * `Index`: Index used for a condition or replicate
+  * `SigCount`: Total number of tags for a condition or replicate
+  * `SigCtrlScaling`: Factor used to scale signal and control experiments 
+  * `SignalFraction`: Fraction of tags estimated to come from a foreground
+  
+Rest of the rows contains the following information:
+  * `Point`: Genomic position of binding event in “chromosome:coordinates” format
+  * `CondName_Sig`: Number of tags associated with binding event from signal experiments of a condition. Tags among replicates within a condition are combined. 
+  * `CondName_Ctrl`: Number of tags associated with binding event from control experiments of a condition. Tags among replicates within a condition are combined.
+  * `CondName_log2Fold`: Log2 fold differences of tag counts between signal and control experiments
+  * `CondName_log2P`: Log2 q-values for binding events 
+  * `SubtypePoint`: Genomic position and strand of dominant subtype (subtype associated with the binding events with the highest probability) 
+  * `Tau`: Probability of binding event associated with dominant subtype 
+  * `SubtypeName`: Name of subtype
+  * `SubtypeSequence`: Sequence associated with subtype at binding event. Sequences are only reported if subtypes are associated with motifs.
+  * `SubtypeMotifSocre`: Log-likelihood motif score of a subtype at binding event. Scoring uses a 2nd-order Markov model based on whole genome nucleotide frequencies.
+
+3. `OutName.bed` is a bed format file which contains binding event locations in a single base pair and q-value. You can load it to the UCSC genome browser. This uses [UCSC ENCODE narrowPeak format](https://genome.ucsc.edu/FAQ/FAQformat.html#format12).
+  * 1st: Chromosome
+  * 2nd: Start
+  * 3rd: End
+  * 5th: Integer score for display. It is calculated as int(-10*log2 q-value). The value is saturated at 1000. 
+
+4. `OutName.all.events.table` is a tabular file which contains information about potential binding events and uses a similar format to OutName.events file. This file contains the following additional information:
+  * `ActiveConds`: Indices of conditions that this event is still active (having non-zero probability)
+
+5. `OutName.replicates.counts` is a tabular file which contains information about replicate tag counts and p- and q-values associated with potential binding events
+  * `Point`: Genomic position of binding event in “chromosome:coordinates” format
+  * `CondName:RepName`: Number of tags associated with binding event
+  * `CondName:RepName_log2P`: Log2 p-value 
+  * `CondName:RepName_log2Q`: Log2 q-value 
+
+6. `OutName_RepName.repevents.txt` is a tabular file which contains information about replicate tag counts and q-values associated with significant binding events. The format of this file is similar to Name.replicates.counts. 
+
+7. `OutName.all.replicationcodes.table` is a tabular file which contains information about consistency of replicates. A header describes meaning of labels.
+  * `BindingEvent`: Genomic position of binding event in “chromosome:coordinates” format
+  * `CondName`: Label of replicate consistency information explained in header. 
 
 Contact
 --------------
