@@ -293,11 +293,11 @@ public class BindingEvent implements Comparable<BindingEvent>{
 		
 		head = head + "#\n#Point";
 		for(ExperimentCondition c : experiments.getConditions())
-			head = head +"\t"+c.getName()+"_Sig"+"\t"+c.getName()+"_Ctrl"+"\t"+c.getName()+"_log2Fold"+"\t"+c.getName()+"_log2P";
+			head = head +"\t"+c.getName()+"_Sig"+"\t"+c.getName()+"_Ctrl"+"\t"+c.getName()+"_log2Fold"+"\t"+c.getName()+"_log2Q";
 		for(ExperimentCondition c : experiments.getConditions())
 			for(ExperimentCondition c2 : experiments.getConditions()){
 				if(c!=c2){
-					head = head +"\t"+c.getName()+"_vs_"+c2.getName()+"_log2CPM"+"\t"+c.getName()+"_vs_"+c2.getName()+"_log2Fold"+"\t"+c.getName()+"_vs_"+c2.getName()+"_log2P";
+					head = head +"\t"+c.getName()+"_vs_"+c2.getName()+"_log2CPM"+"\t"+c.getName()+"_vs_"+c2.getName()+"_log2Fold"+"\t"+c.getName()+"_vs_"+c2.getName()+"_log2Q";
 				}
 			}
 		head = head+"\tActiveConds";
@@ -316,7 +316,7 @@ public class BindingEvent implements Comparable<BindingEvent>{
 		//String gene = nearestGene == null ? "NONE" : nearestGene.getName();
 		String out = point.getLocationString();
 		for(ExperimentCondition c : experiments.getConditions()){
-			double logP = Math.log(getCondSigVCtrlP(c))/config.LOG2;
+			double logP = Math.log(getCondSigVCtrlQ(c))/config.LOG2;
 			double logF = Math.log(getCondSigVCtrlFold(c))/config.LOG2;
 			out = out+"\t"+String.format("%.1f", getCondSigHits(c))+"\t"+String.format("%.1f", getCondCtrlHits(c))+"\t"+String.format("%.3f", logF)+"\t"+String.format("%.3f", logP); 
 		}for(ExperimentCondition c : experiments.getConditions())
@@ -406,11 +406,11 @@ public class BindingEvent implements Comparable<BindingEvent>{
 		}
 		
 		head = head + "#\n#Point";
-		head = head +"\t"+c.getName()+"_Sig"+"\t"+c.getName()+"_Ctrl"+"\t"+c.getName()+"_log2Fold"+"\t"+c.getName()+"_log2P";
+		head = head +"\t"+c.getName()+"_Sig"+"\t"+c.getName()+"_Ctrl"+"\t"+c.getName()+"_log2Fold"+"\t"+c.getName()+"_log2Q";
 		
 		for(ExperimentCondition c2 : experiments.getConditions()){
 			if(c!=c2){
-				head = head +"\t"+c.getName()+"_vs_"+c2.getName()+"_log2CPM"+"\t"+c.getName()+"_vs_"+c2.getName()+"_log2Fold"+"\t"+c.getName()+"_vs_"+c2.getName()+"_log2P";
+				head = head +"\t"+c.getName()+"_vs_"+c2.getName()+"_log2CPM"+"\t"+c.getName()+"_vs_"+c2.getName()+"_log2Fold"+"\t"+c.getName()+"_vs_"+c2.getName()+"_log2Q";
 			}
 		}
 		for (int bt=0; bt < numBindingTypes[c.getIndex()]; bt++){
@@ -443,7 +443,7 @@ public class BindingEvent implements Comparable<BindingEvent>{
 		
 		
 		head = head + "#\n#Point";
-		head = head +"\t"+r.getName()+"_Sig"+"\t"+r.getName()+"_Ctrl"+"\t"+r.getName()+"_log2Fold"+"\t"+r.getName()+"_log2P";
+		head = head +"\t"+r.getName()+"_Sig"+"\t"+r.getName()+"_Ctrl"+"\t"+r.getName()+"_log2Fold"+"\t"+r.getName()+"_log2Q";
 		
 		return head;
 	}
@@ -468,11 +468,11 @@ public class BindingEvent implements Comparable<BindingEvent>{
 		}
 		
 		head = head + "#\n#Point";
-		head = head +"\t"+c.getName()+"_Sig"+"\t"+c.getName()+"_Ctrl"+"\t"+c.getName()+"_log2Fold"+"\t"+c.getName()+"_log2P";
+		head = head +"\t"+c.getName()+"_Sig"+"\t"+c.getName()+"_Ctrl"+"\t"+c.getName()+"_log2Fold"+"\t"+c.getName()+"_log2Q";
 		
 		for(ExperimentCondition c2 : experiments.getConditions()){
 			if(c!=c2){
-				head = head +"\t"+c.getName()+"_vs_"+c2.getName()+"_log2CPM"+"\t"+c.getName()+"_vs_"+c2.getName()+"_log2Fold"+"\t"+c.getName()+"_vs_"+c2.getName()+"_log2P";
+				head = head +"\t"+c.getName()+"_vs_"+c2.getName()+"_log2CPM"+"\t"+c.getName()+"_vs_"+c2.getName()+"_log2Fold"+"\t"+c.getName()+"_vs_"+c2.getName()+"_log2Q";
 			}
 		}
 		
@@ -508,11 +508,11 @@ public class BindingEvent implements Comparable<BindingEvent>{
 	 */
 	public static String conditionShortHeadString(ExperimentCondition c){
 		String head = "#Point";
-		head = head +"\t"+c.getName()+"_Sig"+"\t"+c.getName()+"_Ctrl"+"\t"+c.getName()+"_log2Fold"+"\t"+c.getName()+"_log2P";
+		head = head +"\t"+c.getName()+"_Sig"+"\t"+c.getName()+"_Ctrl"+"\t"+c.getName()+"_log2Fold"+"\t"+c.getName()+"_log2Q";
 		
 		for(ExperimentCondition c2 : experiments.getConditions()){
 			if(c!=c2){
-				head = head +"\t"+c.getName()+"_vs_"+c2.getName()+"_log2CPM"+"\t"+c.getName()+"_vs_"+c2.getName()+"_log2Fold"+"\t"+c.getName()+"_vs_"+c2.getName()+"_log2P";
+				head = head +"\t"+c.getName()+"_vs_"+c2.getName()+"_log2CPM"+"\t"+c.getName()+"_vs_"+c2.getName()+"_log2Fold"+"\t"+c.getName()+"_vs_"+c2.getName()+"_log2Q";
 			}
 		}
 		if(config.isAddingSequences());
