@@ -101,6 +101,7 @@ Instead of using the above options to specify each and every ChIP-seq data file 
 __Running ChExMix__:
 
   * --round \<int\>: Max. model update rounds (default=3).
+  * --bmwindowmax\<int\>: Max. window size for running a mixture model over binding events (default=2000).
   * --nomodelupdate: Flag to turn off binding model updates.
   * --minmodelupdateevents \<int\>: Minimum number of events to support an update (default=50)
   * --prlogconf \<value\>: Poisson log threshold for potential region scanning (default=-6)
@@ -112,7 +113,7 @@ __Running ChExMix__:
   * --galaxyhtml: Flag to produce a html output appropreate for galaxy
   * --__exclude__ \<file\>: File containing a set of regions to ignore during ChExMix training. It’s a good idea to exclude the mitochondrial genome and other ‘blacklisted’ regions that contain artifactual accumulations of reads in both ChIP-exo and control experiments. ChExMix will waste time trying to model binding events in these regions, even though they will not typically appear significantly enriched over the control (and thus will not be reported to the user). See the format of an exclude region file [here](http://lugh.bmb.psu.edu/software/multigps/support/mm9_excludes.txt) (example for mm9).
   * --excludebed \<file\>: Bed file containing a set of regions to ignore during ChExMix training.
-
+  
 
 __Binding event reporting mode__: (controls which events to put into .events file)
   * --standard [report events that pass significance threshold in condition as a whole (default mode)]
