@@ -72,6 +72,8 @@ public class ChExMix {
 			repBindingModels.put(rep,  new ArrayList<TagProbabilityDensity>());
 		prevModels = new HashMap<ExperimentCondition, List<BindingSubtype>>();
 		
+		System.out.println("BMAnalysisWindowMax"+chexconfig.getBMAnalysisWindowMax());
+		
 		List<TagProbabilityDensity> tagProbDensities = new ArrayList<TagProbabilityDensity>();	
 		if (chexconfig.getInitialClustPoints()!=null){
 			List<List<StrandedPoint>> initialClustPoints = chexconfig.getInitialClustPoints();
@@ -328,6 +330,7 @@ public class ChExMix {
 		GenomeConfig gcon = new GenomeConfig(args);
 		EventsConfig evconfig = new EventsConfig(gcon, args);
 		ChExMixConfig config = new ChExMixConfig(gcon, args);
+		System.out.println("in main: BMAnalysisWindowMax "+config.getBMAnalysisWindowMax());
 		XLAnalysisConfig xlconfig = new XLAnalysisConfig(gcon, args);
 		ShapeAlignConfig sc = new ShapeAlignConfig(args);
 		sc.setWindowSize(config.getClusterWindowSize());
