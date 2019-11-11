@@ -957,9 +957,9 @@ public class BindingEM {
 							}
 						}
 					}
-					// Set subcomponents profiles
-					comp.setSubReadProfile(rep.getIndex(), sub_profile_plus, '+');
-					comp.setSubReadProfile(rep.getIndex(), sub_profile_minus, '-');
+					// Set subcomponents profiles : This step is consuming a lot of memory and not even used later
+//					comp.setSubReadProfile(rep.getIndex(), sub_profile_plus, '+');
+//					comp.setSubReadProfile(rep.getIndex(), sub_profile_minus, '-');
 					
 					double[] profile_plus = new double[config.MAX_BINDINGMODEL_WIDTH];
 					double[] profile_minus = new double[config.MAX_BINDINGMODEL_WIDTH];
