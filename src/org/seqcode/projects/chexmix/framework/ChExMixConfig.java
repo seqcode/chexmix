@@ -238,9 +238,7 @@ public class ChExMixConfig {
 				//Window size for extracting tag counts
 				modelRange = Args.parseInteger(args,"mrange",modelRange);
 				//Max window size for running a mixture model over binding events
-				System.out.println("before: "+bmAnalysisWindowMax);
 				bmAnalysisWindowMax = Args.parseInteger(args,"bmwindowmax",bmAnalysisWindowMax);
-				System.out.println("before: "+bmAnalysisWindowMax);
 				
 				if(ap.hasKey("plotregions"))
 					regionsToPlot = RegionFileUtilities.loadRegionsFromFile(Args.parseString(args, "plotregions", null), gen, -1);
