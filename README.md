@@ -103,7 +103,7 @@ __Running ChExMix__:
   * --round \<int\>: Max. model update rounds (default=3).
   * --bmwindowmax\<int\>: Max. window size for running a mixture model over binding events (default=2000).
   * --nomodelupdate: Flag to turn off binding model updates.
-  * --minmodelupdateevents \<int\>: Minimum number of events to support an update (default=50)
+  * --minmodelupdateevents \<int\>: Minimum number of events to support an binding model updates using read distributions (default=50)
   * --prlogconf \<value\>: Poisson log threshold for potential region scanning (default=-6)
   * --fixedalpha \<int\>: Impose this alpha (default: set automatically). The alpha parameter is a sparse prior on binding events in the ChExMix model. It can be interpreted as a minimum number of reads that each binding event must be responsible for in the model. 
   * --alphascale \<value\>: Alpha scaling factor (default=1.0). Increasing this parameter results in stricter binding event calls.
