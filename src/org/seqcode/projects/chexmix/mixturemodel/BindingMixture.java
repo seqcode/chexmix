@@ -566,13 +566,13 @@ public class BindingMixture {
 										minScore =klScores[i][j];
 										indexA=i; indexB=j;								
 									}}}}
-						if (minScore <config.KL_DIVERGENCE_BM_THRES){
+						if (minScore <config.getKLDivergenceThres()){
 							BindingSubtype subA = currSubtypes.get(indexA);
 							BindingSubtype subB = currSubtypes.get(indexB);
 							if (subA.hasMotif() && subB.hasMotif()){
 								double maxscore = motifFinder.motifAlignMaxScore(subA.getFreqMatrix(), subB.getFreqMatrix());
 								System.out.println("max score is "+maxscore/config.getMinMotifLength());
-								if (maxscore/config.getMinMotifLength() > config.MOTIF_PCC_THRES){
+								if (maxscore/config.getMinMotifLength() > config.getMotifPCCThres()){
 									if (subA.getNumEvents() < subB.getNumEvents())
 										model2remove.add(indexA);
 									else

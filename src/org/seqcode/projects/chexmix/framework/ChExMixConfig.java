@@ -40,7 +40,7 @@ import org.seqcode.motifs.FreqMatrixImport;
  */
 public class ChExMixConfig {
 
-	public static String version = "0.43";
+	public static String version = "0.44";
 	public boolean isGPS=true;
 	protected GenomeConfig gconfig;
 	protected Genome gen=null;
@@ -100,6 +100,8 @@ public class ChExMixConfig {
 	protected boolean standardMode=true; // Mode in which events are reported if summed tag counts significant over background in condition as a whole.
 	protected boolean lenientMode=false; // Mode in which events are reported if significant over background in >=1 replicate *or* the condition as a whole.  
 	protected boolean lenientPlusMode=false; // Mode in which events are reported if summed tag counts significant over background in condition as a whole OR (significant over background in >=1 replicate AND no significant difference between replicates).  
+	protected double MotifPCCThres = 0.95; //Motif length adjusted similarity threshold for selecting one motif
+	protected double KLDivergenceThres = -10; //KL divergence dissimilarity threshold for merging subtypes using read distributions 
 	
 	
 	//Constants
@@ -134,13 +136,13 @@ public class ChExMixConfig {
     public final int MOTIF_FINDING_NEGSEQ=5000; //Number of negative sequences for motif significance tests		
     public final double MARKOV_BACK_MODEL_THRES = 0.05; // Markov background threshold for making models
     public final int SLIDING_WINDOW=60; // Sliding window range in computing KL divergence 
-    public final double MOTIF_PCC_THRES = 0.95; //Motif length adjusted similarity threshold for selecting one motif
+//    public final double MOTIF_PCC_THRES = 0.95; //Motif length adjusted similarity threshold for selecting one motif
     public final int MARKOV_NUM_TEST=100000;
     public final int KMEANS_TRAIN_REPEATS=10;
     public final int KMEANS_MAX_ITER = 100;
     public final int KMEANS_K = 2;
-    public final double KMEANS_CONVERGENCE_THRES = 0.01;
-    public final double KL_DIVERGENCE_BM_THRES = -10;
+//    public final double KMEANS_CONVERGENCE_THRES = 0.01;
+//    public final double KL_DIVERGENCE_BM_THRES = -10;
     public final double CORR_THRES =100; //100 is no threshold
     public final long RANDOMSEED = 1000; //setting the random seed for the sake of reproducibility
 	
@@ -239,6 +241,12 @@ public class ChExMixConfig {
 				modelRange = Args.parseInteger(args,"mrange",modelRange);
 				//Max window size for running a mixture model over binding events
 				bmAnalysisWindowMax = Args.parseInteger(args,"bmwindowmax",bmAnalysisWindowMax);
+				// A subtype needs to be associated with at least this fraction of binding events to be supported
+				minSubtypeFraction = Args.parseDouble(args,"minsubtypefrac", minSubtypeFraction);
+				//Motif length adjusted similarity threshold for selecting one motif
+				MotifPCCThres = Args.parseDouble(args,"motifpccthres",MotifPCCThres);
+				//KL divergence dissimilarity threshold for merging subtypes using read distributions
+				KLDivergenceThres = Args.parseDouble(args,"kldivergencethres",KLDivergenceThres);
 				
 				if(ap.hasKey("plotregions"))
 					regionsToPlot = RegionFileUtilities.loadRegionsFromFile(Args.parseString(args, "plotregions", null), gen, -1);
@@ -435,6 +443,8 @@ public class ChExMixConfig {
 	public boolean isLenientPlusMode(){return lenientPlusMode;}
 	public boolean useGalaxyhtml(){return galaxyhtml;}
 	public boolean getShareSubtypes(){return shareSubtypes;}
+	public double getMotifPCCThres(){return MotifPCCThres;}
+	public double getKLDivergenceThres(){return KLDivergenceThres;}
 	
 	
 	/**
@@ -496,6 +506,7 @@ public class ChExMixConfig {
 				"\t--alphascale <alpha scaling factor; increase for stricter event calls (default=1.0)>\n" +
 				"\t--betascale <beta scaling factor; prior on subtype assignment (default=0.05)>\n" +
 				"\t--epsilonscale <epsilon scaling factor; increase for more weight on motif in subtype assignment (default=0.2)>\n" +
+				"\t--minsubtypefrac <subtypes must have at least this percentage of associated binding events; increase for fewer subtypes (default=0.05)>\n" +
 				"\t--peakf <file of peaks to initialize component positions>\n" +
 				"\t--exclude <file of regions to ignore> OR --excludebed <file of regions to ignore in bed format>\n" +
 				"\t--galaxyhtml [flag to produce a html output appropreate for galaxy]\n" +
@@ -515,11 +526,13 @@ public class ChExMixConfig {
 				"\t--minroc <minimum motif ROC value (default=0.7)>\n"+
 				"\t--minmodelupdaterefs <minimum number of motif reference to support an subtype distribution update (default=50)>\n"+
 				"\t--seqrmthres <Filter out sequences with motifs below this threshold for recursively finding motifs (default=0.1)>\n" +
+				"\t--motifpccthres <motif length adjusted similarity threshold for merging subtypes using motifs; decrease for fewer subtypes (default=0.95)>\n" +
 				" Finding ChExMix subtypes using read distribution clustering:\n"+
 				"\t--noclustering [flag to turn off read distribution clustering]\n" +
 				"\t--pref <preference value for read distribution clustering (default=-0.1)>\n"+
 				"\t--numcomps <number of components to cluster (default=500)>\n"+
 				"\t--win <window size of read profiles (default=150)>\n"+
+				"\t--kldivergencethres <KL divergence dissimilarity threshold for merging subtypes using read distributions; increase for fewer subtypes (default=-10)>\n" +
 				" Reporting binding events:\n" +
 				"\t--q <Q-value minimum (default=0.01)>\n" +
 				"\t--minfold <minimum event fold-change vs scaled control (default=1.5)>\n" +
