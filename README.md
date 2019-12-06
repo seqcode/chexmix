@@ -109,6 +109,7 @@ __Running ChExMix__:
   * --alphascale \<value\>: Alpha scaling factor (default=1.0). Increasing this parameter results in stricter binding event calls.
   * --betascale \<value\>: Beta scaling factor (default=0.05). The beta parameter is a sparse prior on binding event subtype assignment in the ChExMix model. Increasing this parameter may result in inaccurate subtype assignment.
   * --epsilonscale \<value\>: Epsilon scaling factor (default=0.2). The epsilon parameter control a balance between motif and read distribution in subtype assignment. Increasing this parameter will increase the contribution of motif and decreases the contribution of read distribution.
+  * --minsubtypefrac \<value\>: Minimum percentage of associated binding events to support a subtype (default=0.05). Decreasing this parameter results in fewer number of binding events.  
   * --peakf \<file\>: File of peaks to initialize component positions. See [here](https://github.com/seqcode/chexmix/blob/master/manuscriptsppl/MCF7-Erpos.peaks) for an example peak file.
   * --galaxyhtml: Flag to produce a html output appropreate for galaxy
   * --__exclude__ \<file\>: File containing a set of regions to ignore during ChExMix training. It’s a good idea to exclude the mitochondrial genome and other ‘blacklisted’ regions that contain artifactual accumulations of reads in both ChIP-exo and control experiments. ChExMix will waste time trying to model binding events in these regions, even though they will not typically appear significantly enriched over the control (and thus will not be reported to the user). See the format of an exclude region file [here](http://lugh.bmb.psu.edu/software/multigps/support/mm9_excludes.txt) (example for mm9).
@@ -135,7 +136,8 @@ __Finding ChExMix subtypes__:
   * --memeargs \<args\>: Additional args for MEME (default:  -dna -mod zoops -revcomp -nostatus)
   * --minroc \<value\>: Minimum motif ROC value (default=0.7)
   * --seqrmthres \<value\>: Filter out sequences with motifs below this threshold for recursively finding motifs (default=0.1)
-  * --minmodelupdaterefs \<int\>: Minimum number of motif reference to support an subtype distribution update (default=25)
+  * --minmodelupdaterefs \<int\>: Minimum number of motif reference to support a subtype update (default=25)
+  * --motifpccthres \<value\>: Motif similarity threshold for merging subtypes using motifs (default=0.95). Decreasing this parameter results in fewer subtypes.
  
  2. Using ChIP-exo tag distributions:
 
@@ -143,6 +145,7 @@ __Finding ChExMix subtypes__:
   * --pref \<value\>: Preference value for read distribution clustering (default=-0.1)
   * --numcomps \<int\>: Number of components to cluster (default=500)
   * --win \<int\>: Read profile window size (default=150)
+  * --kldivergencethres \<value\>: KL divergence dissimilarity threshold for merging subtypes using read distributions (default=-10). Increasing this parameter results in fewer subtypes.
   
 __Reporting binding events__:
 
