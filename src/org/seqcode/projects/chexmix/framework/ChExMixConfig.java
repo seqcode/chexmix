@@ -500,7 +500,7 @@ public class ChExMixConfig {
 				" Running ChExMix:\n" +
 				"\t--round <max. model update rounds (default=3)>\n" +
 				"\t--nomodelupdate [flag to turn off binding model updates]\n" +
-				"\t--minmodelupdateevents <minimum number of events to support an update (default=100)>\n" +
+				"\t--minmodelupdateevents <minimum number of events to support an update using read distributions (default=100)>\n" +
 				"\t--prlogconf <Poisson log threshold for potential region scanning (default=-6)>\n" +
 				"\t--fixedalpha <binding events must have at least this number of reads (default: set automatically)>\n" +
 				"\t--alphascale <alpha scaling factor; increase for stricter event calls (default=1.0)>\n" +
