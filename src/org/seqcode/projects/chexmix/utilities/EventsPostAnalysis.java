@@ -604,8 +604,8 @@ public class EventsPostAnalysis {
 	    				"\t\t\t\t\t</div>\n\t\t\t\t\t<div id='collapseTwo' class='collapse' aria-labelledby='headingOne' data-parent='#commandRun'>\n");
 	    		DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 	    		Date date = new Date();
-	    		fout.write("\t\t\t\t<div class='card-body'>\n\t\t\t\t\tChExMix version "+config.version+" run completed on: "+dateFormat.format(date));
-	    		fout.write(" with arguments:\n "+config.getArgs()+"\n");
+	    		fout.write("\t\t\t\t<div class='card-body'>\n\t\t\t\t\tChExMix version "+config.version+" run completed on: "+dateFormat.format(date)+"<br>");
+	    		fout.write(" with arguments:\n "+config.getArgs()+"<br>\n");
 	    		fout.write(" with parameters:\n "+config.getParams()+evconfig.getParams()+"\n");
 	    		fout.write("\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t\t</div>\n\t\t\t<br>\n");	   
 	    	
