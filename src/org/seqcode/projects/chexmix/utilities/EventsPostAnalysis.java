@@ -202,9 +202,12 @@ public class EventsPostAnalysis {
 					String motfilename = config.getOutputIntermediateDir()+File.separator+config.getOutBase()+"."+cond.getName()+".transfac";
 					FileWriter fout = new FileWriter(motfilename);
 					String out = "";
-					for (BindingSubtype sub : bindingManager.getBindingSubtype(cond))
+					int subIndex=0;
+					for (BindingSubtype sub : bindingManager.getBindingSubtype(cond)){
 						if (sub.hasMotif())
-							out = out+WeightMatrix.printTransfacMatrix(sub.getFreqMatrix(),sub.getFreqMatrix().getName());
+							out = out+WeightMatrix.printTransfacMatrix(sub.getFreqMatrix(),"Subtype"+subIndex);
+						subIndex++;
+					}
 					fout.write(out);
 					fout.close();
 				}
