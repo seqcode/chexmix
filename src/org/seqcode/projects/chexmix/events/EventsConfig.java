@@ -64,7 +64,7 @@ public class EventsConfig {
 	}
 	
 	public String getParams(){
-		String p=" --q"+qMinThres+" --minfold "+minEventFoldChange;
+		String p=" --q "+qMinThres+" --minfold "+minEventFoldChange;
 		return p;
 	}
 	

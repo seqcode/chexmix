@@ -155,7 +155,7 @@ public class ChExMixConfig {
 	}
 	
 	public String getParams(){
-		String p=" --highlogconf "+sigLogConf+" --prlogconf "+" --round "+prLogConf+maxModelUpdateRounds+" --pospriorscale "+posPriorScaling+" --threads "+maxThreads
+		String p=" --highlogconf "+sigLogConf+" --prlogconf "+prLogConf+" --round "+maxModelUpdateRounds+" --pospriorscale "+posPriorScaling+" --threads "+maxThreads
 				+" --alphascale "+alphaScalingFactor+" --fixedalpha "+fixedAlpha+" --betascale "+betaScalingFactor+" --epsilonscale "+epsilonScalingFactor
 				+" --minroc "+motifMinROC+" --bmwindowmax "+bmAnalysisWindowMax+" --minmodelupdateevents "+minComponentsForBMUpdate+" --minmodelupdaterefs "+minRefsForBMUpdate
 				+" --minsubtypefrac "+minSubtypeFraction+" --gausssmoothparam "+gauss_smooth+" --memepath "+MEMEpath+" --memeargs "+MEMEargs+" --mememinw "+MEMEminw
