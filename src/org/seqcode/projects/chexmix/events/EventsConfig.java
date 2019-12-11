@@ -63,6 +63,11 @@ public class EventsConfig {
 		return a;
 	}
 	
+	public String getParams(){
+		String p=" --q"+qMinThres+" --minfold "+minEventFoldChange;
+		return p;
+	}
+	
 	public EventsConfig(GenomeConfig gcon, String[] arguments){
 		gconfig = gcon;
 		gen = gconfig.getGenome();

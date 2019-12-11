@@ -400,7 +400,7 @@ public class EventsPostAnalysis {
 		    	DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 		    	Date date = new Date();
 		    	fout.write("\t<p>ChExMix version "+config.version+" run completed on: "+dateFormat.format(date));
-		    	fout.write(" with arguments:\n "+config.getArgs()+"\n</p>\n");
+		    	fout.write(" with arguments:\n "+config.getArgs()+" with parameters:\n "+config.getParams()+evconfig.getParams()+"\n</p>\n");
 		   
 		    	
 		    	//Input data read counts and read distribs (per replicate)
@@ -605,7 +605,9 @@ public class EventsPostAnalysis {
 	    		DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 	    		Date date = new Date();
 	    		fout.write("\t\t\t\t<div class='card-body'>\n\t\t\t\t\tChExMix version "+config.version+" run completed on: "+dateFormat.format(date));
-	    		fout.write(" with arguments:\n "+config.getArgs()+"\n\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t\t</div>\n\t\t\t<br>\n");	   
+	    		fout.write(" with arguments:\n "+config.getArgs()+"\n");
+	    		fout.write(" with parameters:\n "+config.getParams()+evconfig.getParams()+"\n");
+	    		fout.write("\t\t\t\t</div>\n\t\t\t\t</div>\n\t\t\t</div>\n\t\t\t</div>\n\t\t\t<br>\n");	   
 	    	
 	    		//Input data read counts and read distribs (per replicate)
 	    		fout.write("\t\t\t<div class='card'>\n" +

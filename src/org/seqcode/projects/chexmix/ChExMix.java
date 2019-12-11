@@ -396,12 +396,13 @@ public class ChExMix {
 				" Running ChExMix:\n" +
 				"\t--round <max. model update rounds (default=3)>\n" +
 				"\t--nomodelupdate [flag to turn off binding model updates]\n" +
-				"\t--minmodelupdateevents <minimum number of events to support an update (default=100)>\n" +
+				"\t--minmodelupdateevents <minimum number of events to support an update using read distributions (default=100)>\n" +
 				"\t--prlogconf <Poisson log threshold for potential region scanning (default=-6)>\n" +
 				"\t--fixedalpha <binding events must have at least this number of reads (default: set automatically)>\n" +
 				"\t--alphascale <alpha scaling factor; increase for stricter event calls (default=1.0)>\n" +
 				"\t--betascale <beta scaling factor; prior on subtype assignment (default=0.05)>\n" +
 				"\t--epsilonscale <epsilon scaling factor; increase for more weight on motif in subtype assignment (default=0.2)>\n" +
+				"\t--minsubtypefrac <subtypes must have at least this percentage of associated binding events; increase for fewer subtypes (default=0.05)>\n" +
 				"\t--peakf <file of peaks to initialize component positions>\n" +
 				"\t--exclude <file of regions to ignore> OR --excludebed <file of regions to ignore in bed format>\n" +
 				"\t--galaxyhtml [flag to produce a html output appropreate for galaxy]\n" +
@@ -421,11 +422,13 @@ public class ChExMix {
 				"\t--minroc <minimum motif ROC value (default=0.7)>\n"+
 				"\t--minmodelupdaterefs <minimum number of motif reference to support an subtype distribution update (default=50)>\n"+
 				"\t--seqrmthres <Filter out sequences with motifs below this threshold for recursively finding motifs (default=0.1)>\n" +
+				"\t--motifpccthres <motif length adjusted similarity threshold for merging subtypes using motifs; decrease for fewer subtypes (default=0.95)>\n" +
 				" Finding ChExMix subtypes using read distribution clustering:\n"+
 				"\t--noclustering [flag to turn off read distribution clustering]\n" +
 				"\t--pref <preference value for read distribution clustering (default=-0.1)>\n"+
 				"\t--numcomps <number of components to cluster (default=500)>\n"+
 				"\t--win <window size of read profiles (default=150)>\n"+
+				"\t--kldivergencethres <KL divergence dissimilarity threshold for merging subtypes using read distributions; increase for fewer subtypes (default=-10)>\n" +
 				" Reporting binding events:\n" +
 				"\t--q <Q-value minimum (default=0.01)>\n" +
 				"\t--minfold <minimum event fold-change vs scaled control (default=1.5)>\n" +

@@ -40,7 +40,7 @@ import org.seqcode.motifs.FreqMatrixImport;
  */
 public class ChExMixConfig {
 
-	public static String version = "0.44";
+	public static String version = "0.45";
 	public boolean isGPS=true;
 	protected GenomeConfig gconfig;
 	protected Genome gen=null;
@@ -152,6 +152,16 @@ public class ChExMixConfig {
 		for(int i=0; i<args.length; i++)
 			a = a+" "+args[i];
 		return a;
+	}
+	
+	public String getParams(){
+		String p=" --highlogconf "+sigLogConf+" --prlogconf "+" --round "+prLogConf+maxModelUpdateRounds+" --pospriorscale "+posPriorScaling+" --threads "+maxThreads
+				+" --alphascale "+alphaScalingFactor+" --fixedalpha "+fixedAlpha+" --betascale "+betaScalingFactor+" --epsilonscale "+epsilonScalingFactor
+				+" --minroc "+motifMinROC+" --bmwindowmax "+bmAnalysisWindowMax+" --minmodelupdateevents "+minComponentsForBMUpdate+" --minmodelupdaterefs "+minRefsForBMUpdate
+				+" --minsubtypefrac "+minSubtypeFraction+" --gausssmoothparam "+gauss_smooth+" --memepath "+MEMEpath+" --memeargs "+MEMEargs+" --mememinw "+MEMEminw
+				+" --mememaxw "+MEMEmaxw+" --compspacing "+initComponentSpacing+" --pref "+preferenceValue+" --numcomps "+numClusteringComps+" --seqrmthres "+MarkovBackSeqRmThres
+				+" --mrange "+modelRange+" --motifpccthres "+MotifPCCThres+" --kldivergencethres "+KLDivergenceThres;
+		return p;
 	}
 	
 	public ChExMixConfig(GenomeConfig gcon, String[] arguments){this(gcon, arguments, true);}
