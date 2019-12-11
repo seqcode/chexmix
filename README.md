@@ -17,7 +17,7 @@ N Yamada, PK Kuntala, BF Pugh, S Mahony ."ChExMix: a method for identifying and 
 
 Downloading Executables
 --------------
-  * ChExMix version 0.45 (2019-12-11): [JAR](http://lugh.bmb.psu.edu/software/chexmix/chexmix_v0.4.jar)
+  * ChExMix version 0.45 (2019-12-11): [JAR](http://lugh.bmb.psu.edu/software/chexmix/chexmix_v0.45.jar)
   * ChExMix version 0.4 (2019-04-25): [JAR](http://lugh.bmb.psu.edu/software/chexmix/chexmix_v0.4.jar)
   * ChExMix version 0.3 (2019-01-15): [JAR](http://lugh.bmb.psu.edu/software/chexmix/chexmix_v0.3.jar)
   * ChExMix version 0.2 (2018-10-03): [JAR](http://lugh.bmb.psu.edu/software/chexmix/chexmix_v0.2.jar)
@@ -232,12 +232,12 @@ For queries, please contact Naomi (nuy11@psu.edu) or Shaun Mahony (mahony@psu.ed
 
 Major History:
 --------------  
-Version 0.45 (2019-12-11): Comment out unused code fragments to reduce memory requirements. Print out ChExMix parameters in HTML outputs, several updates on command line options to modify parameters. 
+Version 0.45 (2019-12-11): Comment out unused code fragments to reduce memory requirements. Print out ChExMix parameters in HTML outputs. Several updates on command line options to modify parameters. Bug fixes.
 
-Version 0.4 (2019-04-25): Updates on HTML output, heatmap and sequence plots. Create extra outputs in event file. Updates on replicate handling options. Bug fixes.
+Version 0.4 (2019-04-25): Updates on HTML output, heatmap, and sequence plots. Create extra outputs in event file. Updates on replicate handling options. Bug fixes.
 
 Version 0.3 (2019-01-15): Introducing --lenient and --lenientplus modes for determining alternate ways of defining final binding events when replicated experiments are present. Output files now consist of only one ".events" file (to reduce confusion), files listing binding events found in each replicate, and a file reporting on the replication status of each binding event. Fixed several bugs, including relating to the final heatmap and composite plots displayed on the output HTML page, and a bug in --noclustering. 
 
-Version 0.2 (2018-10-03): Updates to support Galaxy integration, added command line options to set 1) user provided motifs in seeding subtypes and 2) a Markov background threshold for motif detection, updates on EM training plots and html output, and bug fixes.
+Version 0.2 (2018-10-03): Updates to support Galaxy integration. Added command line options to set 1) user provided motifs in seeding subtypes and 2) a Markov background threshold for motif detection. Updates on EM training plots and html output. Bug fixes.
 
 Version 0.1 (2018-02-14): Initial release.
