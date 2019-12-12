@@ -515,7 +515,7 @@ public class ChExMixConfig {
 				"\t--prlogconf <Poisson log threshold for potential region scanning (default=-6)>\n" +
 				"\t--fixedalpha <binding events must have at least this number of reads (default: set automatically)>\n" +
 				"\t--alphascale <alpha scaling factor; increase for stricter event calls (default=1.0)>\n" +
-				"\t--betascale <beta scaling factor; prior on subtype assignment (default=0.05)>\n" +
+				"\t--betascale <beta scaling factor; sparse prior on subtype assignment (default=0.05)>\n" +
 				"\t--epsilonscale <epsilon scaling factor; increase for more weight on motif in subtype assignment (default=0.2)>\n" +
 				"\t--minsubtypefrac <subtypes must have at least this percentage of associated binding events; increase for fewer subtypes (default=0.05)>\n" +
 				"\t--peakf <file of peaks to initialize component positions>\n" +
