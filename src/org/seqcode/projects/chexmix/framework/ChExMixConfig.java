@@ -509,6 +509,7 @@ public class ChExMixConfig {
 		return(new String("" +
 				" Running ChExMix:\n" +
 				"\t--round <max. model update rounds (default=3)>\n" +
+				"\t--bmwindowmax <max. window size for running a mixture model over binding events (default=2000)>\n" +
 				"\t--nomodelupdate [flag to turn off binding model updates]\n" +
 				"\t--minmodelupdateevents <minimum number of events to support an update using read distributions (default=100)>\n" +
 				"\t--prlogconf <Poisson log threshold for potential region scanning (default=-6)>\n" +
