@@ -17,6 +17,7 @@ N Yamada, PK Kuntala, BF Pugh, S Mahony. "ChExMix: a method for identifying and 
 
 Downloading Executables
 --------------
+  * ChExMix version 0.5 (2020-07-09): [JAR](http://lugh.bmb.psu.edu/software/chexmix/chexmix_v0.5.jar)
   * ChExMix version 0.45 (2019-12-11): [JAR](http://lugh.bmb.psu.edu/software/chexmix/chexmix_v0.45.jar)
   * ChExMix version 0.4 (2019-04-25): [JAR](http://lugh.bmb.psu.edu/software/chexmix/chexmix_v0.4.jar)
   * ChExMix version 0.3 (2019-01-15): [JAR](http://lugh.bmb.psu.edu/software/chexmix/chexmix_v0.3.jar)
@@ -232,6 +233,8 @@ For queries, please contact Naomi (nuy11@psu.edu) or Shaun Mahony (mahony@psu.ed
 
 Major History:
 --------------  
+Version 0.5 (2020-07-09): Fixing mishandling of multimapped reads in BWA output BAM files. Option --nonunique now works as expected. 
+
 Version 0.45 (2019-12-11): Comment out unused code fragments to reduce memory requirements. Print out ChExMix parameters in HTML outputs. Several updates on command line options to modify parameters. Bug fixes.
 
 Version 0.4 (2019-04-25): Updates on HTML output, heatmap, and sequence plots. Create extra outputs in event file. Updates on replicate handling options. Bug fixes.
