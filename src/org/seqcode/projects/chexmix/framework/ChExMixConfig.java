@@ -261,10 +261,23 @@ public class ChExMixConfig {
 				if(ap.hasKey("plotregions"))
 					regionsToPlot = RegionFileUtilities.loadRegionsFromFile(Args.parseString(args, "plotregions", null), gen, -1);
 				//Regions to ignore during EM training
-				if(ap.hasKey("exclude"))
+				if(ap.hasKey("exclude")) {
 					regionsToIgnore = RegionFileUtilities.loadRegionsFromFile(Args.parseString(args, "exclude", null), gen, -1);
-				else if (ap.hasKey("excludebed"))
+					if(regionsToIgnore.size()==0) {
+						System.err.println("WARNING: No exclude regions detected in regions file "+Args.parseString(args, "exclude", null)+". Attempting to load as BED file.");
+						regionsToIgnore = RegionFileUtilities.loadRegionsFromBEDFile(gen, Args.parseString(args, "exclude", null), -1);
+						if(regionsToIgnore.size()==0)
+							System.err.println("WARNING: No exclude regions detected in "+Args.parseString(args, "exclude", null)+" after attempting to load as BED file.");
+					}else
+						System.err.println("Excluding "+regionsToIgnore.size()+" regions from "+Args.parseString(args, "exclude", null));
+				}else if (ap.hasKey("excludebed")) {
 					regionsToIgnore = RegionFileUtilities.loadRegionsFromBEDFile(gen, Args.parseString(args, "excludebed", null), -1);
+					if(regionsToIgnore.size()==0)
+						System.err.println("WARNING: No exclude regions detected in BED file "+Args.parseString(args, "excludebed", null)+". Did you mean to use --exclude?");
+					else
+						System.err.println("Excluding "+regionsToIgnore.size()+" regions from BED file "+Args.parseString(args, "excludebed", null));
+				}
+				
 				//Initial peak file
 				if (ap.hasKey("peakf"))
 					initialPos = RegionFileUtilities.loadPeaksFromPeakFile(gen, Args.parseString(args, "peakf", null));
