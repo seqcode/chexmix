@@ -1080,10 +1080,10 @@ public class BindingMixture {
 	            if(seq!=null && motifForScores!=null && motifRevScores!=null){
 		            for(ExperimentCondition cond : manager.getConditions()){
 		            	int numBindingType = bindingManager.getNumBindingType(cond);
-		            	double[][] scores = new double[numBindingType][2];
-		            	String[][] seqs = new String[numBindingType][2];
 		            	for(BindingEvent b: currEvents){
-		            		if (b.isFoundInCondition(cond)){
+		            		double[][] scores = new double[numBindingType][2];
+			            	String[][] seqs = new String[numBindingType][2];
+			            	if (b.isFoundInCondition(cond)){
 		            			for (int bt=0; bt < numBindingType; bt++){
 		            				BindingSubtype subtype = bindingManager.getBindingSubtype(cond).get(bt);
 		            				scores[bt][0]=0; seqs[bt][0] = ""; scores[bt][1]=0; seqs[bt][1]="";
@@ -1096,10 +1096,15 @@ public class BindingMixture {
 		            						scores[bt][1] = motifRevScores.car()[cond.getIndex()][bt][b.getTypePoints(cond)[bt][1].getLocation()-w.getStart()];
 		            						seqs[bt][1] = motifRevScores.cdr()[cond.getIndex()][bt][b.getTypePoints(cond)[bt][1].getLocation()-w.getStart()];
 		            					}
-		            			}}}		
+		            				}
+		            			}
+		            		}
 		            		b.setMotifScore(cond,scores);
 		            		b.setSequence(cond, seqs);	          			
-		            	}}}}
+		            	}
+		            }
+	            }
+            }
 
             return currEvents;
         }//end of analyzeWindowML method
