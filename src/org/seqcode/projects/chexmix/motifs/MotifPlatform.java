@@ -294,8 +294,9 @@ public class MotifPlatform {
 		
 				// find motifs recursively until no motifs pass ROC threshold scores
 				boolean findMotif = true;	
-				if (config.getInitialMotifs()!=null){
-					findMotif=false;	// No motif finding if initial motifs are defined
+				if (config.getInitialMotifs()!=null && trainingRound==0){
+					findMotif=false;	// No motif finding if initial motifs are defined (first round of training only)
+					System.out.println("Skipping motif-finding for this round of training, as initial motifs have been defined.");
 				}else if (sortedRegions.size() < config.getMinRefsForBMUpdate()){
 					findMotif = false;
 					System.err.println("cannot do motif finding due to too few regions ("+sortedRegions.size()+"<"+config.getMinRefsForBMUpdate()+").");
@@ -384,7 +385,7 @@ public class MotifPlatform {
 				} // End of while loop to recursively find motifs
 				
 				// Define subtypes and read distributions using the provided motifs
-				if (config.getInitialMotifs()!=null){
+				if (config.getInitialMotifs()!=null && trainingRound==0){
 					//Define subtypes using initially provided motifs
 					List<WeightMatrix> sigMotifs = config.getInitialMotifs();
 					List<WeightMatrix> sigFreqMatrix = new ArrayList<WeightMatrix>();
