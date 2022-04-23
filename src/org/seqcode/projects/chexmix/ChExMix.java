@@ -422,6 +422,7 @@ public class ChExMix {
 				"\t--memeargs <additional args for MEME (default=  -dna -mod zoops -revcomp -nostatus)>\n"+
 				"\t--minroc <minimum motif ROC value (default=0.7)>\n"+
 				"\t--minmodelupdaterefs <minimum number of motif reference to support an subtype distribution update (default=50)>\n"+
+				"\t--noupdateinitmotifs [flag to leave initial motifs (provided by --motfile) fixed]\n" +
 				"\t--seqrmthres <Filter out sequences with motifs below this threshold for recursively finding motifs (default=0.1)>\n" +
 				"\t--motifpccthres <motif length adjusted similarity threshold for merging subtypes using motifs; decrease for fewer subtypes (default=0.95)>\n" +
 				" Finding ChExMix subtypes using read distribution clustering:\n"+

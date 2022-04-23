@@ -90,6 +90,7 @@ public class ChExMixConfig {
 	protected String distribA=null;	//Stranded distribution A
 	protected String distribB=null;	//Stranded distribution B
 	protected List<WeightMatrix> initMotifs=null; //Initial motifs
+	protected boolean updateInitMotifs = true; //Update the inital motifs
 	protected double preferenceValue = -0.1; // Preference value for read distribution clustering
 	protected int clusteringWindow = 150;
 	protected int numClusteringComps = 500;	// Number of components to perform AP clustering
@@ -383,6 +384,8 @@ public class ChExMixConfig {
 					motifImport.setBackground(markovBackMode);
 					initMotifs.addAll(motifImport.readTransfacMatrices(motfile));
 				}
+				if(Args.parseFlags(args).contains("noupdateinitmotifs"))
+					updateInitMotifs=false;
 
 			} catch (FileNotFoundException e) {
 				e.printStackTrace();
@@ -455,6 +458,7 @@ public class ChExMixConfig {
 	public String getDistribA(){return distribA;}
 	public String getDistribB(){return distribB;}
 	public List<WeightMatrix> getInitialMotifs(){return initMotifs;}
+	public boolean updateInitialMotifs() {return updateInitMotifs;}
 	public double getPreferenceValue(){return preferenceValue;}
 	public int getClusterWindowSize(){return clusteringWindow;}
 	public int getNumClusteringComps(){return numClusteringComps;}
