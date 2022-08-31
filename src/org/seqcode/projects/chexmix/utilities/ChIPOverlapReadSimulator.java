@@ -366,6 +366,19 @@ public class ChIPOverlapReadSimulator {
 					for(int i=0; i<noiseFrags; i++){
 						ReadHit rh = noiseSource.get(fragindex[i]);
 						frags.add(rh);
+						
+						if(paired) { 
+							ReadHit rhp=null;
+							//We can't guarantee that the provided control experiment is paired end, and even if we could, it would be messy to get the actual pairs.
+							//So... we're simulating the paired read from the real controls too...
+							int len =Math.max(rLen, (int)fragLengthDistrib.sample());
+							if(rh.getStrand()=='+')
+								rhp = new ReadHit(rh.getChrom(), (int)rh.getStart()+len-rLen+1, (int)rh.getStart()+len, '-');
+							else
+								rhp = new ReadHit(rh.getChrom(), Math.max(1, (int)rh.getStart()-len), Math.max(1, (int)rh.getStart()-len+rLen-1), '+');
+							fragPairs.add(rhp);
+							
+						}
 					}
 				}
 				
