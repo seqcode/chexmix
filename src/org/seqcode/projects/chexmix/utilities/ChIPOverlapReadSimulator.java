@@ -365,7 +365,12 @@ public class ChIPOverlapReadSimulator {
 					//Extract the fragments
 					for(int i=0; i<noiseFrags; i++){
 						ReadHit rh = noiseSource.get(fragindex[i]);
-						frags.add(rh);
+						//Convert the read into the expected read length
+						ReadHit nrh = new ReadHit(rh.getChrom(), 
+										rh.getStrand()=='+' ? rh.getFivePrime() : Math.max(1, rh.getFivePrime()-rLen+1),
+										rh.getStrand()=='+' ? rh.getFivePrime()+rLen-1 : rh.getFivePrime(),
+										rh.getStrand());
+						frags.add(nrh);
 						
 						if(paired) { 
 							ReadHit rhp=null;
@@ -373,9 +378,9 @@ public class ChIPOverlapReadSimulator {
 							//So... we're simulating the paired read from the real controls too...
 							int len =Math.max(rLen, (int)fragLengthDistrib.sample());
 							if(rh.getStrand()=='+')
-								rhp = new ReadHit(rh.getChrom(), (int)rh.getStart()+len-rLen+1, (int)rh.getStart()+len, '-');
+								rhp = new ReadHit(nrh.getChrom(), (int)nrh.getFivePrime()+len-rLen+1, (int)nrh.getFivePrime()+len, '-');
 							else
-								rhp = new ReadHit(rh.getChrom(), Math.max(1, (int)rh.getStart()-len), Math.max(1, (int)rh.getStart()-len+rLen-1), '+');
+								rhp = new ReadHit(nrh.getChrom(), Math.max(1, (int)nrh.getFivePrime()-len), Math.max(1, (int)nrh.getFivePrime()-len+rLen-1), '+');
 							fragPairs.add(rhp);
 							
 						}
