@@ -17,6 +17,8 @@ N Yamada, PK Kuntala, BF Pugh, S Mahony. "ChExMix: a method for identifying and 
 
 Downloading Executables
 --------------
+Please note that the following executables are temporarily unavailable from the listed URLs. Please find the most recent releases here: https://github.com/seqcode/chexmix/releases
+
   * ChExMix version 0.52 (2022-04-22): [JAR](http://lugh.bmb.psu.edu/software/chexmix/chexmix_v0.52.jar)
   * ChExMix version 0.51 (2021-06-03): [JAR](http://lugh.bmb.psu.edu/software/chexmix/chexmix_v0.51.jar)
   * ChExMix version 0.5 (2020-07-09): [JAR](http://lugh.bmb.psu.edu/software/chexmix/chexmix_v0.5.jar)
