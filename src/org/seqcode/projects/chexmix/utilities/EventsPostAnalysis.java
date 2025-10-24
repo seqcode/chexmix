@@ -454,7 +454,7 @@ public class EventsPostAnalysis {
 						"\t<table>\n");
 				fout.write("\t\t<tr>" +
 		    			"\t\t<th>Condition</th>\n" +
-		    			"\t\t<th>Heatmap (+/-250bp)</th>\n");
+		    			"\t\t<th>Heatmap (+/-125bp)</th>\n");
 				if(config.getFindingMotifs())
 					fout.write("\t\t<th>Sequence plot (+/-"+evconfig.SEQPLOTWIN+"bp)</th>\n");
 				for (int i=0; i < maxNumSubtypes; i++)
